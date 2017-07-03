@@ -302,7 +302,7 @@ public class TasksFragment extends Fragment implements TasksContract.View {
     @Override
     public void showTaskDetailsUi(String taskId) {
         // in it's own Activity, since it makes more sense that way and it gives us the flexibility
-        // to show some Intent stubbing.
+        // to show some MviIntent stubbing.
         Intent intent = new Intent(getContext(), TaskDetailActivity.class);
         intent.putExtra(TaskDetailActivity.EXTRA_TASK_ID, taskId);
         startActivity(intent);

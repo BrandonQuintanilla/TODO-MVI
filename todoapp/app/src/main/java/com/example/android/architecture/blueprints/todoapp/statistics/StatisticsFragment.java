@@ -17,83 +17,93 @@
 package com.example.android.architecture.blueprints.todoapp.statistics;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
+import com.example.android.architecture.blueprints.todoapp.Injection;
 import com.example.android.architecture.blueprints.todoapp.R;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviBaseView;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
 
 /**
  * Main UI for the statistics screen.
  */
-public class StatisticsFragment extends Fragment implements StatisticsContract.View {
+public class StatisticsFragment extends Fragment implements MviBaseView<StatisticsUiState> {
 
-    private TextView mStatisticsTV;
+  private TextView statisticsTV;
+  private StatisticsPresenter presenter;
+  private CompositeDisposable disposables;
 
-    private StatisticsContract.Presenter mPresenter;
+  public static StatisticsFragment newInstance() {
+    return new StatisticsFragment();
+  }
 
-    public static StatisticsFragment newInstance() {
-        return new StatisticsFragment();
+  @Nullable @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      Bundle savedInstanceState) {
+    View root = inflater.inflate(R.layout.statistics_frag, container, false);
+    statisticsTV = (TextView) root.findViewById(R.id.statistics);
+    return root;
+  }
+
+  @Override public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    presenter = new StatisticsPresenter(
+        Injection.provideTasksRepository(getActivity().getApplicationContext()),
+        Injection.provideSchedulerProvider());
+    disposables = new CompositeDisposable();
+    bind();
+  }
+
+  private void bind() {
+    disposables.add(presenter.states().subscribe(this::render));
+    presenter.forwardIntents(intents());
+  }
+
+  @Override public void onDestroy() {
+    super.onDestroy();
+    disposables.dispose();
+  }
+
+  public boolean isActive() {
+    return isAdded();
+  }
+
+  @Override public Observable<? extends MviIntent> intents() {
+    return initialIntent();
+  }
+
+  private Observable<StatisticsIntent> initialIntent() {
+    return Observable.just(StatisticsIntent.InitialIntent.create());
+  }
+
+  @Override public void render(StatisticsUiState state) {
+    if (state.isLoading()) statisticsTV.setText(getString(R.string.loading));
+    if (state.error() != null) {
+      statisticsTV.setText(getResources().getString(R.string.statistics_error));
     }
 
-    @Override
-    public void setPresenter(@NonNull StatisticsContract.Presenter presenter) {
-        mPresenter = checkNotNull(presenter);
+    if (state.error() == null && !state.isLoading()) {
+      showStatistics(state.activeCount(), state.completedCount());
     }
+  }
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.statistics_frag, container, false);
-        mStatisticsTV = (TextView) root.findViewById(R.id.statistics);
-        return root;
+  private void showStatistics(int numberOfActiveTasks, int numberOfCompletedTasks) {
+    if (numberOfCompletedTasks == 0 && numberOfActiveTasks == 0) {
+      statisticsTV.setText(getResources().getString(R.string.statistics_no_tasks));
+    } else {
+      String displayString = getResources().getString(R.string.statistics_active_tasks)
+          + " "
+          + numberOfActiveTasks
+          + "\n"
+          + getResources().getString(R.string.statistics_completed_tasks)
+          + " "
+          + numberOfCompletedTasks;
+      statisticsTV.setText(displayString);
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mPresenter.subscribe();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mPresenter.unsubscribe();
-    }
-
-    @Override
-    public void setProgressIndicator(boolean active) {
-        if (active) {
-            mStatisticsTV.setText(getString(R.string.loading));
-        }
-    }
-
-    @Override
-    public void showStatistics(int numberOfIncompleteTasks, int numberOfCompletedTasks) {
-        if (numberOfCompletedTasks == 0 && numberOfIncompleteTasks == 0) {
-            mStatisticsTV.setText(getResources().getString(R.string.statistics_no_tasks));
-        } else {
-            String displayString = getResources().getString(R.string.statistics_active_tasks) + " "
-                    + numberOfIncompleteTasks + "\n" + getResources().getString(
-                    R.string.statistics_completed_tasks) + " " + numberOfCompletedTasks;
-            mStatisticsTV.setText(displayString);
-        }
-    }
-
-    @Override
-    public void showLoadingStatisticsError() {
-        mStatisticsTV.setText(getResources().getString(R.string.statistics_error));
-    }
-
-    @Override
-    public boolean isActive() {
-        return isAdded();
-    }
+  }
 }

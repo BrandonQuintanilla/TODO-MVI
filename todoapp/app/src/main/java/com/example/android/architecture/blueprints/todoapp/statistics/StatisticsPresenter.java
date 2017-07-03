@@ -17,15 +17,22 @@
 package com.example.android.architecture.blueprints.todoapp.statistics;
 
 import android.support.annotation.NonNull;
-import android.support.v4.util.Pair;
+import android.util.Log;
+import android.util.Pair;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviBaseModel;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviUiState;
 import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiFunction;
+import io.reactivex.subjects.PublishSubject;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -33,63 +40,117 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Listens to user actions from the UI ({@link StatisticsFragment}), retrieves the data and updates
  * the UI as required.
  */
-public class StatisticsPresenter implements StatisticsContract.Presenter {
+public class StatisticsPresenter implements MviBaseModel {
+  @NonNull private PublishSubject<MviIntent> intentsSubject;
+  @NonNull private PublishSubject<StatisticsUiState> statesSubject;
+  @NonNull private TasksRepository tasksRepository;
 
-  @NonNull private final TasksRepository mTasksRepository;
+  @NonNull private BaseSchedulerProvider schedulerProvider;
 
-  @NonNull private final StatisticsContract.View mStatisticsView;
-
-  @NonNull private final BaseSchedulerProvider mSchedulerProvider;
-
-  @NonNull private CompositeDisposable disposables;
-
-  public StatisticsPresenter(@NonNull TasksRepository tasksRepository,
-      @NonNull StatisticsContract.View statisticsView,
+  StatisticsPresenter(@NonNull TasksRepository tasksRepository,
       @NonNull BaseSchedulerProvider schedulerProvider) {
-    mTasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null");
-    mStatisticsView = checkNotNull(statisticsView, "statisticsView cannot be null!");
-    mSchedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
+    this.tasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null");
+    this.schedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
 
-    disposables = new CompositeDisposable();
-    mStatisticsView.setPresenter(this);
+    intentsSubject = PublishSubject.create();
+    statesSubject = PublishSubject.create();
+
+    compose().subscribe(state -> this.statesSubject.onNext(state));
   }
 
-  @Override public void subscribe() {
-    loadStatistics();
+  @Override public void forwardIntents(Observable<? extends MviIntent> intents) {
+    intents.subscribe(intentsSubject::onNext);
   }
 
-  @Override public void unsubscribe() {
-    disposables.clear();
+  @Override public Observable<StatisticsUiState> states() {
+    return statesSubject;
   }
 
-  private void loadStatistics() {
-    mStatisticsView.setProgressIndicator(true);
-
-    // The network request might be handled in a different thread so make sure Espresso knows
-    // that the app is busy until the response is handled.
-    EspressoIdlingResource.increment(); // App is busy until further notice
-
-    Observable<Task> tasks =
-        mTasksRepository.getTasks().toObservable().flatMap(Observable::fromIterable);
-    Single<Long> completedTasks = tasks.filter(Task::isCompleted).count();
-    Single<Long> activeTasks = tasks.filter(Task::isActive).count();
-    Disposable disposable = Single.zip(completedTasks, activeTasks,
-        (completed, active) -> Pair.create(active, completed))
-        .subscribeOn(mSchedulerProvider.computation())
-        .observeOn(mSchedulerProvider.ui())
-        .doOnSuccess(ignored -> {
-          if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
+  private Observable<StatisticsUiState> compose() {
+    return intentsSubject.doOnNext(this::logIntent)
+        .map(this::actionFromIntent)
+        .doOnNext(this::logAction)
+        .compose(actionProcessor)
+        .doOnNext(this::logResult)
+        .scan(StatisticsUiState.idle(), reducer)
+        .doOnNext(this::logState)
+        .doOnNext(state -> {
+          // The network request might be handled in a different thread so make sure Espresso knows
+          // that the app is busy until the response is handled.
+          if (state.isLoading()) {
+            EspressoIdlingResource.increment();
+          } else if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
             EspressoIdlingResource.decrement(); // Set app as idle.
           }
-        })
-        .subscribe(
-            // onSuccess
-            stats -> {
-              mStatisticsView.showStatistics(stats.first.intValue(), stats.second.intValue());
-              mStatisticsView.setProgressIndicator(false);
-            },
-            // onError
-            throwable -> mStatisticsView.showLoadingStatisticsError());
-    disposables.add(disposable);
+        });
+  }
+
+  private StatisticsAction actionFromIntent(MviIntent intent) {
+    if (intent instanceof StatisticsIntent.InitialIntent) {
+      return StatisticsAction.LoadStatistics.create();
+    }
+    throw new IllegalArgumentException("do not know how to treat this intent " + intent);
+  }
+
+  private ObservableTransformer<StatisticsAction.LoadStatistics, StatisticsResult.LoadStatistics>
+      loadStatisticsProcessor = actions -> actions.flatMap(action -> tasksRepository.getTasks()
+      .toObservable()
+      .flatMap(Observable::fromIterable)
+      .publish(shared -> //
+          Single.zip( //
+              shared.filter(Task::isActive).count(), //
+              shared.filter(Task::isCompleted).count(), //
+              Pair::create).toObservable())
+      .map(pair -> StatisticsResult.LoadStatistics.success(pair.first.intValue(),
+          pair.second.intValue()))
+      .onErrorReturn(StatisticsResult.LoadStatistics::failure)
+      .subscribeOn(schedulerProvider.io())
+      .observeOn(schedulerProvider.ui())
+      .startWith(StatisticsResult.LoadStatistics.inFlight()));
+
+  private ObservableTransformer<StatisticsAction, StatisticsResult> actionProcessor =
+      actions -> actions.publish(shared -> Observable.merge(
+          shared.ofType(StatisticsAction.LoadStatistics.class).compose(loadStatisticsProcessor),
+          // Error for not implemented actions
+          shared.filter(v -> !(v instanceof StatisticsAction.LoadStatistics))
+              .flatMap(w -> Observable.error(
+                  new IllegalArgumentException("Unknown Action type: " + w)))));
+
+  private static BiFunction<StatisticsUiState, StatisticsResult, StatisticsUiState> reducer =
+      (previousState, result) -> {
+        StatisticsUiState.Builder stateBuilder = previousState.buildWith();
+        if (result instanceof StatisticsResult.LoadStatistics) {
+          StatisticsResult.LoadStatistics loadResult = (StatisticsResult.LoadStatistics) result;
+          switch (loadResult.status()) {
+            case SUCCESS:
+              return stateBuilder.isLoading(false)
+                  .activeCount(loadResult.activeCount())
+                  .completedCount(loadResult.completedCount())
+                  .build();
+            case FAILURE:
+              return stateBuilder.isLoading(false).error(loadResult.error()).build();
+            case IN_FLIGHT:
+              return stateBuilder.isLoading(true).build();
+          }
+        } else {
+          throw new IllegalArgumentException("Don't know this result " + result);
+        }
+        throw new IllegalStateException("Misshandled result?");
+      };
+
+  private void logIntent(MviIntent intent) {
+    Log.d("CONNARD", "Intent: " + intent);
+  }
+
+  private void logAction(MviAction action) {
+    Log.d("CONNARD", "Action: " + action);
+  }
+
+  private void logResult(MviResult result) {
+    Log.d("CONNARD", "Result: " + result);
+  }
+
+  private void logState(MviUiState state) {
+    Log.d("CONNARD", "State: " + state);
   }
 }

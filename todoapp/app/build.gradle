@@ -80,6 +80,8 @@ dependencies {
   compile "io.reactivex.rxjava2:rxjava:$rootProject.rxjavaVersion"
   compile "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"
   compile "com.squareup.sqlbrite2:sqlbrite:$rootProject.sqlbriteVersion"
+  annotationProcessor "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
+  provided "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
 
   // Dependencies for local unit tests
   testCompile "junit:junit:$rootProject.ext.junitVersion"
