@@ -21,15 +21,12 @@ import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepo
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.ImmediateSchedulerProvider;
 import com.google.common.collect.Lists;
-
+import io.reactivex.Single;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.List;
-
-import rx.Observable;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,102 +36,95 @@ import static org.mockito.Mockito.when;
  */
 public class StatisticsPresenterTest {
 
-    private static List<Task> TASKS;
+  private static List<Task> TASKS;
 
-    @Mock
-    private TasksRepository mTasksRepository;
+  @Mock private TasksRepository mTasksRepository;
 
-    @Mock
-    private StatisticsContract.View mStatisticsView;
+  @Mock private StatisticsContract.View mStatisticsView;
 
-    private BaseSchedulerProvider mSchedulerProvider;
+  private BaseSchedulerProvider mSchedulerProvider;
 
-    private StatisticsPresenter mStatisticsPresenter;
+  private StatisticsPresenter mStatisticsPresenter;
 
-    @Before
-    public void setupStatisticsPresenter() {
-        // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
-        // inject the mocks in the test the initMocks method needs to be called.
-        MockitoAnnotations.initMocks(this);
+  @Before public void setupStatisticsPresenter() {
+    // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
+    // inject the mocks in the test the initMocks method needs to be called.
+    MockitoAnnotations.initMocks(this);
 
-        // Make the sure that all schedulers are immediate.
-        mSchedulerProvider = new ImmediateSchedulerProvider();
+    // Make the sure that all schedulers are immediate.
+    mSchedulerProvider = new ImmediateSchedulerProvider();
 
-        // Get a reference to the class under test
-        mStatisticsPresenter = new StatisticsPresenter(mTasksRepository, mStatisticsView,
-                mSchedulerProvider);
+    // Get a reference to the class under test
+    mStatisticsPresenter =
+        new StatisticsPresenter(mTasksRepository, mStatisticsView, mSchedulerProvider);
 
-        // The presenter won't update the view unless it's active.
-        when(mStatisticsView.isActive()).thenReturn(true);
+    // The presenter won't update the view unless it's active.
+    when(mStatisticsView.isActive()).thenReturn(true);
 
-        // We subscribe the tasks to 3, with one active and two completed
-        TASKS = Lists.newArrayList(new Task("Title1", "Description1"),
-                new Task("Title2", "Description2", true), new Task("Title3", "Description3", true));
-    }
+    // We subscribe the tasks to 3, with one active and two completed
+    TASKS = Lists.newArrayList(new Task("Title1", "Description1"),
+        new Task("Title2", "Description2", true), new Task("Title3", "Description3", true));
+  }
 
-    @Test
-    public void createPresenter_setsThePresenterToView() {
-        // Get a reference to the class under test
-        mStatisticsPresenter = new StatisticsPresenter(mTasksRepository, mStatisticsView,
-                mSchedulerProvider);
+  @Test public void createPresenter_setsThePresenterToView() {
+    // Get a reference to the class under test
+    mStatisticsPresenter =
+        new StatisticsPresenter(mTasksRepository, mStatisticsView, mSchedulerProvider);
 
-        // Then the presenter is set to the view
-        verify(mStatisticsView).setPresenter(mStatisticsPresenter);
-    }
+    // Then the presenter is set to the view
+    verify(mStatisticsView).setPresenter(mStatisticsPresenter);
+  }
 
-    @Test
-    public void loadEmptyTasksFromRepository_CallViewToDisplay() {
-        // Given an initialized StatisticsPresenter with no tasks
-        TASKS.clear();
-        setTasksAvailable(TASKS);
+  @Test public void loadEmptyTasksFromRepository_CallViewToDisplay() {
+    // Given an initialized StatisticsPresenter with no tasks
+    TASKS.clear();
+    setTasksAvailable(TASKS);
 
-        // When loading of Tasks is requested
-        mStatisticsPresenter.subscribe();
+    // When loading of Tasks is requested
+    mStatisticsPresenter.subscribe();
 
-        //Then progress indicator is shown
-        verify(mStatisticsView).setProgressIndicator(true);
+    //Then progress indicator is shown
+    verify(mStatisticsView).setProgressIndicator(true);
 
-        // Callback is captured and invoked with stubbed tasks
-        verify(mTasksRepository).getTasks();
+    // Callback is captured and invoked with stubbed tasks
+    verify(mTasksRepository).getTasks();
 
-        // Then progress indicator is hidden and correct data is passed on to the view
-        verify(mStatisticsView).setProgressIndicator(false);
-        verify(mStatisticsView).showStatistics(0, 0);
-    }
+    // Then progress indicator is hidden and correct data is passed on to the view
+    verify(mStatisticsView).setProgressIndicator(false);
+    verify(mStatisticsView).showStatistics(0, 0);
+  }
 
-    @Test
-    public void loadNonEmptyTasksFromRepository_CallViewToDisplay() {
-        // Given an initialized StatisticsPresenter with 1 active and 2 completed tasks
-        setTasksAvailable(TASKS);
+  @Test public void loadNonEmptyTasksFromRepository_CallViewToDisplay() {
+    // Given an initialized StatisticsPresenter with 1 active and 2 completed tasks
+    setTasksAvailable(TASKS);
 
-        // When loading of Tasks is requested
-        mStatisticsPresenter.subscribe();
+    // When loading of Tasks is requested
+    mStatisticsPresenter.subscribe();
 
-        //Then progress indicator is shown
-        verify(mStatisticsView).setProgressIndicator(true);
+    //Then progress indicator is shown
+    verify(mStatisticsView).setProgressIndicator(true);
 
-        // Then progress indicator is hidden and correct data is passed on to the view
-        verify(mStatisticsView).setProgressIndicator(false);
-        verify(mStatisticsView).showStatistics(1, 2);
-    }
+    // Then progress indicator is hidden and correct data is passed on to the view
+    verify(mStatisticsView).setProgressIndicator(false);
+    verify(mStatisticsView).showStatistics(1, 2);
+  }
 
-    @Test
-    public void loadStatisticsWhenTasksAreUnavailable_CallErrorToDisplay() {
-        // Given that tasks data isn't available
-        setTasksNotAvailable();
+  @Test public void loadStatisticsWhenTasksAreUnavailable_CallErrorToDisplay() {
+    // Given that tasks data isn't available
+    setTasksNotAvailable();
 
-        // When statistics are loaded
-        mStatisticsPresenter.subscribe();
+    // When statistics are loaded
+    mStatisticsPresenter.subscribe();
 
-        // Then an error message is shown
-        verify(mStatisticsView).showLoadingStatisticsError();
-    }
+    // Then an error message is shown
+    verify(mStatisticsView).showLoadingStatisticsError();
+  }
 
-    private void setTasksAvailable(List<Task> tasks) {
-        when(mTasksRepository.getTasks()).thenReturn(Observable.just(tasks));
-    }
+  private void setTasksAvailable(List<Task> tasks) {
+    when(mTasksRepository.getTasks()).thenReturn(Single.just(tasks));
+  }
 
-    private void setTasksNotAvailable() {
-        when(mTasksRepository.getTasks()).thenReturn(Observable.<List<Task>>error(new Exception()));
-    }
+  private void setTasksNotAvailable() {
+    when(mTasksRepository.getTasks()).thenReturn(Single.error(new Exception()));
+  }
 }

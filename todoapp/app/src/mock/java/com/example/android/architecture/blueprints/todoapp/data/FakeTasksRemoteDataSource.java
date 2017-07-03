@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -46,14 +47,14 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     return INSTANCE;
   }
 
-  @Override public Observable<List<Task>> getTasks() {
+  @Override public Single<List<Task>> getTasks() {
     Collection<Task> values = TASKS_SERVICE_DATA.values();
-    return Observable.fromIterable(values).toList().toObservable();
+    return Observable.fromIterable(values).toList();
   }
 
-  @Override public Observable<Task> getTask(@NonNull String taskId) {
+  @Override public Single<Task> getTask(@NonNull String taskId) {
     Task task = TASKS_SERVICE_DATA.get(taskId);
-    return Observable.just(task);
+    return Single.just(task);
   }
 
   @Override public void saveTask(@NonNull Task task) {

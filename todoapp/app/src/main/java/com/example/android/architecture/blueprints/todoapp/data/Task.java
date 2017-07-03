@@ -28,7 +28,6 @@ import java.util.UUID;
  * Immutable model class for a Task.
  */
 public final class Task {
-
     @NonNull
     private final String mId;
 

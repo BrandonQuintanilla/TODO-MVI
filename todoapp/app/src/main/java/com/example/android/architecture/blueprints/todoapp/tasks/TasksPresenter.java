@@ -97,36 +97,36 @@ public class TasksPresenter implements TasksContract.Presenter {
     EspressoIdlingResource.increment(); // App is busy until further notice
 
     disposables.clear();
-    Disposable disposable =
-        mTasksRepository.getTasks()
-            .flatMap(Observable::fromIterable)
-            .filter(task -> {
-              switch (mCurrentFiltering) {
-                case ACTIVE_TASKS:
-                  return task.isActive();
-                case COMPLETED_TASKS:
-                  return task.isCompleted();
-                case ALL_TASKS:
-                default:
-                  return true;
-              }
-            })
-            .toList()
-            .subscribeOn(mSchedulerProvider.computation())
-            .observeOn(mSchedulerProvider.ui())
-            .doFinally(() -> {
-              if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
-                EspressoIdlingResource.decrement(); // Set app as idle.
-              }
-            })
-            .toObservable()
-            .subscribe(
-                // onNext
-                this::processTasks,
-                // onError
-                throwable -> mTasksView.showLoadingTasksError(),
-                // onCompleted
-                () -> mTasksView.setLoadingIndicator(false));
+    Disposable disposable = mTasksRepository.getTasks()
+        .toObservable()
+        .flatMap(Observable::fromIterable)
+        .filter(task -> {
+          switch (mCurrentFiltering) {
+            case ACTIVE_TASKS:
+              return task.isActive();
+            case COMPLETED_TASKS:
+              return task.isCompleted();
+            case ALL_TASKS:
+            default:
+              return true;
+          }
+        })
+        .toList()
+        .subscribeOn(mSchedulerProvider.computation())
+        .observeOn(mSchedulerProvider.ui())
+        .doFinally(() -> {
+          if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
+            EspressoIdlingResource.decrement(); // Set app as idle.
+          }
+        })
+        .subscribe(
+            // onSuccess
+            tasks -> {
+              processTasks(tasks);
+              mTasksView.setLoadingIndicator(false);
+            },
+            // onError
+            throwable -> mTasksView.showLoadingTasksError());
     disposables.add(disposable);
   }
 

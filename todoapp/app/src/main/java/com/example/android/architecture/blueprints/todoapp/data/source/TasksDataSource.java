@@ -18,7 +18,7 @@ package com.example.android.architecture.blueprints.todoapp.data.source;
 
 import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import java.util.List;
 
 /**
@@ -27,9 +27,9 @@ import java.util.List;
  */
 public interface TasksDataSource {
 
-  Observable<List<Task>> getTasks();
+  Single<List<Task>> getTasks();
 
-  Observable<Task> getTask(@NonNull String taskId);
+  Single<Task> getTask(@NonNull String taskId);
 
   void saveTask(@NonNull Task task);
 

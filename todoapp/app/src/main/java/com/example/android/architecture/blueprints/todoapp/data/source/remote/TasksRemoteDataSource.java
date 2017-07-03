@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,20 +60,15 @@ public class TasksRemoteDataSource implements TasksDataSource {
     TASKS_SERVICE_DATA.put(newTask.getId(), newTask);
   }
 
-  @Override public Observable<List<Task>> getTasks() {
+  @Override public Single<List<Task>> getTasks() {
     return Observable.fromIterable(TASKS_SERVICE_DATA.values())
         .delay(SERVICE_LATENCY_IN_MILLIS, TimeUnit.MILLISECONDS)
-        .toList()
-        .toObservable();
+        .toList();
   }
 
-  @Override public Observable<Task> getTask(@NonNull String taskId) {
-    final Task task = TASKS_SERVICE_DATA.get(taskId);
-    if (task != null) {
-      return Observable.just(task).delay(SERVICE_LATENCY_IN_MILLIS, TimeUnit.MILLISECONDS);
-    } else {
-      return Observable.empty();
-    }
+  @Override public Single<Task> getTask(@NonNull String taskId) {
+    return Single.just(TASKS_SERVICE_DATA.get(taskId))
+        .delay(SERVICE_LATENCY_IN_MILLIS, TimeUnit.MILLISECONDS);
   }
 
   @Override public void saveTask(@NonNull Task task) {

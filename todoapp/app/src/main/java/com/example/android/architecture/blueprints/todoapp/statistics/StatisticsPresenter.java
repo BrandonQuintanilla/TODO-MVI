@@ -23,6 +23,7 @@ import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepo
 import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
@@ -68,26 +69,27 @@ public class StatisticsPresenter implements StatisticsContract.Presenter {
     // that the app is busy until the response is handled.
     EspressoIdlingResource.increment(); // App is busy until further notice
 
-    Observable<Task> tasks = mTasksRepository.getTasks().flatMap(Observable::fromIterable);
-    Observable<Long> completedTasks = tasks.filter(Task::isCompleted).count().toObservable();
-    Observable<Long> activeTasks = tasks.filter(Task::isActive).count().toObservable();
-    Disposable disposable = Observable.zip(completedTasks, activeTasks,
+    Observable<Task> tasks =
+        mTasksRepository.getTasks().toObservable().flatMap(Observable::fromIterable);
+    Single<Long> completedTasks = tasks.filter(Task::isCompleted).count();
+    Single<Long> activeTasks = tasks.filter(Task::isActive).count();
+    Disposable disposable = Single.zip(completedTasks, activeTasks,
         (completed, active) -> Pair.create(active, completed))
         .subscribeOn(mSchedulerProvider.computation())
         .observeOn(mSchedulerProvider.ui())
-        .doOnTerminate(() -> {
+        .doOnSuccess(ignored -> {
           if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
             EspressoIdlingResource.decrement(); // Set app as idle.
           }
         })
         .subscribe(
-            // onNext
-            stats -> mStatisticsView.showStatistics(stats.first.intValue(),
-                stats.second.intValue()),
+            // onSuccess
+            stats -> {
+              mStatisticsView.showStatistics(stats.first.intValue(), stats.second.intValue());
+              mStatisticsView.setProgressIndicator(false);
+            },
             // onError
-            throwable -> mStatisticsView.showLoadingStatisticsError(),
-            // onCompleted
-            () -> mStatisticsView.setProgressIndicator(false));
+            throwable -> mStatisticsView.showLoadingStatisticsError());
     disposables.add(disposable);
   }
 }

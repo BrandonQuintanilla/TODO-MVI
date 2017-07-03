@@ -73,13 +73,14 @@ public class TaskDetailPresenter implements TaskDetailContract.Presenter {
         .subscribeOn(mSchedulerProvider.computation())
         .observeOn(mSchedulerProvider.ui())
         .subscribe(
-            // onNext
-            this::showTask,
+            // onSuccess
+            task -> {
+              showTask(task);
+              mTaskDetailView.setLoadingIndicator(false);
+            },
             // onError
             throwable -> {
-            },
-            // onCompleted
-            () -> mTaskDetailView.setLoadingIndicator(false)));
+            }));
   }
 
   @Override public void editTask() {
