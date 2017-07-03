@@ -18,13 +18,11 @@ package com.example.android.architecture.blueprints.todoapp.taskdetail;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import com.google.common.base.Strings;
-
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.disposables.CompositeDisposable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,119 +32,106 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class TaskDetailPresenter implements TaskDetailContract.Presenter {
 
-    @NonNull
-    private final TasksRepository mTasksRepository;
+  @NonNull private final TasksRepository mTasksRepository;
 
-    @NonNull
-    private final TaskDetailContract.View mTaskDetailView;
+  @NonNull private final TaskDetailContract.View mTaskDetailView;
 
-    @NonNull
-    private final BaseSchedulerProvider mSchedulerProvider;
+  @NonNull private final BaseSchedulerProvider mSchedulerProvider;
 
-    @Nullable
-    private String mTaskId;
+  @Nullable private String mTaskId;
 
-    @NonNull
-    private CompositeSubscription mSubscriptions;
+  @NonNull private CompositeDisposable disposables;
 
-    public TaskDetailPresenter(@Nullable String taskId,
-                               @NonNull TasksRepository tasksRepository,
-                               @NonNull TaskDetailContract.View taskDetailView,
-                               @NonNull BaseSchedulerProvider schedulerProvider) {
-        this.mTaskId = taskId;
-        mTasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null!");
-        mTaskDetailView = checkNotNull(taskDetailView, "taskDetailView cannot be null!");
-        mSchedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
+  public TaskDetailPresenter(@Nullable String taskId, @NonNull TasksRepository tasksRepository,
+      @NonNull TaskDetailContract.View taskDetailView,
+      @NonNull BaseSchedulerProvider schedulerProvider) {
+    this.mTaskId = taskId;
+    mTasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null!");
+    mTaskDetailView = checkNotNull(taskDetailView, "taskDetailView cannot be null!");
+    mSchedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
 
-        mSubscriptions = new CompositeSubscription();
-        mTaskDetailView.setPresenter(this);
+    disposables = new CompositeDisposable();
+    mTaskDetailView.setPresenter(this);
+  }
+
+  @Override public void subscribe() {
+    openTask();
+  }
+
+  @Override public void unsubscribe() {
+    disposables.clear();
+  }
+
+  private void openTask() {
+    if (Strings.isNullOrEmpty(mTaskId)) {
+      mTaskDetailView.showMissingTask();
+      return;
     }
 
-    @Override
-    public void subscribe() {
-        openTask();
+    mTaskDetailView.setLoadingIndicator(true);
+    disposables.add(mTasksRepository.getTask(mTaskId)
+        .subscribeOn(mSchedulerProvider.computation())
+        .observeOn(mSchedulerProvider.ui())
+        .subscribe(
+            // onNext
+            this::showTask,
+            // onError
+            throwable -> {
+            },
+            // onCompleted
+            () -> mTaskDetailView.setLoadingIndicator(false)));
+  }
+
+  @Override public void editTask() {
+    if (Strings.isNullOrEmpty(mTaskId)) {
+      mTaskDetailView.showMissingTask();
+      return;
+    }
+    mTaskDetailView.showEditTask(mTaskId);
+  }
+
+  @Override public void deleteTask() {
+    if (Strings.isNullOrEmpty(mTaskId)) {
+      mTaskDetailView.showMissingTask();
+      return;
+    }
+    mTasksRepository.deleteTask(mTaskId);
+    mTaskDetailView.showTaskDeleted();
+  }
+
+  @Override public void completeTask() {
+    if (Strings.isNullOrEmpty(mTaskId)) {
+      mTaskDetailView.showMissingTask();
+      return;
+    }
+    mTasksRepository.completeTask(mTaskId);
+    mTaskDetailView.showTaskMarkedComplete();
+  }
+
+  @Override public void activateTask() {
+    if (Strings.isNullOrEmpty(mTaskId)) {
+      mTaskDetailView.showMissingTask();
+      return;
+    }
+    mTasksRepository.activateTask(mTaskId);
+    mTaskDetailView.showTaskMarkedActive();
+  }
+
+  private void showTask(@NonNull Task task) {
+    String title = task.getTitle();
+    String description = task.getDescription();
+
+    if (Strings.isNullOrEmpty(title)) {
+      mTaskDetailView.hideTitle();
+    } else {
+      mTaskDetailView.showTitle(title);
     }
 
-    @Override
-    public void unsubscribe() {
-        mSubscriptions.clear();
+    if (Strings.isNullOrEmpty(description)) {
+      mTaskDetailView.hideDescription();
+    } else {
+      mTaskDetailView.showDescription(description);
     }
-
-    private void openTask() {
-        if (Strings.isNullOrEmpty(mTaskId)) {
-            mTaskDetailView.showMissingTask();
-            return;
-        }
-
-        mTaskDetailView.setLoadingIndicator(true);
-        mSubscriptions.add(mTasksRepository
-                .getTask(mTaskId)
-                .subscribeOn(mSchedulerProvider.computation())
-                .observeOn(mSchedulerProvider.ui())
-                .subscribe(
-                        // onNext
-                        this::showTask,
-                        // onError
-                        throwable -> {
-                        },
-                        // onCompleted
-                        () -> mTaskDetailView.setLoadingIndicator(false)));
-    }
-
-    @Override
-    public void editTask() {
-        if (Strings.isNullOrEmpty(mTaskId)) {
-            mTaskDetailView.showMissingTask();
-            return;
-        }
-        mTaskDetailView.showEditTask(mTaskId);
-    }
-
-    @Override
-    public void deleteTask() {
-        if (Strings.isNullOrEmpty(mTaskId)) {
-            mTaskDetailView.showMissingTask();
-            return;
-        }
-        mTasksRepository.deleteTask(mTaskId);
-        mTaskDetailView.showTaskDeleted();
-    }
-
-    @Override
-    public void completeTask() {
-        if (Strings.isNullOrEmpty(mTaskId)) {
-            mTaskDetailView.showMissingTask();
-            return;
-        }
-        mTasksRepository.completeTask(mTaskId);
-        mTaskDetailView.showTaskMarkedComplete();
-    }
-
-    @Override
-    public void activateTask() {
-        if (Strings.isNullOrEmpty(mTaskId)) {
-            mTaskDetailView.showMissingTask();
-            return;
-        }
-        mTasksRepository.activateTask(mTaskId);
-        mTaskDetailView.showTaskMarkedActive();
-    }
-
-    private void showTask(@NonNull Task task) {
-        String title = task.getTitle();
-        String description = task.getDescription();
-
-        if (Strings.isNullOrEmpty(title)) {
-            mTaskDetailView.hideTitle();
-        } else {
-            mTaskDetailView.showTitle(title);
-        }
-
-        if (Strings.isNullOrEmpty(description)) {
-            mTaskDetailView.hideDescription();
-        } else {
-            mTaskDetailView.showDescription(description);
-        }
-        mTaskDetailView.showCompletionStatus(task.isCompleted());
-    }
+    mTaskDetailView.showCompletionStatus(task.isCompleted());
+  }
 }

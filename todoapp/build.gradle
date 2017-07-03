@@ -1,9 +1,10 @@
 buildscript {
     repositories {
         jcenter()
+        maven { url 'https://maven.google.com' }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.1'
+        classpath 'com.android.tools.build:gradle:3.0.0-alpha5'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -13,6 +14,8 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        maven { url 'https://maven.google.com' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
 }
 
@@ -24,13 +27,13 @@ task clean(type: Delete) {
 ext {
     // Sdk and tools
     minSdkVersion = 10
-    targetSdkVersion = 24
-    compileSdkVersion = 24
-    buildToolsVersion = '24.0.2'
+    targetSdkVersion = 25
+    compileSdkVersion = 25
+    buildToolsVersion = '25.0.3'
 
     // App dependencies
-    supportLibraryVersion = '24.2.0'
-    guavaVersion = '18.0'
+    supportLibraryVersion = '25.4.0'
+    guavaVersion = '22.0-android'
     junitVersion = '4.12'
     mockitoVersion = '1.10.19'
     powerMockito = '1.6.2'
@@ -38,7 +41,8 @@ ext {
     runnerVersion = '0.5'
     rulesVersion = '0.5'
     espressoVersion = '2.2.2'
-    rxjavaVersion = '1.1.8'
-    rxandroidVersion = '1.2.1'
-    sqlbriteVersion = '0.7.0'
+    rxjavaVersion = '2.1.1'
+    rxandroidVersion = '2.0.1'
+    sqlbriteVersion = '2.0.0-SNAPSHOT'
+    jsr305Version = '3.0.1'
 }

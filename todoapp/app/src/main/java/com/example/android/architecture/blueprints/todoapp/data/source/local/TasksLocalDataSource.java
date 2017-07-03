@@ -28,13 +28,12 @@ import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
 import com.example.android.architecture.blueprints.todoapp.data.source.local.TasksPersistenceContract.TaskEntry;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
-import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.SqlBrite;
+import com.squareup.sqlbrite2.BriteDatabase;
+import com.squareup.sqlbrite2.SqlBrite;
 
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import java.util.List;
-
-import rx.Observable;
-import rx.functions.Func1;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -51,7 +50,7 @@ public class TasksLocalDataSource implements TasksDataSource {
     private final BriteDatabase mDatabaseHelper;
 
     @NonNull
-    private Func1<Cursor, Task> mTaskMapperFunction;
+    private Function<Cursor, Task> mTaskMapperFunction;
 
     // Prevent direct instantiation.
     private TasksLocalDataSource(@NonNull Context context,
@@ -59,7 +58,7 @@ public class TasksLocalDataSource implements TasksDataSource {
         checkNotNull(context, "context cannot be null");
         checkNotNull(schedulerProvider, "scheduleProvider cannot be null");
         TasksDbHelper dbHelper = new TasksDbHelper(context);
-        SqlBrite sqlBrite = SqlBrite.create();
+        SqlBrite sqlBrite = new SqlBrite.Builder().build();
         mDatabaseHelper = sqlBrite.wrapDatabaseHelper(dbHelper, schedulerProvider.io());
         mTaskMapperFunction = this::getTask;
     }
