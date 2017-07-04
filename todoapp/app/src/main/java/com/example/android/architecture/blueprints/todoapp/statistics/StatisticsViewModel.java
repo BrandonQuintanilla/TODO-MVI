@@ -113,7 +113,6 @@ public class StatisticsViewModel extends ViewModel implements MviViewModel<Stati
 
   private ObservableTransformer<StatisticsAction.LoadStatistics, StatisticsResult.LoadStatistics>
       loadStatisticsProcessor = actions -> actions.flatMap(action -> tasksRepository.getTasks()
-      .delay(4, TimeUnit.SECONDS)
       .toObservable()
       .flatMap(Observable::fromIterable)
       .publish(shared -> //
