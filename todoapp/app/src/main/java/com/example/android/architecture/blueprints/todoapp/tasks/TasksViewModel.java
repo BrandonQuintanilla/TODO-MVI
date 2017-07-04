@@ -103,7 +103,8 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
       return TasksAction.LoadTasks.create(true, TasksFilterType.ALL_TASKS);
     }
     if (intent instanceof TasksIntent.RefreshIntent) {
-      return TasksAction.LoadTasks.create(false, TasksFilterType.ALL_TASKS);
+      return TasksAction.LoadTasks.create(((TasksIntent.RefreshIntent) intent).forceUpdate(),
+          TasksFilterType.ALL_TASKS);
     }
     if (intent instanceof TasksIntent.GetLastState) {
       return TasksAction.GetLastState.create();

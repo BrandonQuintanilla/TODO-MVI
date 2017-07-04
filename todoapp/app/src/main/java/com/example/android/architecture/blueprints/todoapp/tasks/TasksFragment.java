@@ -49,7 +49,6 @@ import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
-import timber.log.Timber;
 
 /**
  * Display a grid of {@link Task}s. User can choose to view all, active or completed tasks.
@@ -68,6 +67,8 @@ public class TasksFragment extends Fragment
   private TextView filteringLabelView;
   private ScrollChildSwipeRefreshLayout swipeRefreshLayout;
   private PublishSubject<TasksIntent.RefreshIntent> refreshIntentPublisher =
+      PublishSubject.create();
+  private PublishSubject<TasksIntent.ClearCompletedTasksIntent> clearCompletedTaskIntentPublisher =
       PublishSubject.create();
   private CompositeDisposable disposables;
 
@@ -104,8 +105,9 @@ public class TasksFragment extends Fragment
   }
 
   @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    // TODO(benoit) specific intent so the showing happens in render()
-    refreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create());
+    // TODO(benoit) create specific intent so the resulting showing happens in render() and
+    // not in here.
+    refreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(false));
     // If a task was successfully added, show snackbar
     if (AddEditTaskActivity.REQUEST_ADD_TASK == requestCode && Activity.RESULT_OK == resultCode) {
       showSuccessfullySavedMessage();
@@ -152,19 +154,13 @@ public class TasksFragment extends Fragment
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.menu_clear:
-        // TODO(benoit)
-        Timber.d("clear completed click");
-        //viewModel.clearCompletedTasks();
+        clearCompletedTaskIntentPublisher.onNext(TasksIntent.ClearCompletedTasksIntent.create());
         break;
       case R.id.menu_filter:
-        // TODO(benoit)
-        Timber.d("show filtering");
-        //showFilteringPopUpMenu();
+        showFilteringPopUpMenu();
         break;
       case R.id.menu_refresh:
-        // TODO(benoit)
-        Timber.d("load taks");
-        //viewModel.loadTasks(true);
+        refreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(true));
         break;
     }
     return true;
@@ -178,7 +174,6 @@ public class TasksFragment extends Fragment
   public void showFilteringPopUpMenu() {
     PopupMenu popup = new PopupMenu(getContext(), getActivity().findViewById(R.id.menu_filter));
     popup.getMenuInflater().inflate(R.menu.filter_tasks, popup.getMenu());
-
     popup.setOnMenuItemClickListener(item -> {
       switch (item.getItemId()) {
         case R.id.active:
@@ -270,8 +265,12 @@ public class TasksFragment extends Fragment
   private Observable<TasksIntent.RefreshIntent> refreshIntent() {
     //swipeRefreshLayout.setOnRefreshListener(() -> viewModel.loadTasks(false));
     return RxSwipeRefreshLayout.refreshes(swipeRefreshLayout)
-        .map(ignored -> TasksIntent.RefreshIntent.create())
+        .map(ignored -> TasksIntent.RefreshIntent.create(false))
         .mergeWith(refreshIntentPublisher);
+  }
+
+  private Observable<TasksIntent.ClearCompletedTasksIntent> clearCompletedTaskIntent() {
+    return clearCompletedTaskIntentPublisher;
   }
 
   private Observable<TasksIntent> adapterIntents() {

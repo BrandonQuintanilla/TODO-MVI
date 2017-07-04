@@ -18,8 +18,10 @@ interface TasksIntent extends MviIntent {
   }
 
   @AutoValue abstract class RefreshIntent implements TasksIntent {
-    public static RefreshIntent create() {
-      return new AutoValue_TasksIntent_RefreshIntent();
+    abstract boolean forceUpdate();
+
+    public static RefreshIntent create(boolean forceUpdate) {
+      return new AutoValue_TasksIntent_RefreshIntent(forceUpdate);
     }
   }
 
