@@ -16,6 +16,9 @@
 
 package com.example.android.architecture.blueprints.todoapp.statistics;
 
+import android.arch.lifecycle.LifecycleRegistry;
+import android.arch.lifecycle.LifecycleRegistryOwner;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -23,18 +26,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.example.android.architecture.blueprints.todoapp.Injection;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviBaseView;
+import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
+import timber.log.Timber;
 
 /**
  * Main UI for the statistics screen.
  */
-public class StatisticsFragment extends Fragment implements MviBaseView<StatisticsViewState> {
+public class StatisticsFragment extends Fragment
+    implements MviBaseView<StatisticsViewState>, LifecycleRegistryOwner {
+  LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
+
   private TextView statisticsTV;
-  private StatisticsViewModel presenter;
+  private StatisticsViewModel viewModel;
   private CompositeDisposable disposables;
 
   public static StatisticsFragment newInstance() {
@@ -50,16 +57,15 @@ public class StatisticsFragment extends Fragment implements MviBaseView<Statisti
 
   @Override public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    presenter = new StatisticsViewModel(
-        Injection.provideTasksRepository(getActivity().getApplicationContext()),
-        Injection.provideSchedulerProvider());
+    viewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+        .get(StatisticsViewModel.class);
     disposables = new CompositeDisposable();
     bind();
   }
 
   private void bind() {
-    disposables.add(presenter.states().subscribe(this::render));
-    presenter.forwardIntents(intents());
+    disposables.add(viewModel.states().subscribe(this::render));
+    viewModel.forwardIntents(intents());
   }
 
   @Override public void onDestroy() {
@@ -99,5 +105,9 @@ public class StatisticsFragment extends Fragment implements MviBaseView<Statisti
           + numberOfCompletedTasks;
       statisticsTV.setText(displayString);
     }
+  }
+
+  @Override public LifecycleRegistry getLifecycle() {
+    return lifecycleRegistry;
   }
 }

@@ -29,4 +29,10 @@ interface StatisticsResult extends MviResult {
       return new AutoValue_StatisticsResult_LoadStatistics(LceStatus.IN_FLIGHT, 0, 0, null);
     }
   }
+
+  @AutoValue abstract class GetLastState implements StatisticsResult {
+    static GetLastState create() {
+      return new AutoValue_StatisticsResult_GetLastState();
+    }
+  }
 }

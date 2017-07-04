@@ -16,6 +16,7 @@
 
 package com.example.android.architecture.blueprints.todoapp.statistics;
 
+import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
@@ -41,14 +42,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Listens to user actions from the UI ({@link StatisticsFragment}), retrieves the data and updates
  * the UI as required.
  */
-public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
+public class StatisticsViewModel extends ViewModel implements MviViewModel<StatisticsIntent> {
   @NonNull private PublishSubject<MviIntent> intentsSubject;
   @NonNull private PublishSubject<StatisticsViewState> statesSubject;
   @NonNull private TasksRepository tasksRepository;
 
   @NonNull private BaseSchedulerProvider schedulerProvider;
 
-  StatisticsViewModel(@NonNull TasksRepository tasksRepository,
+  public StatisticsViewModel(@NonNull TasksRepository tasksRepository,
       @NonNull BaseSchedulerProvider schedulerProvider) {
     this.tasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null");
     this.schedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
@@ -56,11 +57,11 @@ public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
     intentsSubject = PublishSubject.create();
     statesSubject = PublishSubject.create();
 
-    compose().subscribe(this.statesSubject);
+    compose().subscribe(this.statesSubject::onNext);
   }
 
   @Override public void forwardIntents(Observable<StatisticsIntent> intents) {
-    intents.subscribe(intentsSubject);
+    intents.subscribe(intentsSubject::onNext);
   }
 
   @Override public Observable<StatisticsViewState> states() {
@@ -69,6 +70,7 @@ public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
 
   private Observable<StatisticsViewState> compose() {
     return intentsSubject.doOnNext(this::logIntent)
+        .scan(initialIntentFilter)
         .map(this::actionFromIntent)
         .doOnNext(this::logAction)
         .compose(actionProcessor)
@@ -86,16 +88,32 @@ public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
         });
   }
 
+  private BiFunction<MviIntent, MviIntent, MviIntent> initialIntentFilter =
+      (previousIntent, newIntent) -> {
+        // if isReConnection (e.g. after config change)
+        // i.e. we are inside the scan, meaning there has already
+        // been intent in the past, meaning the InitialIntent cannot
+        // be the first => it is a reconnection.
+        if (newIntent instanceof StatisticsIntent.InitialIntent) {
+          return StatisticsIntent.GetLastState.create();
+        } else {
+          return newIntent;
+        }
+      };
+
   private StatisticsAction actionFromIntent(MviIntent intent) {
     if (intent instanceof StatisticsIntent.InitialIntent) {
       return StatisticsAction.LoadStatistics.create();
+    }
+    if (intent instanceof StatisticsIntent.GetLastState) {
+      return StatisticsAction.GetLastState.create();
     }
     throw new IllegalArgumentException("do not know how to treat this intent " + intent);
   }
 
   private ObservableTransformer<StatisticsAction.LoadStatistics, StatisticsResult.LoadStatistics>
       loadStatisticsProcessor = actions -> actions.flatMap(action -> tasksRepository.getTasks()
-      .delay(2, TimeUnit.SECONDS)
+      .delay(4, TimeUnit.SECONDS)
       .toObservable()
       .flatMap(Observable::fromIterable)
       .publish(shared -> //
@@ -110,13 +128,20 @@ public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
       .observeOn(schedulerProvider.ui())
       .startWith(StatisticsResult.LoadStatistics.inFlight()));
 
+  private ObservableTransformer<StatisticsAction.GetLastState, StatisticsResult.GetLastState>
+      getLastStateTransformer =
+      actions -> actions.map(ignored -> StatisticsResult.GetLastState.create());
+
   private ObservableTransformer<StatisticsAction, StatisticsResult> actionProcessor =
       actions -> actions.publish(shared -> Observable.merge(
           shared.ofType(StatisticsAction.LoadStatistics.class).compose(loadStatisticsProcessor),
-          // Error for not implemented actions
-          shared.filter(v -> !(v instanceof StatisticsAction.LoadStatistics))
-              .flatMap(w -> Observable.error(
-                  new IllegalArgumentException("Unknown Action type: " + w)))));
+          shared.ofType(StatisticsAction.GetLastState.class).compose(getLastStateTransformer))
+          .mergeWith(
+              // Error for not implemented actions
+              shared.filter(v -> !(v instanceof StatisticsAction.LoadStatistics)
+                  && !(v instanceof StatisticsAction.GetLastState))
+                  .flatMap(w -> Observable.error(
+                      new IllegalArgumentException("Unknown Action type: " + w)))));
 
   private static BiFunction<StatisticsViewState, StatisticsResult, StatisticsViewState> reducer =
       (previousState, result) -> {
@@ -134,6 +159,8 @@ public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
             case IN_FLIGHT:
               return stateBuilder.isLoading(true).build();
           }
+        } else if (result instanceof StatisticsResult.GetLastState) {
+          return stateBuilder.build();
         } else {
           throw new IllegalArgumentException("Don't know this result " + result);
         }

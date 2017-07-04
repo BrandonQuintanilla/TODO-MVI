@@ -10,4 +10,10 @@ interface StatisticsIntent extends MviIntent {
       return new AutoValue_StatisticsIntent_InitialIntent();
     }
   }
+
+  @AutoValue abstract class GetLastState implements StatisticsIntent {
+    public static GetLastState create() {
+      return new AutoValue_StatisticsIntent_GetLastState();
+    }
+  }
 }

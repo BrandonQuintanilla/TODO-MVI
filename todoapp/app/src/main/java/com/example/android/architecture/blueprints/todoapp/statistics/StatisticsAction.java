@@ -9,4 +9,10 @@ interface StatisticsAction extends MviAction {
       return new AutoValue_StatisticsAction_LoadStatistics();
     }
   }
+
+  @AutoValue abstract class GetLastState implements StatisticsAction {
+    public static GetLastState create() {
+      return new AutoValue_StatisticsAction_GetLastState();
+    }
+  }
 }
