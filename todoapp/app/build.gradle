@@ -83,11 +83,14 @@ dependencies {
   compile "com.jakewharton.timber:timber:$rootProject.timberVersion"
   annotationProcessor "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
   provided "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
+  debugCompile "com.squareup.leakcanary:leakcanary-android:$rootProject.leakCanaryVersion"
+  releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$rootProject.leakCanaryVersion"
 
   // Dependencies for local unit tests
   testCompile "junit:junit:$rootProject.junitVersion"
   testCompile "org.mockito:mockito-all:$rootProject.mockitoVersion"
   testCompile "org.hamcrest:hamcrest-all:$rootProject.hamcrestVersion"
+  testCompile "com.squareup.leakcanary:leakcanary-android-no-op:$rootProject.leakCanaryVersion"
 
   // Android Testing Support Library's runner and rules
   androidTestCompile "com.android.support.test:runner:$rootProject.runnerVersion"

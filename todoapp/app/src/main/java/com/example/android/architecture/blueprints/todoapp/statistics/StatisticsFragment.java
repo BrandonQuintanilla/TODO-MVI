@@ -33,7 +33,6 @@ import io.reactivex.disposables.CompositeDisposable;
  * Main UI for the statistics screen.
  */
 public class StatisticsFragment extends Fragment implements MviBaseView<StatisticsViewState> {
-
   private TextView statisticsTV;
   private StatisticsViewModel presenter;
   private CompositeDisposable disposables;

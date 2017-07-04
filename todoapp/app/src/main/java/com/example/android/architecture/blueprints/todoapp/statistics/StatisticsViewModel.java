@@ -135,7 +135,7 @@ public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
         } else {
           throw new IllegalArgumentException("Don't know this result " + result);
         }
-        throw new IllegalStateException("Misshandled result?");
+        throw new IllegalStateException("Mishandled result? Should not happen (as always)");
       };
 
   private void logIntent(MviIntent intent) {
