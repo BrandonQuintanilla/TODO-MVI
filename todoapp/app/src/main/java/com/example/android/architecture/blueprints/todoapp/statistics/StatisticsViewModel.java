@@ -32,6 +32,7 @@ import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
+import java.util.concurrent.TimeUnit;
 import timber.log.Timber;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -94,6 +95,7 @@ public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
 
   private ObservableTransformer<StatisticsAction.LoadStatistics, StatisticsResult.LoadStatistics>
       loadStatisticsProcessor = actions -> actions.flatMap(action -> tasksRepository.getTasks()
+      .delay(2, TimeUnit.SECONDS)
       .toObservable()
       .flatMap(Observable::fromIterable)
       .publish(shared -> //

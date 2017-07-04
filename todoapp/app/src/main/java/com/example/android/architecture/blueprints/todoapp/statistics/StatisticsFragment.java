@@ -67,10 +67,6 @@ public class StatisticsFragment extends Fragment implements MviBaseView<Statisti
     disposables.dispose();
   }
 
-  public boolean isActive() {
-    return isAdded();
-  }
-
   @Override public Observable<StatisticsIntent> intents() {
     return initialIntent();
   }
