@@ -31,7 +31,6 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviBaseView;
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
-import timber.log.Timber;
 
 /**
  * Main UI for the statistics screen.

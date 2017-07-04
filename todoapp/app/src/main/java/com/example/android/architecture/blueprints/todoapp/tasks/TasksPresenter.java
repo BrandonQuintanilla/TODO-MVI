@@ -17,6 +17,7 @@
 package com.example.android.architecture.blueprints.todoapp.tasks;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
@@ -35,11 +36,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Listens to user actions from the UI ({@link TasksFragment}), retrieves the data and updates the
  * UI as required.
  */
-public class TasksPresenter implements TasksContract.Presenter {
+public class TasksPresenter extends ViewModel {
 
   @NonNull private final TasksRepository mTasksRepository;
 
-  @NonNull private final TasksContract.View mTasksView;
+  @NonNull private TasksFragment mTasksView;
 
   @NonNull private final BaseSchedulerProvider mSchedulerProvider;
 
@@ -50,31 +51,29 @@ public class TasksPresenter implements TasksContract.Presenter {
   @NonNull private CompositeDisposable disposables;
 
   public TasksPresenter(@NonNull TasksRepository tasksRepository,
-      @NonNull TasksContract.View tasksView, @NonNull BaseSchedulerProvider schedulerProvider) {
+      @NonNull BaseSchedulerProvider schedulerProvider) {
     mTasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null");
-    mTasksView = checkNotNull(tasksView, "tasksView cannot be null!");
     mSchedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
 
     disposables = new CompositeDisposable();
-    mTasksView.setPresenter(this);
   }
 
-  @Override public void subscribe() {
+  public void subscribe() {
     loadTasks(false);
   }
 
-  @Override public void unsubscribe() {
+  public void unsubscribe() {
     disposables.clear();
   }
 
-  @Override public void result(int requestCode, int resultCode) {
+  public void result(int requestCode, int resultCode) {
     // If a task was successfully added, show snackbar
     if (AddEditTaskActivity.REQUEST_ADD_TASK == requestCode && Activity.RESULT_OK == resultCode) {
       mTasksView.showSuccessfullySavedMessage();
     }
   }
 
-  @Override public void loadTasks(boolean forceUpdate) {
+  public void loadTasks(boolean forceUpdate) {
     // Simplification for sample: a network reload will be forced on first load.
     loadTasks(forceUpdate || mFirstLoad, true);
     mFirstLoad = false;
@@ -170,30 +169,30 @@ public class TasksPresenter implements TasksContract.Presenter {
     }
   }
 
-  @Override public void addNewTask() {
+  public void addNewTask() {
     mTasksView.showAddTask();
   }
 
-  @Override public void openTaskDetails(@NonNull Task requestedTask) {
+  public void openTaskDetails(@NonNull Task requestedTask) {
     checkNotNull(requestedTask, "requestedTask cannot be null!");
     mTasksView.showTaskDetailsUi(requestedTask.getId());
   }
 
-  @Override public void completeTask(@NonNull Task completedTask) {
+  public void completeTask(@NonNull Task completedTask) {
     checkNotNull(completedTask, "completedTask cannot be null!");
     mTasksRepository.completeTask(completedTask);
     mTasksView.showTaskMarkedComplete();
     loadTasks(false, false);
   }
 
-  @Override public void activateTask(@NonNull Task activeTask) {
+  public void activateTask(@NonNull Task activeTask) {
     checkNotNull(activeTask, "activeTask cannot be null!");
     mTasksRepository.activateTask(activeTask);
     mTasksView.showTaskMarkedActive();
     loadTasks(false, false);
   }
 
-  @Override public void clearCompletedTasks() {
+  public void clearCompletedTasks() {
     mTasksRepository.clearCompletedTasks();
     mTasksView.showCompletedTasksCleared();
     loadTasks(false, false);
@@ -206,11 +205,11 @@ public class TasksPresenter implements TasksContract.Presenter {
    * {@link TasksFilterType#COMPLETED_TASKS}, or
    * {@link TasksFilterType#ACTIVE_TASKS}
    */
-  @Override public void setFiltering(@NonNull TasksFilterType requestType) {
+  public void setFiltering(@NonNull TasksFilterType requestType) {
     mCurrentFiltering = requestType;
   }
 
-  @Override public TasksFilterType getFiltering() {
+  public TasksFilterType getFiltering() {
     return mCurrentFiltering;
   }
 }

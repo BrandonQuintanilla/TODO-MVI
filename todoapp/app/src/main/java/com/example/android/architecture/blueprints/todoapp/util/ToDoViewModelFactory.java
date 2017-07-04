@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProvider;
 import android.content.Context;
 import com.example.android.architecture.blueprints.todoapp.Injection;
 import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsViewModel;
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksPresenter;
 
 public class ToDoViewModelFactory implements ViewModelProvider.Factory {
   private static ToDoViewModelFactory INSTANCE;
@@ -26,6 +27,10 @@ public class ToDoViewModelFactory implements ViewModelProvider.Factory {
   public <T extends ViewModel> T create(Class<T> modelClass) {
     if (modelClass == StatisticsViewModel.class) {
       return (T) new StatisticsViewModel(Injection.provideTasksRepository(applicationContext),
+          Injection.provideSchedulerProvider());
+    }
+    if (modelClass == TasksPresenter.class) {
+      return (T) new TasksPresenter(Injection.provideTasksRepository(applicationContext),
           Injection.provideSchedulerProvider());
     } else {
       throw new IllegalArgumentException("unknown model class " + modelClass);
