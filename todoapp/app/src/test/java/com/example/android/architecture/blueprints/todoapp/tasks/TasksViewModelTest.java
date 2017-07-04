@@ -34,9 +34,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for the implementation of {@link TasksPresenter}
+ * Unit tests for the implementation of {@link TasksViewModel}
  */
-public class TasksPresenterTest {
+public class TasksViewModelTest {
 
   private static List<Task> TASKS;
 
@@ -46,7 +46,7 @@ public class TasksPresenterTest {
 
   private BaseSchedulerProvider mSchedulerProvider;
 
-  private TasksPresenter mTasksPresenter;
+  private TasksViewModel mTasksViewModel;
 
   @Before public void setupTasksPresenter() {
     // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
@@ -57,7 +57,7 @@ public class TasksPresenterTest {
     mSchedulerProvider = new ImmediateSchedulerProvider();
 
     // Get a reference to the class under test
-    mTasksPresenter = new TasksPresenter(mTasksRepository, mTasksView, mSchedulerProvider);
+    mTasksViewModel = new TasksViewModel(mTasksRepository, mTasksView, mSchedulerProvider);
 
     // The presenter won't update the view unless it's active.
     when(mTasksView.isActive()).thenReturn(true);
@@ -69,18 +69,18 @@ public class TasksPresenterTest {
 
   @Test public void createPresenter_setsThePresenterToView() {
     // Get a reference to the class under test
-    mTasksPresenter = new TasksPresenter(mTasksRepository, mTasksView, mSchedulerProvider);
+    mTasksViewModel = new TasksViewModel(mTasksRepository, mTasksView, mSchedulerProvider);
 
     // Then the presenter is set to the view
-    verify(mTasksView).setPresenter(mTasksPresenter);
+    verify(mTasksView).setPresenter(mTasksViewModel);
   }
 
   @Test public void loadAllTasksFromRepositoryAndLoadIntoView() {
-    // Given an initialized TasksPresenter with initialized tasks
+    // Given an initialized TasksViewModel with initialized tasks
     when(mTasksRepository.getTasks()).thenReturn(Single.just(TASKS));
     // When loading of Tasks is requested
-    mTasksPresenter.setFiltering(TasksFilterType.ALL_TASKS);
-    mTasksPresenter.loadTasks(true);
+    mTasksViewModel.setFiltering(TasksFilterType.ALL_TASKS);
+    mTasksViewModel.loadTasks(true);
 
     // Then progress indicator is shown
     verify(mTasksView).setLoadingIndicator(true);
@@ -89,22 +89,22 @@ public class TasksPresenterTest {
   }
 
   @Test public void loadActiveTasksFromRepositoryAndLoadIntoView() {
-    // Given an initialized TasksPresenter with initialized tasks
+    // Given an initialized TasksViewModel with initialized tasks
     when(mTasksRepository.getTasks()).thenReturn(Single.just(TASKS));
     // When loading of Tasks is requested
-    mTasksPresenter.setFiltering(TasksFilterType.ACTIVE_TASKS);
-    mTasksPresenter.loadTasks(true);
+    mTasksViewModel.setFiltering(TasksFilterType.ACTIVE_TASKS);
+    mTasksViewModel.loadTasks(true);
 
     // Then progress indicator is hidden and active tasks are shown in UI
     verify(mTasksView).setLoadingIndicator(false);
   }
 
   @Test public void loadCompletedTasksFromRepositoryAndLoadIntoView() {
-    // Given an initialized TasksPresenter with initialized tasks
+    // Given an initialized TasksViewModel with initialized tasks
     when(mTasksRepository.getTasks()).thenReturn(Single.just(TASKS));
     // When loading of Tasks is requested
-    mTasksPresenter.setFiltering(TasksFilterType.COMPLETED_TASKS);
-    mTasksPresenter.loadTasks(true);
+    mTasksViewModel.setFiltering(TasksFilterType.COMPLETED_TASKS);
+    mTasksViewModel.loadTasks(true);
 
     // Then progress indicator is hidden and completed tasks are shown in UI
     verify(mTasksView).setLoadingIndicator(false);
@@ -112,7 +112,7 @@ public class TasksPresenterTest {
 
   @Test public void clickOnFab_ShowsAddTaskUi() {
     // When adding a new task
-    mTasksPresenter.addNewTask();
+    mTasksViewModel.addNewTask();
 
     // Then add task UI is shown
     verify(mTasksView).showAddTask();
@@ -123,7 +123,7 @@ public class TasksPresenterTest {
     Task requestedTask = new Task("Details Requested", "For this task");
 
     // When open task details is requested
-    mTasksPresenter.openTaskDetails(requestedTask);
+    mTasksViewModel.openTaskDetails(requestedTask);
 
     // Then task detail UI is shown
     verify(mTasksView).showTaskDetailsUi(any(String.class));
@@ -136,7 +136,7 @@ public class TasksPresenterTest {
     when(mTasksRepository.getTasks()).thenReturn(Single.just(Collections.emptyList()));
 
     // When task is marked as complete
-    mTasksPresenter.completeTask(task);
+    mTasksViewModel.completeTask(task);
 
     // Then repository is called and task marked complete UI is shown
     verify(mTasksRepository).completeTask(task);
@@ -148,10 +148,10 @@ public class TasksPresenterTest {
     Task task = new Task("Details Requested", "For this task", true);
     // And no tasks available in the repository
     when(mTasksRepository.getTasks()).thenReturn(Single.just(Collections.emptyList()));
-    mTasksPresenter.loadTasks(true);
+    mTasksViewModel.loadTasks(true);
 
     // When task is marked as activated
-    mTasksPresenter.activateTask(task);
+    mTasksViewModel.activateTask(task);
 
     // Then repository is called and task marked active UI is shown
     verify(mTasksRepository).activateTask(task);
@@ -163,8 +163,8 @@ public class TasksPresenterTest {
     when(mTasksRepository.getTasks()).thenReturn(Single.error(new Exception()));
 
     // When tasks are loaded
-    mTasksPresenter.setFiltering(TasksFilterType.ALL_TASKS);
-    mTasksPresenter.loadTasks(true);
+    mTasksViewModel.setFiltering(TasksFilterType.ALL_TASKS);
+    mTasksViewModel.loadTasks(true);
 
     // Then an error message is shown
     verify(mTasksView).showLoadingTasksError();

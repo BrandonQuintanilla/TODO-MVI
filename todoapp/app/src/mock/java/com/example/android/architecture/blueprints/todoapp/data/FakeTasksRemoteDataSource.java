@@ -19,6 +19,7 @@ package com.example.android.architecture.blueprints.todoapp.data;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import java.util.Collection;
@@ -61,9 +62,10 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     TASKS_SERVICE_DATA.put(task.getId(), task);
   }
 
-  @Override public void completeTask(@NonNull Task task) {
+  @Override public Completable completeTask(@NonNull Task task) {
     Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
     TASKS_SERVICE_DATA.put(task.getId(), completedTask);
+    return null;
   }
 
   @Override public void completeTask(@NonNull String taskId) {
@@ -72,9 +74,10 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     TASKS_SERVICE_DATA.put(taskId, completedTask);
   }
 
-  @Override public void activateTask(@NonNull Task task) {
+  @Override public Completable activateTask(@NonNull Task task) {
     Task activeTask = new Task(task.getTitle(), task.getDescription(), task.getId());
     TASKS_SERVICE_DATA.put(task.getId(), activeTask);
+    return Completable.complete();
   }
 
   @Override public void activateTask(@NonNull String taskId) {
@@ -83,7 +86,7 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     TASKS_SERVICE_DATA.put(taskId, activeTask);
   }
 
-  @Override public void clearCompletedTasks() {
+  @Override public Completable clearCompletedTasks() {
     Iterator<Map.Entry<String, Task>> it = TASKS_SERVICE_DATA.entrySet().iterator();
     while (it.hasNext()) {
       Map.Entry<String, Task> entry = it.next();
@@ -91,6 +94,7 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
         it.remove();
       }
     }
+    return null;
   }
 
   public void refreshTasks() {

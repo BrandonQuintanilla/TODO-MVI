@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import java.util.Iterator;
@@ -138,7 +139,7 @@ public class TasksRepository implements TasksDataSource {
     mCachedTasks.put(task.getId(), task);
   }
 
-  @Override public void completeTask(@NonNull Task task) {
+  @Override public Completable completeTask(@NonNull Task task) {
     checkNotNull(task);
     mTasksRemoteDataSource.completeTask(task);
     mTasksLocalDataSource.completeTask(task);
@@ -150,6 +151,7 @@ public class TasksRepository implements TasksDataSource {
       mCachedTasks = new LinkedHashMap<>();
     }
     mCachedTasks.put(task.getId(), completedTask);
+    return Completable.complete();
   }
 
   @Override public void completeTask(@NonNull String taskId) {
@@ -160,7 +162,7 @@ public class TasksRepository implements TasksDataSource {
     }
   }
 
-  @Override public void activateTask(@NonNull Task task) {
+  @Override public Completable activateTask(@NonNull Task task) {
     checkNotNull(task);
     mTasksRemoteDataSource.activateTask(task);
     mTasksLocalDataSource.activateTask(task);
@@ -172,6 +174,7 @@ public class TasksRepository implements TasksDataSource {
       mCachedTasks = new LinkedHashMap<>();
     }
     mCachedTasks.put(task.getId(), activeTask);
+    return Completable.complete();
   }
 
   @Override public void activateTask(@NonNull String taskId) {
@@ -182,7 +185,7 @@ public class TasksRepository implements TasksDataSource {
     }
   }
 
-  @Override public void clearCompletedTasks() {
+  @Override public Completable clearCompletedTasks() {
     mTasksRemoteDataSource.clearCompletedTasks();
     mTasksLocalDataSource.clearCompletedTasks();
 
@@ -197,6 +200,7 @@ public class TasksRepository implements TasksDataSource {
         it.remove();
       }
     }
+    return Completable.complete();
   }
 
   /**

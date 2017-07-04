@@ -20,11 +20,8 @@ import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
 import com.example.android.architecture.blueprints.todoapp.util.Pair;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
@@ -33,8 +30,6 @@ import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
-import java.util.concurrent.TimeUnit;
-import timber.log.Timber;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -46,7 +41,6 @@ public class StatisticsViewModel extends ViewModel implements MviViewModel<Stati
   @NonNull private PublishSubject<MviIntent> intentsSubject;
   @NonNull private PublishSubject<StatisticsViewState> statesSubject;
   @NonNull private TasksRepository tasksRepository;
-
   @NonNull private BaseSchedulerProvider schedulerProvider;
 
   public StatisticsViewModel(@NonNull TasksRepository tasksRepository,
@@ -57,11 +51,11 @@ public class StatisticsViewModel extends ViewModel implements MviViewModel<Stati
     intentsSubject = PublishSubject.create();
     statesSubject = PublishSubject.create();
 
-    compose().subscribe(this.statesSubject::onNext);
+    compose().subscribe(this.statesSubject);
   }
 
   @Override public void forwardIntents(Observable<StatisticsIntent> intents) {
-    intents.subscribe(intentsSubject::onNext);
+    intents.subscribe(intentsSubject);
   }
 
   @Override public Observable<StatisticsViewState> states() {
@@ -69,14 +63,14 @@ public class StatisticsViewModel extends ViewModel implements MviViewModel<Stati
   }
 
   private Observable<StatisticsViewState> compose() {
-    return intentsSubject.doOnNext(this::logIntent)
+    return intentsSubject.doOnNext(MviViewModel::logIntent)
         .scan(initialIntentFilter)
         .map(this::actionFromIntent)
-        .doOnNext(this::logAction)
+        .doOnNext(MviViewModel::logAction)
         .compose(actionProcessor)
-        .doOnNext(this::logResult)
+        .doOnNext(MviViewModel::logResult)
         .scan(StatisticsViewState.idle(), reducer)
-        .doOnNext(this::logState)
+        .doOnNext(MviViewModel::logState)
         .doOnNext(state -> {
           // The network request might be handled in a different thread so make sure Espresso knows
           // that the app is busy until the response is handled.
@@ -128,13 +122,13 @@ public class StatisticsViewModel extends ViewModel implements MviViewModel<Stati
       .startWith(StatisticsResult.LoadStatistics.inFlight()));
 
   private ObservableTransformer<StatisticsAction.GetLastState, StatisticsResult.GetLastState>
-      getLastStateTransformer =
+      getLastStateProcessor =
       actions -> actions.map(ignored -> StatisticsResult.GetLastState.create());
 
   private ObservableTransformer<StatisticsAction, StatisticsResult> actionProcessor =
       actions -> actions.publish(shared -> Observable.merge(
           shared.ofType(StatisticsAction.LoadStatistics.class).compose(loadStatisticsProcessor),
-          shared.ofType(StatisticsAction.GetLastState.class).compose(getLastStateTransformer))
+          shared.ofType(StatisticsAction.GetLastState.class).compose(getLastStateProcessor))
           .mergeWith(
               // Error for not implemented actions
               shared.filter(v -> !(v instanceof StatisticsAction.LoadStatistics)
@@ -165,20 +159,4 @@ public class StatisticsViewModel extends ViewModel implements MviViewModel<Stati
         }
         throw new IllegalStateException("Mishandled result? Should not happen (as always)");
       };
-
-  private void logIntent(MviIntent intent) {
-    Timber.d("Intent: " + intent);
-  }
-
-  private void logAction(MviAction action) {
-    Timber.d("Action: " + action);
-  }
-
-  private void logResult(MviResult result) {
-    Timber.d("Result: " + result);
-  }
-
-  private void logState(MviViewState state) {
-    Timber.d("State: " + state);
-  }
 }

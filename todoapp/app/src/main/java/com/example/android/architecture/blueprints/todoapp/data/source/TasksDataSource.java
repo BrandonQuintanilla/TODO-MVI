@@ -18,6 +18,7 @@ package com.example.android.architecture.blueprints.todoapp.data.source;
 
 import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import java.util.List;
 
@@ -26,6 +27,10 @@ import java.util.List;
  * <p>
  */
 public interface TasksDataSource {
+  default Single<List<Task>> getTasks(boolean forceUpdate) {
+    if (forceUpdate) refreshTasks();
+    return getTasks();
+  }
 
   Single<List<Task>> getTasks();
 
@@ -33,15 +38,15 @@ public interface TasksDataSource {
 
   void saveTask(@NonNull Task task);
 
-  void completeTask(@NonNull Task task);
+  Completable completeTask(@NonNull Task task);
 
   void completeTask(@NonNull String taskId);
 
-  void activateTask(@NonNull Task task);
+  Completable activateTask(@NonNull Task task);
 
   void activateTask(@NonNull String taskId);
 
-  void clearCompletedTasks();
+  Completable clearCompletedTasks();
 
   void refreshTasks();
 

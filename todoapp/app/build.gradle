@@ -81,6 +81,7 @@ dependencies {
   compile "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"
   compile "com.squareup.sqlbrite2:sqlbrite:$rootProject.sqlbriteVersion"
   compile "com.jakewharton.timber:timber:$rootProject.timberVersion"
+  compile "com.jakewharton.rxbinding2:rxbinding-support-v4:$rootProject.rxBindingVersion"
   compile "android.arch.lifecycle:runtime:$rootProject.archComponentsVersion"
   compile "android.arch.lifecycle:extensions:$rootProject.archComponentsVersion"
   annotationProcessor "android.arch.lifecycle:compiler:$rootProject.archComponentsVersion"

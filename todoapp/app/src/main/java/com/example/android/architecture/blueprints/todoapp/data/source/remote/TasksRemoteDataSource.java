@@ -19,6 +19,7 @@ package com.example.android.architecture.blueprints.todoapp.data.source.remote;
 import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import java.util.Iterator;
@@ -75,9 +76,10 @@ public class TasksRemoteDataSource implements TasksDataSource {
     TASKS_SERVICE_DATA.put(task.getId(), task);
   }
 
-  @Override public void completeTask(@NonNull Task task) {
+  @Override public Completable completeTask(@NonNull Task task) {
     Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
     TASKS_SERVICE_DATA.put(task.getId(), completedTask);
+    return null;
   }
 
   @Override public void completeTask(@NonNull String taskId) {
@@ -85,9 +87,10 @@ public class TasksRemoteDataSource implements TasksDataSource {
     // converting from a {@code taskId} to a {@link task} using its cached data.
   }
 
-  @Override public void activateTask(@NonNull Task task) {
+  @Override public Completable activateTask(@NonNull Task task) {
     Task activeTask = new Task(task.getTitle(), task.getDescription(), task.getId());
     TASKS_SERVICE_DATA.put(task.getId(), activeTask);
+    return Completable.complete();
   }
 
   @Override public void activateTask(@NonNull String taskId) {
@@ -95,7 +98,7 @@ public class TasksRemoteDataSource implements TasksDataSource {
     // converting from a {@code taskId} to a {@link task} using its cached data.
   }
 
-  @Override public void clearCompletedTasks() {
+  @Override public Completable clearCompletedTasks() {
     Iterator<Map.Entry<String, Task>> it = TASKS_SERVICE_DATA.entrySet().iterator();
     while (it.hasNext()) {
       Map.Entry<String, Task> entry = it.next();
@@ -103,6 +106,7 @@ public class TasksRemoteDataSource implements TasksDataSource {
         it.remove();
       }
     }
+    return null;
   }
 
   @Override public void refreshTasks() {

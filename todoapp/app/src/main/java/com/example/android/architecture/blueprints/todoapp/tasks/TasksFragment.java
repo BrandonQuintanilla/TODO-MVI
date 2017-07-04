@@ -16,8 +16,10 @@
 
 package com.example.android.architecture.blueprints.todoapp.tasks;
 
+import android.app.Activity;
 import android.arch.lifecycle.LifecycleRegistry;
 import android.arch.lifecycle.LifecycleRegistryOwner;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -25,7 +27,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,8 +34,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -42,19 +41,24 @@ import android.widget.TextView;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity;
+import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
+import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import timber.log.Timber;
 
 /**
  * Display a grid of {@link Task}s. User can choose to view all, active or completed tasks.
  */
-public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
+public class TasksFragment extends Fragment
+    implements LifecycleRegistryOwner, MviView<TasksViewState> {
   LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
 
-  private TasksPresenter presenter;
+  private TasksViewModel viewModel;
   private TasksAdapter listAdapter;
   private View noTasksView;
   private ImageView noTaskIcon;
@@ -62,10 +66,10 @@ public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
   private TextView noTaskAddView;
   private LinearLayout tasksView;
   private TextView filteringLabelView;
-
-  public TasksFragment() {
-    // Requires empty public constructor
-  }
+  private ScrollChildSwipeRefreshLayout swipeRefreshLayout;
+  private PublishSubject<TasksIntent.RefreshIntent> refreshIntentPublisher =
+      PublishSubject.create();
+  private CompositeDisposable disposables;
 
   public static TasksFragment newInstance() {
     return new TasksFragment();
@@ -73,21 +77,39 @@ public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
 
   @Override public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    listAdapter = new TasksAdapter(new ArrayList<>(0), mItemListener);
+    listAdapter = new TasksAdapter(new ArrayList<>(0));
   }
 
-  @Override public void onResume() {
-    super.onResume();
-    presenter.subscribe();
+  @Override public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+
+    viewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+        .get(TasksViewModel.class);
+    disposables = new CompositeDisposable();
+    bind();
   }
 
-  @Override public void onPause() {
-    super.onPause();
-    presenter.unsubscribe();
+  private void bind() {
+    disposables.add(viewModel.states().subscribe(this::render));
+    viewModel.forwardIntents(intents());
+
+    disposables.add(
+        listAdapter.getTaskClickObservable().subscribe(task -> showTaskDetailsUi(task.getId())));
+  }
+
+  @Override public void onDestroy() {
+    super.onDestroy();
+
+    disposables.dispose();
   }
 
   @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    presenter.result(requestCode, resultCode);
+    // TODO(benoit) specific intent so the showing happens in render()
+    refreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create());
+    // If a task was successfully added, show snackbar
+    if (AddEditTaskActivity.REQUEST_ADD_TASK == requestCode && Activity.RESULT_OK == resultCode) {
+      showSuccessfullySavedMessage();
+    }
   }
 
   @Nullable @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -105,25 +127,22 @@ public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
     noTaskIcon = (ImageView) root.findViewById(R.id.noTasksIcon);
     noTaskMainView = (TextView) root.findViewById(R.id.noTasksMain);
     noTaskAddView = (TextView) root.findViewById(R.id.noTasksAdd);
-    noTaskAddView.setOnClickListener(__ -> showAddTask());
+    noTaskAddView.setOnClickListener(ignored -> showAddTask());
 
     // Set up floating action button
     FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab_add_task);
 
     fab.setImageResource(R.drawable.ic_add);
-    fab.setOnClickListener(__ -> presenter.addNewTask());
+    fab.setOnClickListener(ignored -> showAddTask());
 
     // Set up progress indicator
-    final ScrollChildSwipeRefreshLayout swipeRefreshLayout =
-        (ScrollChildSwipeRefreshLayout) root.findViewById(R.id.refresh_layout);
+    swipeRefreshLayout = (ScrollChildSwipeRefreshLayout) root.findViewById(R.id.refresh_layout);
     swipeRefreshLayout.setColorSchemeColors(
         ContextCompat.getColor(getActivity(), R.color.colorPrimary),
         ContextCompat.getColor(getActivity(), R.color.colorAccent),
         ContextCompat.getColor(getActivity(), R.color.colorPrimaryDark));
     // Set the scrolling view in the custom SwipeRefreshLayout.
     swipeRefreshLayout.setScrollUpChild(listView);
-
-    swipeRefreshLayout.setOnRefreshListener(() -> presenter.loadTasks(false));
 
     setHasOptionsMenu(true);
 
@@ -133,13 +152,19 @@ public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.menu_clear:
-        presenter.clearCompletedTasks();
+        // TODO(benoit)
+        Timber.d("clear completed click");
+        //viewModel.clearCompletedTasks();
         break;
       case R.id.menu_filter:
-        showFilteringPopUpMenu();
+        // TODO(benoit)
+        Timber.d("show filtering");
+        //showFilteringPopUpMenu();
         break;
       case R.id.menu_refresh:
-        presenter.loadTasks(true);
+        // TODO(benoit)
+        Timber.d("load taks");
+        //viewModel.loadTasks(true);
         break;
     }
     return true;
@@ -157,55 +182,20 @@ public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
     popup.setOnMenuItemClickListener(item -> {
       switch (item.getItemId()) {
         case R.id.active:
-          presenter.setFiltering(TasksFilterType.ACTIVE_TASKS);
+          viewModel.setFiltering(TasksFilterType.ACTIVE_TASKS);
           break;
         case R.id.completed:
-          presenter.setFiltering(TasksFilterType.COMPLETED_TASKS);
+          viewModel.setFiltering(TasksFilterType.COMPLETED_TASKS);
           break;
         default:
-          presenter.setFiltering(TasksFilterType.ALL_TASKS);
+          viewModel.setFiltering(TasksFilterType.ALL_TASKS);
           break;
       }
-      presenter.loadTasks(false);
+      //viewModel.loadTasks(false);
       return true;
     });
 
     popup.show();
-  }
-
-  /**
-   * Listener for clicks on tasks in the ListView.
-   */
-  TaskItemListener mItemListener = new TaskItemListener() {
-    @Override public void onTaskClick(Task clickedTask) {
-      presenter.openTaskDetails(clickedTask);
-    }
-
-    @Override public void onCompleteTaskClick(Task completedTask) {
-      presenter.completeTask(completedTask);
-    }
-
-    @Override public void onActivateTaskClick(Task activatedTask) {
-      presenter.activateTask(activatedTask);
-    }
-  };
-
-  public void setLoadingIndicator(final boolean active) {
-
-    if (getView() == null) {
-      return;
-    }
-    final SwipeRefreshLayout srl = (SwipeRefreshLayout) getView().findViewById(R.id.refresh_layout);
-
-    // Make sure setRefreshing() is called after the layout is done with everything else.
-    srl.post(() -> srl.setRefreshing(active));
-  }
-
-  public void showTasks(List<Task> tasks) {
-    listAdapter.replaceData(tasks);
-
-    tasksView.setVisibility(View.VISIBLE);
-    noTasksView.setVisibility(View.GONE);
   }
 
   public void showNoActiveTasks() {
@@ -261,18 +251,6 @@ public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
     startActivity(intent);
   }
 
-  public void showTaskMarkedComplete() {
-    showMessage(getString(R.string.task_marked_complete));
-  }
-
-  public void showTaskMarkedActive() {
-    showMessage(getString(R.string.task_marked_active));
-  }
-
-  public void showCompletedTasksCleared() {
-    showMessage(getString(R.string.completed_tasks_cleared));
-  }
-
   public void showLoadingTasksError() {
     showMessage(getString(R.string.loading_tasks_error));
   }
@@ -281,87 +259,75 @@ public class TasksFragment extends Fragment implements LifecycleRegistryOwner {
     Snackbar.make(getView(), message, Snackbar.LENGTH_LONG).show();
   }
 
-  public boolean isActive() {
-    return isAdded();
+  @Override public Observable<TasksIntent> intents() {
+    return Observable.merge(initialIntent(), refreshIntent(), adapterIntents());
   }
 
-  private static class TasksAdapter extends BaseAdapter {
+  private Observable<TasksIntent.InitialIntent> initialIntent() {
+    return Observable.just(TasksIntent.InitialIntent.create());
+  }
 
-    private List<Task> mTasks;
-    private TaskItemListener mItemListener;
+  private Observable<TasksIntent.RefreshIntent> refreshIntent() {
+    //swipeRefreshLayout.setOnRefreshListener(() -> viewModel.loadTasks(false));
+    return RxSwipeRefreshLayout.refreshes(swipeRefreshLayout)
+        .map(ignored -> TasksIntent.RefreshIntent.create())
+        .mergeWith(refreshIntentPublisher);
+  }
 
-    public TasksAdapter(List<Task> tasks, TaskItemListener itemListener) {
-      setList(tasks);
-      mItemListener = itemListener;
-    }
-
-    public void replaceData(List<Task> tasks) {
-      setList(tasks);
-      notifyDataSetChanged();
-    }
-
-    private void setList(List<Task> tasks) {
-      mTasks = checkNotNull(tasks);
-    }
-
-    @Override public int getCount() {
-      return mTasks.size();
-    }
-
-    @Override public Task getItem(int i) {
-      return mTasks.get(i);
-    }
-
-    @Override public long getItemId(int i) {
-      return i;
-    }
-
-    @Override public View getView(int i, View view, ViewGroup viewGroup) {
-      View rowView = view;
-      if (rowView == null) {
-        LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
-        rowView = inflater.inflate(R.layout.task_item, viewGroup, false);
-      }
-
-      final Task task = getItem(i);
-
-      TextView titleTV = (TextView) rowView.findViewById(R.id.title);
-      titleTV.setText(task.getTitleForList());
-
-      CheckBox completeCB = (CheckBox) rowView.findViewById(R.id.complete);
-
-      // Active/completed task UI
-      completeCB.setChecked(task.isCompleted());
-      if (task.isCompleted()) {
-        rowView.setBackgroundDrawable(viewGroup.getContext()
-            .getResources()
-            .getDrawable(R.drawable.list_completed_touch_feedback));
+  private Observable<TasksIntent> adapterIntents() {
+    return listAdapter.getTaskToggleObservable().map(task -> {
+      // TODO(benoit) pass the current filter
+      if (!task.isCompleted()) {
+        return TasksIntent.CompleteTaskIntent.create(task);
       } else {
-        rowView.setBackgroundDrawable(
-            viewGroup.getContext().getResources().getDrawable(R.drawable.touch_feedback));
+        return TasksIntent.ActivateTaskIntent.create(task);
       }
-
-      completeCB.setOnClickListener(__ -> {
-        if (!task.isCompleted()) {
-          mItemListener.onCompleteTaskClick(task);
-        } else {
-          mItemListener.onActivateTaskClick(task);
-        }
-      });
-
-      rowView.setOnClickListener(__ -> mItemListener.onTaskClick(task));
-
-      return rowView;
-    }
+    });
   }
 
-  public interface TaskItemListener {
+  @Override public void render(TasksViewState state) {
+    swipeRefreshLayout.setRefreshing(state.isLoading());
+    if (state.error() != null) {
+      showLoadingTasksError();
+      return;
+    }
 
-    void onTaskClick(Task clickedTask);
+    if (state.taskActivated()) showMessage(getString(R.string.task_marked_active));
 
-    void onCompleteTaskClick(Task completedTask);
+    if (state.taskComplete()) showMessage(getString(R.string.task_marked_complete));
 
-    void onActivateTaskClick(Task activatedTask);
+    if (state.completedTasksCleared()) showMessage(getString(R.string.completed_tasks_cleared));
+
+    if (state.tasks().isEmpty()) {
+      switch (state.tasksFilterType()) {
+        case ACTIVE_TASKS:
+          showNoActiveTasks();
+          break;
+        case COMPLETED_TASKS:
+          showNoCompletedTasks();
+          break;
+        default:
+          showNoTasks();
+          break;
+      }
+    } else {
+      listAdapter.replaceData(state.tasks());
+
+      tasksView.setVisibility(View.VISIBLE);
+      noTasksView.setVisibility(View.GONE);
+
+      switch (state.tasksFilterType()) {
+        case ACTIVE_TASKS:
+          showActiveFilterLabel();
+          break;
+        case COMPLETED_TASKS:
+          showCompletedFilterLabel();
+          break;
+        default:
+          showAllFilterLabel();
+          break;
+      }
+    }
   }
 
   @Override public LifecycleRegistry getLifecycle() {

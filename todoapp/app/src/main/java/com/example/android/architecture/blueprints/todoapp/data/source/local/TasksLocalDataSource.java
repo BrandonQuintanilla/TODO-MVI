@@ -29,6 +29,7 @@ import com.example.android.architecture.blueprints.todoapp.data.source.local.Tas
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import com.squareup.sqlbrite2.BriteDatabase;
 import com.squareup.sqlbrite2.SqlBrite;
+import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.reactivex.functions.Function;
 import java.util.List;
@@ -112,8 +113,9 @@ public class TasksLocalDataSource implements TasksDataSource {
     mDatabaseHelper.insert(TaskEntry.TABLE_NAME, values, SQLiteDatabase.CONFLICT_REPLACE);
   }
 
-  @Override public void completeTask(@NonNull Task task) {
+  @Override public Completable completeTask(@NonNull Task task) {
     completeTask(task.getId());
+    return null;
   }
 
   @Override public void completeTask(@NonNull String taskId) {
@@ -125,8 +127,9 @@ public class TasksLocalDataSource implements TasksDataSource {
     mDatabaseHelper.update(TaskEntry.TABLE_NAME, values, selection, selectionArgs);
   }
 
-  @Override public void activateTask(@NonNull Task task) {
+  @Override public Completable activateTask(@NonNull Task task) {
     activateTask(task.getId());
+    return Completable.complete();
   }
 
   @Override public void activateTask(@NonNull String taskId) {
@@ -138,10 +141,11 @@ public class TasksLocalDataSource implements TasksDataSource {
     mDatabaseHelper.update(TaskEntry.TABLE_NAME, values, selection, selectionArgs);
   }
 
-  @Override public void clearCompletedTasks() {
+  @Override public Completable clearCompletedTasks() {
     String selection = TaskEntry.COLUMN_NAME_COMPLETED + " LIKE ?";
     String[] selectionArgs = { "1" };
     mDatabaseHelper.delete(TaskEntry.TABLE_NAME, selection, selectionArgs);
+    return null;
   }
 
   @Override public void refreshTasks() {

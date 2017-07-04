@@ -11,6 +11,7 @@ interface StatisticsIntent extends MviIntent {
     }
   }
 
+  // should we create a top singleton that any view could use?
   @AutoValue abstract class GetLastState implements StatisticsIntent {
     public static GetLastState create() {
       return new AutoValue_StatisticsIntent_GetLastState();

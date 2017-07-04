@@ -27,7 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.example.android.architecture.blueprints.todoapp.R;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviBaseView;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
@@ -36,7 +36,7 @@ import io.reactivex.disposables.CompositeDisposable;
  * Main UI for the statistics screen.
  */
 public class StatisticsFragment extends Fragment
-    implements MviBaseView<StatisticsViewState>, LifecycleRegistryOwner {
+    implements MviView<StatisticsViewState>, LifecycleRegistryOwner {
   LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
 
   private TextView statisticsTV;
