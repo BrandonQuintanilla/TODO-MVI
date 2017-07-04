@@ -80,19 +80,28 @@ dependencies {
   compile "io.reactivex.rxjava2:rxjava:$rootProject.rxjavaVersion"
   compile "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"
   compile "com.squareup.sqlbrite2:sqlbrite:$rootProject.sqlbriteVersion"
+  compile "com.jakewharton.timber:timber:$rootProject.timberVersion"
+  compile "android.arch.lifecycle:runtime:$rootProject.archComponentsVersion"
+  compile "android.arch.lifecycle:extensions:$rootProject.archComponentsVersion"
+  annotationProcessor "android.arch.lifecycle:compiler:$rootProject.archComponentsVersion"
+  annotationProcessor "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
+  provided "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
+  debugCompile "com.squareup.leakcanary:leakcanary-android:$rootProject.leakCanaryVersion"
+  releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$rootProject.leakCanaryVersion"
 
   // Dependencies for local unit tests
-  testCompile "junit:junit:$rootProject.ext.junitVersion"
-  testCompile "org.mockito:mockito-all:$rootProject.ext.mockitoVersion"
-  testCompile "org.hamcrest:hamcrest-all:$rootProject.ext.hamcrestVersion"
+  testCompile "junit:junit:$rootProject.junitVersion"
+  testCompile "org.mockito:mockito-all:$rootProject.mockitoVersion"
+  testCompile "org.hamcrest:hamcrest-all:$rootProject.hamcrestVersion"
+  testCompile "com.squareup.leakcanary:leakcanary-android-no-op:$rootProject.leakCanaryVersion"
 
   // Android Testing Support Library's runner and rules
-  androidTestCompile "com.android.support.test:runner:$rootProject.ext.runnerVersion"
-  androidTestCompile "com.android.support.test:rules:$rootProject.ext.runnerVersion"
+  androidTestCompile "com.android.support.test:runner:$rootProject.runnerVersion"
+  androidTestCompile "com.android.support.test:rules:$rootProject.runnerVersion"
 
   // Dependencies for Android unit tests
-  androidTestCompile "junit:junit:$rootProject.ext.junitVersion"
-  androidTestCompile "org.mockito:mockito-core:$rootProject.ext.mockitoVersion"
+  androidTestCompile "junit:junit:$rootProject.junitVersion"
+  androidTestCompile "org.mockito:mockito-core:$rootProject.mockitoVersion"
   androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
   androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
 
@@ -114,6 +123,6 @@ Resolves dependency versions across test and production APKs, specifically, tran
 dependencies. This is required since Espresso internally has a dependency on support-annotations.
 */
 configurations.all {
-//  resolutionStrategy.force "com.android.support:support-annotations:$rootProject.ext.lib.supportLibraryVersion"
+  //  resolutionStrategy.force "com.android.support:support-annotations:$rootProject.ext.lib.supportLibraryVersion"
   resolutionStrategy.force "com.google.code.findbugs:jsr305:$rootProject.jsr305Version"
 }

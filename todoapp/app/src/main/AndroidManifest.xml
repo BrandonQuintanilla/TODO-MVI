@@ -16,28 +16,29 @@
   -->
 
 <manifest
-    package="com.example.android.architecture.blueprints.todoapp"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.android.architecture.blueprints.todoapp">
 
-    <application
-        android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity
-                android:name="com.example.android.architecture.blueprints.todoapp.tasks.TasksActivity"
-                android:theme="@style/AppTheme.OverlapSystemBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name="com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity" />
-        <activity android:name="com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity" />
-        <activity
-            android:name="com.example.android.architecture.blueprints.todoapp.statistics.StatisticsActivity"
-            android:theme="@style/AppTheme.OverlapSystemBar" />
-    </application>
+  <application
+      android:name=".ToDoApplication"
+      android:allowBackup="false"
+      android:icon="@mipmap/ic_launcher"
+      android:label="@string/app_name"
+      android:supportsRtl="true"
+      android:theme="@style/AppTheme">
+    <activity
+        android:name="com.example.android.architecture.blueprints.todoapp.tasks.TasksActivity"
+        android:theme="@style/AppTheme.OverlapSystemBar">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+    <activity android:name="com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity"/>
+    <activity android:name="com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity"/>
+    <activity
+        android:name="com.example.android.architecture.blueprints.todoapp.statistics.StatisticsActivity"
+        android:theme="@style/AppTheme.OverlapSystemBar"/>
+  </application>
 
 </manifest>
