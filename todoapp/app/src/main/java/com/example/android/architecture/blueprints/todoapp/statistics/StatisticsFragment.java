@@ -26,17 +26,16 @@ import android.widget.TextView;
 import com.example.android.architecture.blueprints.todoapp.Injection;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviBaseView;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 
 /**
  * Main UI for the statistics screen.
  */
-public class StatisticsFragment extends Fragment implements MviBaseView<StatisticsUiState> {
+public class StatisticsFragment extends Fragment implements MviBaseView<StatisticsViewState> {
 
   private TextView statisticsTV;
-  private StatisticsPresenter presenter;
+  private StatisticsViewModel presenter;
   private CompositeDisposable disposables;
 
   public static StatisticsFragment newInstance() {
@@ -52,7 +51,7 @@ public class StatisticsFragment extends Fragment implements MviBaseView<Statisti
 
   @Override public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    presenter = new StatisticsPresenter(
+    presenter = new StatisticsViewModel(
         Injection.provideTasksRepository(getActivity().getApplicationContext()),
         Injection.provideSchedulerProvider());
     disposables = new CompositeDisposable();
@@ -73,7 +72,7 @@ public class StatisticsFragment extends Fragment implements MviBaseView<Statisti
     return isAdded();
   }
 
-  @Override public Observable<? extends MviIntent> intents() {
+  @Override public Observable<StatisticsIntent> intents() {
     return initialIntent();
   }
 
@@ -81,7 +80,7 @@ public class StatisticsFragment extends Fragment implements MviBaseView<Statisti
     return Observable.just(StatisticsIntent.InitialIntent.create());
   }
 
-  @Override public void render(StatisticsUiState state) {
+  @Override public void render(StatisticsViewState state) {
     if (state.isLoading()) statisticsTV.setText(getString(R.string.loading));
     if (state.error() != null) {
       statisticsTV.setText(getResources().getString(R.string.statistics_error));

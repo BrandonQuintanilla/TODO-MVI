@@ -17,22 +17,22 @@
 package com.example.android.architecture.blueprints.todoapp.statistics;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
-import android.util.Pair;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviBaseModel;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviUiState;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
+import com.example.android.architecture.blueprints.todoapp.util.Pair;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
+import timber.log.Timber;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -40,14 +40,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Listens to user actions from the UI ({@link StatisticsFragment}), retrieves the data and updates
  * the UI as required.
  */
-public class StatisticsPresenter implements MviBaseModel {
+public class StatisticsViewModel implements MviViewModel<StatisticsIntent> {
   @NonNull private PublishSubject<MviIntent> intentsSubject;
-  @NonNull private PublishSubject<StatisticsUiState> statesSubject;
+  @NonNull private PublishSubject<StatisticsViewState> statesSubject;
   @NonNull private TasksRepository tasksRepository;
 
   @NonNull private BaseSchedulerProvider schedulerProvider;
 
-  StatisticsPresenter(@NonNull TasksRepository tasksRepository,
+  StatisticsViewModel(@NonNull TasksRepository tasksRepository,
       @NonNull BaseSchedulerProvider schedulerProvider) {
     this.tasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null");
     this.schedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
@@ -55,24 +55,24 @@ public class StatisticsPresenter implements MviBaseModel {
     intentsSubject = PublishSubject.create();
     statesSubject = PublishSubject.create();
 
-    compose().subscribe(state -> this.statesSubject.onNext(state));
+    compose().subscribe(this.statesSubject);
   }
 
-  @Override public void forwardIntents(Observable<? extends MviIntent> intents) {
-    intents.subscribe(intentsSubject::onNext);
+  @Override public void forwardIntents(Observable<StatisticsIntent> intents) {
+    intents.subscribe(intentsSubject);
   }
 
-  @Override public Observable<StatisticsUiState> states() {
+  @Override public Observable<StatisticsViewState> states() {
     return statesSubject;
   }
 
-  private Observable<StatisticsUiState> compose() {
+  private Observable<StatisticsViewState> compose() {
     return intentsSubject.doOnNext(this::logIntent)
         .map(this::actionFromIntent)
         .doOnNext(this::logAction)
         .compose(actionProcessor)
         .doOnNext(this::logResult)
-        .scan(StatisticsUiState.idle(), reducer)
+        .scan(StatisticsViewState.idle(), reducer)
         .doOnNext(this::logState)
         .doOnNext(state -> {
           // The network request might be handled in a different thread so make sure Espresso knows
@@ -101,8 +101,8 @@ public class StatisticsPresenter implements MviBaseModel {
               shared.filter(Task::isActive).count(), //
               shared.filter(Task::isCompleted).count(), //
               Pair::create).toObservable())
-      .map(pair -> StatisticsResult.LoadStatistics.success(pair.first.intValue(),
-          pair.second.intValue()))
+      .map(pair -> StatisticsResult.LoadStatistics.success(pair.first().intValue(),
+          pair.second().intValue()))
       .onErrorReturn(StatisticsResult.LoadStatistics::failure)
       .subscribeOn(schedulerProvider.io())
       .observeOn(schedulerProvider.ui())
@@ -116,9 +116,9 @@ public class StatisticsPresenter implements MviBaseModel {
               .flatMap(w -> Observable.error(
                   new IllegalArgumentException("Unknown Action type: " + w)))));
 
-  private static BiFunction<StatisticsUiState, StatisticsResult, StatisticsUiState> reducer =
+  private static BiFunction<StatisticsViewState, StatisticsResult, StatisticsViewState> reducer =
       (previousState, result) -> {
-        StatisticsUiState.Builder stateBuilder = previousState.buildWith();
+        StatisticsViewState.Builder stateBuilder = previousState.buildWith();
         if (result instanceof StatisticsResult.LoadStatistics) {
           StatisticsResult.LoadStatistics loadResult = (StatisticsResult.LoadStatistics) result;
           switch (loadResult.status()) {
@@ -139,18 +139,18 @@ public class StatisticsPresenter implements MviBaseModel {
       };
 
   private void logIntent(MviIntent intent) {
-    Log.d("CONNARD", "Intent: " + intent);
+    Timber.d("Intent: " + intent);
   }
 
   private void logAction(MviAction action) {
-    Log.d("CONNARD", "Action: " + action);
+    Timber.d("Action: " + action);
   }
 
   private void logResult(MviResult result) {
-    Log.d("CONNARD", "Result: " + result);
+    Timber.d("Result: " + result);
   }
 
-  private void logState(MviUiState state) {
-    Log.d("CONNARD", "State: " + state);
+  private void logState(MviViewState state) {
+    Timber.d("State: " + state);
   }
 }

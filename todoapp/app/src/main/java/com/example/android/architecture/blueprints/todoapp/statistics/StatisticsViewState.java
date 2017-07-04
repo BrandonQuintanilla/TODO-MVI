@@ -1,10 +1,10 @@
 package com.example.android.architecture.blueprints.todoapp.statistics;
 
 import android.support.annotation.Nullable;
-import com.example.android.architecture.blueprints.todoapp.mvibase.MviUiState;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 import com.google.auto.value.AutoValue;
 
-@AutoValue abstract class StatisticsUiState implements MviUiState {
+@AutoValue abstract class StatisticsViewState implements MviViewState {
   abstract boolean isLoading();
 
   abstract int activeCount();
@@ -15,8 +15,8 @@ import com.google.auto.value.AutoValue;
 
   public abstract Builder buildWith();
 
-  static StatisticsUiState idle() {
-    return new AutoValue_StatisticsUiState.Builder().isLoading(false)
+  static StatisticsViewState idle() {
+    return new AutoValue_StatisticsViewState.Builder().isLoading(false)
         .activeCount(0)
         .completedCount(0)
         .error(null)
@@ -32,6 +32,6 @@ import com.google.auto.value.AutoValue;
 
     abstract Builder error(@Nullable Throwable error);
 
-    abstract StatisticsUiState build();
+    abstract StatisticsViewState build();
   }
 }

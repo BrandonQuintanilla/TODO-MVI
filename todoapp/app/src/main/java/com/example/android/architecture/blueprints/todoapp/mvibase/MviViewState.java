@@ -1,4 +1,4 @@
 package com.example.android.architecture.blueprints.todoapp.mvibase;
 
-public interface MviUiState {
+public interface MviViewState {
 }
