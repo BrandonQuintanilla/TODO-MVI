@@ -18,6 +18,7 @@ package com.example.android.architecture.blueprints.todoapp.tasks;
 
 import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
+import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
@@ -27,6 +28,8 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -39,8 +42,6 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
   @NonNull private PublishSubject<TasksViewState> statesSubject;
   @NonNull private TasksRepository tasksRepository;
   @NonNull private BaseSchedulerProvider schedulerProvider;
-  @NonNull private TasksFilterType currentFiltering = TasksFilterType.ALL_TASKS;
-  private boolean mFirstLoad = true;
 
   public TasksViewModel(@NonNull TasksRepository tasksRepository,
       @NonNull BaseSchedulerProvider schedulerProvider) {
@@ -96,15 +97,14 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
 
   private TasksAction actionFromIntent(MviIntent intent) {
     if (intent instanceof TasksIntent.InitialIntent) {
-      // TODO(benoit) what's with this forceupdate?
-      //// Simplification for sample: a network reload will be forced on first load.
-      //loadTasks(forceUpdate || mFirstLoad, true);
-      //mFirstLoad = false;
-      return TasksAction.LoadTasks.create(true, TasksFilterType.ALL_TASKS);
+      return TasksAction.LoadTasks.loadAndFilter(true, TasksFilterType.ALL_TASKS);
+    }
+    if (intent instanceof TasksIntent.ChangeFilterIntent) {
+      return TasksAction.LoadTasks.loadAndFilter(false,
+          ((TasksIntent.ChangeFilterIntent) intent).filterType());
     }
     if (intent instanceof TasksIntent.RefreshIntent) {
-      return TasksAction.LoadTasks.create(((TasksIntent.RefreshIntent) intent).forceUpdate(),
-          TasksFilterType.ALL_TASKS);
+      return TasksAction.LoadTasks.load(((TasksIntent.RefreshIntent) intent).forceUpdate());
     }
     if (intent instanceof TasksIntent.GetLastState) {
       return TasksAction.GetLastState.create();
@@ -126,22 +126,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
   private ObservableTransformer<TasksAction.LoadTasks, TasksResult.LoadTasks> loadTasksProcessor =
       actions -> actions.flatMap(action -> tasksRepository.getTasks(action.forceUpdate())
           .toObservable()
-          .flatMap(Observable::fromIterable)
-          // TODO(benoit) Next 3 calls are ugly. Why not letting the repo do it?
-          .filter(task -> {
-            switch (action.filterType()) {
-              case ACTIVE_TASKS:
-                return task.isActive();
-              case COMPLETED_TASKS:
-                return task.isCompleted();
-              case ALL_TASKS:
-              default:
-                return true;
-            }
-          })
-          .toList()
-          .toObservable()
-          .map(TasksResult.LoadTasks::success)
+          .map(tasks -> TasksResult.LoadTasks.success(tasks, action.filterType()))
           .onErrorReturn(TasksResult.LoadTasks::failure)
           .subscribeOn(schedulerProvider.io())
           .observeOn(schedulerProvider.ui())
@@ -155,21 +140,6 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
       action -> tasksRepository.activateTask(action.task())
           .andThen(tasksRepository.getTasks())
           .toObservable()
-          .flatMap(Observable::fromIterable)
-          // TODO(benoit) Pass the state with the call ? Do it in the repo ? Do it in the reducer?
-          //.filter(task -> {
-          //  switch (action.filterType()) {
-          //    case ACTIVE_TASKS:
-          //      return task.isActive();
-          //    case COMPLETED_TASKS:
-          //      return task.isCompleted();
-          //    case ALL_TASKS:
-          //    default:
-          //      return true;
-          //  }
-          //})
-          .toList()
-          .toObservable()
           .map(TasksResult.ActivateTaskResult::success)
           .onErrorReturn(TasksResult.ActivateTaskResult::failure)
           .subscribeOn(schedulerProvider.io())
@@ -181,21 +151,6 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
       action -> tasksRepository.completeTask(action.task())
           .andThen(tasksRepository.getTasks())
           .toObservable()
-          .flatMap(Observable::fromIterable)
-          // TODO(benoit) Pass the state with the call ? Do it in the repo ? Do it in the reducer?
-          //.filter(task -> {
-          //  switch (action.filterType()) {
-          //    case ACTIVE_TASKS:
-          //      return task.isActive();
-          //    case COMPLETED_TASKS:
-          //      return task.isCompleted();
-          //    case ALL_TASKS:
-          //    default:
-          //      return true;
-          //  }
-          //})
-          .toList()
-          .toObservable()
           .map(TasksResult.CompleteTaskResult::success)
           .onErrorReturn(TasksResult.CompleteTaskResult::failure)
           .subscribeOn(schedulerProvider.io())
@@ -206,21 +161,6 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
       clearCompletedTasksProcessor = actions -> actions.flatMap(
       action -> tasksRepository.clearCompletedTasks()
           .andThen(tasksRepository.getTasks())
-          .toObservable()
-          .flatMap(Observable::fromIterable)
-          // TODO(benoit) Pass the state with the call ? Do it in the repo ? Do it in the reducer?
-          //.filter(task -> {
-          //  switch (action.filterType()) {
-          //    case ACTIVE_TASKS:
-          //      return task.isActive();
-          //    case COMPLETED_TASKS:
-          //      return task.isCompleted();
-          //    case ALL_TASKS:
-          //    default:
-          //      return true;
-          //  }
-          //})
-          .toList()
           .toObservable()
           .map(TasksResult.ClearCompletedTasksResult::success)
           .onErrorReturn(TasksResult.ClearCompletedTasksResult::failure)
@@ -253,7 +193,12 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
           TasksResult.LoadTasks loadResult = (TasksResult.LoadTasks) result;
           switch (loadResult.status()) {
             case SUCCESS:
-              return stateBuilder.isLoading(false).tasks(loadResult.tasks()).build();
+              TasksFilterType filterType = loadResult.filterType();
+              if (filterType == null) {
+                filterType = previousState.tasksFilterType();
+              }
+              List<Task> tasks = filteredTasks(checkNotNull(loadResult.tasks()), filterType);
+              return stateBuilder.isLoading(false).tasks(tasks).build();
             case FAILURE:
               return stateBuilder.isLoading(false).error(loadResult.error()).build();
             case IN_FLIGHT:
@@ -266,7 +211,9 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
               (TasksResult.CompleteTaskResult) result;
           switch (completeTaskResult.status()) {
             case SUCCESS:
-              return stateBuilder.taskComplete(false).tasks(completeTaskResult.tasks()).build();
+              List<Task> tasks = filteredTasks(checkNotNull(completeTaskResult.tasks()),
+                  previousState.tasksFilterType());
+              return stateBuilder.taskComplete(false).tasks(tasks).build();
             case FAILURE:
               return stateBuilder.taskComplete(false).error(completeTaskResult.error()).build();
             case IN_FLIGHT:
@@ -277,7 +224,9 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
               (TasksResult.ActivateTaskResult) result;
           switch (activateTaskResult.status()) {
             case SUCCESS:
-              return stateBuilder.taskActivated(false).tasks(activateTaskResult.tasks()).build();
+              List<Task> tasks = filteredTasks(checkNotNull(activateTaskResult.tasks()),
+                  previousState.tasksFilterType());
+              return stateBuilder.taskActivated(false).tasks(tasks).build();
             case FAILURE:
               return stateBuilder.taskActivated(false).error(activateTaskResult.error()).build();
             case IN_FLIGHT:
@@ -288,9 +237,9 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
               (TasksResult.ClearCompletedTasksResult) result;
           switch (clearCompletedTasks.status()) {
             case SUCCESS:
-              return stateBuilder.completedTasksCleared(false)
-                  .tasks(clearCompletedTasks.tasks())
-                  .build();
+              List<Task> tasks = filteredTasks(checkNotNull(clearCompletedTasks.tasks()),
+                  previousState.tasksFilterType());
+              return stateBuilder.completedTasksCleared(false).tasks(tasks).build();
             case FAILURE:
               return stateBuilder.completedTasksCleared(false)
                   .error(clearCompletedTasks.error())
@@ -304,18 +253,24 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
         throw new IllegalStateException("Mishandled result? Should not happen (as always)");
       };
 
-  /**
-   * Sets the current task filtering type.
-   *
-   * @param requestType Can be {@link TasksFilterType#ALL_TASKS},
-   * {@link TasksFilterType#COMPLETED_TASKS}, or
-   * {@link TasksFilterType#ACTIVE_TASKS}
-   */
-  public void setFiltering(@NonNull TasksFilterType requestType) {
-    currentFiltering = requestType;
-  }
-
-  public TasksFilterType getFiltering() {
-    return currentFiltering;
+  private static List<Task> filteredTasks(@NonNull List<Task> tasks,
+      @NonNull TasksFilterType filterType) {
+    List<Task> filteredTasks = new ArrayList<>(tasks.size());
+    switch (filterType) {
+      case ALL_TASKS:
+        filteredTasks.addAll(tasks);
+        break;
+      case ACTIVE_TASKS:
+        for (Task task : tasks) {
+          if (task.isActive()) filteredTasks.add(task);
+        }
+        break;
+      case COMPLETED_TASKS:
+        for (Task task : tasks) {
+          if (task.isCompleted()) filteredTasks.add(task);
+        }
+        break;
+    }
+    return filteredTasks;
   }
 }

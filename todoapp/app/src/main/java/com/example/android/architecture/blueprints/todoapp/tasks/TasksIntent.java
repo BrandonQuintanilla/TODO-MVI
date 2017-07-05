@@ -46,4 +46,12 @@ interface TasksIntent extends MviIntent {
       return new AutoValue_TasksIntent_ClearCompletedTasksIntent();
     }
   }
+
+  @AutoValue abstract class ChangeFilterIntent implements TasksIntent {
+    abstract TasksFilterType filterType();
+
+    public static ChangeFilterIntent create(TasksFilterType filterType) {
+      return new AutoValue_TasksIntent_ChangeFilterIntent(filterType);
+    }
+  }
 }

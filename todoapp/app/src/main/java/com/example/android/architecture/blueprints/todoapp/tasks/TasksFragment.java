@@ -50,6 +50,10 @@ import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
 
+import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ACTIVE_TASKS;
+import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ALL_TASKS;
+import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.COMPLETED_TASKS;
+
 /**
  * Display a grid of {@link Task}s. User can choose to view all, active or completed tasks.
  */
@@ -70,7 +74,9 @@ public class TasksFragment extends Fragment
       PublishSubject.create();
   private PublishSubject<TasksIntent.ClearCompletedTasksIntent> clearCompletedTaskIntentPublisher =
       PublishSubject.create();
-  private CompositeDisposable disposables;
+  private PublishSubject<TasksIntent.ChangeFilterIntent> changeFilterIntentPublisher =
+      PublishSubject.create();
+  private CompositeDisposable disposables = new CompositeDisposable();
 
   public static TasksFragment newInstance() {
     return new TasksFragment();
@@ -86,7 +92,6 @@ public class TasksFragment extends Fragment
 
     viewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
         .get(TasksViewModel.class);
-    disposables = new CompositeDisposable();
     bind();
   }
 
@@ -105,8 +110,7 @@ public class TasksFragment extends Fragment
   }
 
   @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    // TODO(benoit) create specific intent so the resulting showing happens in render() and
-    // not in here.
+    // TODO(benoit) is this the right place?
     refreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(false));
     // If a task was successfully added, show snackbar
     if (AddEditTaskActivity.REQUEST_ADD_TASK == requestCode && Activity.RESULT_OK == resultCode) {
@@ -171,117 +175,9 @@ public class TasksFragment extends Fragment
     super.onCreateOptionsMenu(menu, inflater);
   }
 
-  public void showFilteringPopUpMenu() {
-    PopupMenu popup = new PopupMenu(getContext(), getActivity().findViewById(R.id.menu_filter));
-    popup.getMenuInflater().inflate(R.menu.filter_tasks, popup.getMenu());
-    popup.setOnMenuItemClickListener(item -> {
-      switch (item.getItemId()) {
-        case R.id.active:
-          viewModel.setFiltering(TasksFilterType.ACTIVE_TASKS);
-          break;
-        case R.id.completed:
-          viewModel.setFiltering(TasksFilterType.COMPLETED_TASKS);
-          break;
-        default:
-          viewModel.setFiltering(TasksFilterType.ALL_TASKS);
-          break;
-      }
-      //viewModel.loadTasks(false);
-      return true;
-    });
-
-    popup.show();
-  }
-
-  public void showNoActiveTasks() {
-    showNoTasksViews(getResources().getString(R.string.no_tasks_active),
-        R.drawable.ic_check_circle_24dp, false);
-  }
-
-  public void showNoTasks() {
-    showNoTasksViews(getResources().getString(R.string.no_tasks_all),
-        R.drawable.ic_assignment_turned_in_24dp, false);
-  }
-
-  public void showNoCompletedTasks() {
-    showNoTasksViews(getResources().getString(R.string.no_tasks_completed),
-        R.drawable.ic_verified_user_24dp, false);
-  }
-
-  public void showSuccessfullySavedMessage() {
-    showMessage(getString(R.string.successfully_saved_task_message));
-  }
-
-  private void showNoTasksViews(String mainText, int iconRes, boolean showAddView) {
-    tasksView.setVisibility(View.GONE);
-    noTasksView.setVisibility(View.VISIBLE);
-
-    noTaskMainView.setText(mainText);
-    noTaskIcon.setImageDrawable(getResources().getDrawable(iconRes));
-    noTaskAddView.setVisibility(showAddView ? View.VISIBLE : View.GONE);
-  }
-
-  public void showActiveFilterLabel() {
-    filteringLabelView.setText(getResources().getString(R.string.label_active));
-  }
-
-  public void showCompletedFilterLabel() {
-    filteringLabelView.setText(getResources().getString(R.string.label_completed));
-  }
-
-  public void showAllFilterLabel() {
-    filteringLabelView.setText(getResources().getString(R.string.label_all));
-  }
-
-  public void showAddTask() {
-    Intent intent = new Intent(getContext(), AddEditTaskActivity.class);
-    startActivityForResult(intent, AddEditTaskActivity.REQUEST_ADD_TASK);
-  }
-
-  public void showTaskDetailsUi(String taskId) {
-    // in it's own Activity, since it makes more sense that way and it gives us the flexibility
-    // to show some MviIntent stubbing.
-    Intent intent = new Intent(getContext(), TaskDetailActivity.class);
-    intent.putExtra(TaskDetailActivity.EXTRA_TASK_ID, taskId);
-    startActivity(intent);
-  }
-
-  public void showLoadingTasksError() {
-    showMessage(getString(R.string.loading_tasks_error));
-  }
-
-  private void showMessage(String message) {
-    Snackbar.make(getView(), message, Snackbar.LENGTH_LONG).show();
-  }
-
   @Override public Observable<TasksIntent> intents() {
-    return Observable.merge(initialIntent(), refreshIntent(), adapterIntents());
-  }
-
-  private Observable<TasksIntent.InitialIntent> initialIntent() {
-    return Observable.just(TasksIntent.InitialIntent.create());
-  }
-
-  private Observable<TasksIntent.RefreshIntent> refreshIntent() {
-    //swipeRefreshLayout.setOnRefreshListener(() -> viewModel.loadTasks(false));
-    return RxSwipeRefreshLayout.refreshes(swipeRefreshLayout)
-        .map(ignored -> TasksIntent.RefreshIntent.create(false))
-        .mergeWith(refreshIntentPublisher);
-  }
-
-  private Observable<TasksIntent.ClearCompletedTasksIntent> clearCompletedTaskIntent() {
-    return clearCompletedTaskIntentPublisher;
-  }
-
-  private Observable<TasksIntent> adapterIntents() {
-    return listAdapter.getTaskToggleObservable().map(task -> {
-      // TODO(benoit) pass the current filter
-      if (!task.isCompleted()) {
-        return TasksIntent.CompleteTaskIntent.create(task);
-      } else {
-        return TasksIntent.ActivateTaskIntent.create(task);
-      }
-    });
+    return Observable.merge(initialIntent(), refreshIntent(), adapterIntents(),
+        clearCompletedTaskIntent()).mergeWith(changeFilterIntent());
   }
 
   @Override public void render(TasksViewState state) {
@@ -331,5 +227,119 @@ public class TasksFragment extends Fragment
 
   @Override public LifecycleRegistry getLifecycle() {
     return lifecycleRegistry;
+  }
+
+  private void showFilteringPopUpMenu() {
+    PopupMenu popup = new PopupMenu(getContext(), getActivity().findViewById(R.id.menu_filter));
+    popup.getMenuInflater().inflate(R.menu.filter_tasks, popup.getMenu());
+    popup.setOnMenuItemClickListener(item -> {
+      switch (item.getItemId()) {
+        case R.id.active:
+          changeFilterIntentPublisher.onNext(TasksIntent.ChangeFilterIntent.create(ACTIVE_TASKS));
+          break;
+        case R.id.completed:
+          changeFilterIntentPublisher.onNext(
+              TasksIntent.ChangeFilterIntent.create(COMPLETED_TASKS));
+          break;
+        default:
+          changeFilterIntentPublisher.onNext(TasksIntent.ChangeFilterIntent.create(ALL_TASKS));
+          break;
+      }
+      return true;
+    });
+
+    popup.show();
+  }
+
+  private void showMessage(String message) {
+    View view = getView();
+    if (view == null) return;
+    Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
+  }
+
+  private Observable<TasksIntent.InitialIntent> initialIntent() {
+    return Observable.just(TasksIntent.InitialIntent.create());
+  }
+
+  private Observable<TasksIntent.RefreshIntent> refreshIntent() {
+    //swipeRefreshLayout.setOnRefreshListener(() -> viewModel.loadTasks(false));
+    return RxSwipeRefreshLayout.refreshes(swipeRefreshLayout)
+        .map(ignored -> TasksIntent.RefreshIntent.create(false))
+        .mergeWith(refreshIntentPublisher);
+  }
+
+  private Observable<TasksIntent.ClearCompletedTasksIntent> clearCompletedTaskIntent() {
+    return clearCompletedTaskIntentPublisher;
+  }
+
+  private Observable<TasksIntent.ChangeFilterIntent> changeFilterIntent() {
+    return changeFilterIntentPublisher;
+  }
+
+  private Observable<TasksIntent> adapterIntents() {
+    return listAdapter.getTaskToggleObservable().map(task -> {
+      if (!task.isCompleted()) {
+        return TasksIntent.CompleteTaskIntent.create(task);
+      } else {
+        return TasksIntent.ActivateTaskIntent.create(task);
+      }
+    });
+  }
+
+  private void showNoActiveTasks() {
+    showNoTasksViews(getResources().getString(R.string.no_tasks_active),
+        R.drawable.ic_check_circle_24dp, false);
+  }
+
+  private void showNoTasks() {
+    showNoTasksViews(getResources().getString(R.string.no_tasks_all),
+        R.drawable.ic_assignment_turned_in_24dp, true);
+  }
+
+  private void showNoCompletedTasks() {
+    showNoTasksViews(getResources().getString(R.string.no_tasks_completed),
+        R.drawable.ic_verified_user_24dp, false);
+  }
+
+  private void showSuccessfullySavedMessage() {
+    showMessage(getString(R.string.successfully_saved_task_message));
+  }
+
+  private void showNoTasksViews(String mainText, int iconRes, boolean showAddView) {
+    tasksView.setVisibility(View.GONE);
+    noTasksView.setVisibility(View.VISIBLE);
+
+    noTaskMainView.setText(mainText);
+    noTaskIcon.setImageDrawable(getResources().getDrawable(iconRes));
+    noTaskAddView.setVisibility(showAddView ? View.VISIBLE : View.GONE);
+  }
+
+  private void showActiveFilterLabel() {
+    filteringLabelView.setText(getResources().getString(R.string.label_active));
+  }
+
+  private void showCompletedFilterLabel() {
+    filteringLabelView.setText(getResources().getString(R.string.label_completed));
+  }
+
+  private void showAllFilterLabel() {
+    filteringLabelView.setText(getResources().getString(R.string.label_all));
+  }
+
+  private void showAddTask() {
+    Intent intent = new Intent(getContext(), AddEditTaskActivity.class);
+    startActivityForResult(intent, AddEditTaskActivity.REQUEST_ADD_TASK);
+  }
+
+  private void showTaskDetailsUi(String taskId) {
+    // in it's own Activity, since it makes more sense that way and it gives us the flexibility
+    // to show some MviIntent stubbing.
+    Intent intent = new Intent(getContext(), TaskDetailActivity.class);
+    intent.putExtra(TaskDetailActivity.EXTRA_TASK_ID, taskId);
+    startActivity(intent);
+  }
+
+  private void showLoadingTasksError() {
+    showMessage(getString(R.string.loading_tasks_error));
   }
 }

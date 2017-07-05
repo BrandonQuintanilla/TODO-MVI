@@ -18,18 +18,21 @@ interface TasksResult extends MviResult {
 
     @Nullable abstract List<Task> tasks();
 
+    @Nullable abstract TasksFilterType filterType();
+
     @Nullable abstract Throwable error();
 
-    @NonNull static LoadTasks success(@NonNull List<Task> tasks) {
-      return new AutoValue_TasksResult_LoadTasks(SUCCESS, tasks, null);
+    @NonNull
+    static LoadTasks success(@NonNull List<Task> tasks, @Nullable TasksFilterType filterType) {
+      return new AutoValue_TasksResult_LoadTasks(SUCCESS, tasks, filterType, null);
     }
 
     @NonNull static LoadTasks failure(Throwable error) {
-      return new AutoValue_TasksResult_LoadTasks(FAILURE, null, error);
+      return new AutoValue_TasksResult_LoadTasks(FAILURE, null, null, error);
     }
 
     @NonNull static LoadTasks inFlight() {
-      return new AutoValue_TasksResult_LoadTasks(IN_FLIGHT, null, null);
+      return new AutoValue_TasksResult_LoadTasks(IN_FLIGHT, null, null, null);
     }
   }
 

@@ -1,5 +1,6 @@
 package com.example.android.architecture.blueprints.todoapp.tasks;
 
+import android.support.annotation.Nullable;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.google.auto.value.AutoValue;
@@ -8,10 +9,14 @@ interface TasksAction extends MviAction {
   @AutoValue abstract class LoadTasks implements TasksAction {
     public abstract boolean forceUpdate();
 
-    public abstract TasksFilterType filterType();
+    @Nullable public abstract TasksFilterType filterType();
 
-    public static LoadTasks create(boolean forceUpdate, TasksFilterType filterType) {
+    public static LoadTasks loadAndFilter(boolean forceUpdate, TasksFilterType filterType) {
       return new AutoValue_TasksAction_LoadTasks(forceUpdate, filterType);
+    }
+
+    public static LoadTasks load(boolean forceUpdate) {
+      return new AutoValue_TasksAction_LoadTasks(forceUpdate, null);
     }
   }
 
