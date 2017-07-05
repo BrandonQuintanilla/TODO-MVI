@@ -103,6 +103,12 @@ public class TasksFragment extends Fragment
         listAdapter.getTaskClickObservable().subscribe(task -> showTaskDetailsUi(task.getId())));
   }
 
+  @Override public void onResume() {
+    super.onResume();
+    // TODO(benoit) conflicting with the initial intent but...
+    refreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(false));
+  }
+
   @Override public void onDestroy() {
     super.onDestroy();
 
@@ -110,8 +116,6 @@ public class TasksFragment extends Fragment
   }
 
   @Override public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    // TODO(benoit) is this the right place?
-    refreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(false));
     // If a task was successfully added, show snackbar
     if (AddEditTaskActivity.REQUEST_ADD_TASK == requestCode && Activity.RESULT_OK == resultCode) {
       showSuccessfullySavedMessage();
