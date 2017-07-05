@@ -113,9 +113,6 @@ public class StatisticsViewModelTest {
   }
 
   private void setTasksNotAvailable() {
-    when(tasksRepository.getTasks()).thenReturn(
-        Single.concat(Single.just(Arrays.<Task>asList()), Single.just(Arrays.<Task>asList()))
-            .filter(tasks -> !tasks.isEmpty())
-            .firstOrError());
+    when(tasksRepository.getTasks()).thenReturn(Single.error(new Exception()));
   }
 }
