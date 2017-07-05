@@ -198,7 +198,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                 filterType = previousState.tasksFilterType();
               }
               List<Task> tasks = filteredTasks(checkNotNull(loadResult.tasks()), filterType);
-              return stateBuilder.isLoading(false).tasks(tasks).build();
+              return stateBuilder.isLoading(false).tasks(tasks).tasksFilterType(filterType).build();
             case FAILURE:
               return stateBuilder.isLoading(false).error(loadResult.error()).build();
             case IN_FLIGHT:
