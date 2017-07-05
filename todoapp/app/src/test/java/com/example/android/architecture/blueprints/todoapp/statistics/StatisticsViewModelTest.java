@@ -21,14 +21,17 @@ import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepo
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.ImmediateSchedulerProvider;
 import com.google.common.collect.Lists;
-import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.observers.TestObserver;
-import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.List;
+
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.observers.TestObserver;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,80 +41,85 @@ import static org.mockito.Mockito.when;
  */
 public class StatisticsViewModelTest {
 
-  private static List<Task> TASKS;
-  @Mock private TasksRepository tasksRepository;
-  private BaseSchedulerProvider schedulerProvider;
-  private StatisticsViewModel statisticsViewModel;
-  private TestObserver<StatisticsViewState> testObserver;
+    private static List<Task> TASKS;
+    @Mock
+    private TasksRepository mTasksRepository;
+    private BaseSchedulerProvider mSchedulerProvider;
+    private StatisticsViewModel mStatisticsViewModel;
+    private TestObserver<StatisticsViewState> mTestObserver;
 
-  @Before public void setupStatisticsPresenter() {
-    // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
-    // inject the mocks in the test the initMocks method needs to be called.
-    MockitoAnnotations.initMocks(this);
+    @Before
+    public void setupStatisticsPresenter() {
+        // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
+        // inject the mocks in the test the initMocks method needs to be called.
+        MockitoAnnotations.initMocks(this);
 
-    // Make the sure that all schedulers are immediate.
-    schedulerProvider = new ImmediateSchedulerProvider();
+        // Make the sure that all schedulers are immediate.
+        mSchedulerProvider = new ImmediateSchedulerProvider();
 
-    // Get a reference to the class under test
-    statisticsViewModel = new StatisticsViewModel(tasksRepository, schedulerProvider);
+        // Get a reference to the class under test
+        mStatisticsViewModel = new StatisticsViewModel(mTasksRepository, mSchedulerProvider);
 
-    // We subscribe the tasks to 3, with one active and two completed
-    TASKS = Lists.newArrayList(new Task("Title1", "Description1"),
-        new Task("Title2", "Description2", true), new Task("Title3", "Description3", true));
+        // We subscribe the tasks to 3, with one active and two completed
+        TASKS = Lists.newArrayList(new Task("Title1", "Description1"),
+                new Task("Title2", "Description2", true), new Task("Title3", "Description3", true));
 
-    testObserver = statisticsViewModel.states().test();
-  }
+        mTestObserver = mStatisticsViewModel.states().test();
+    }
 
-  @Test public void loadEmptyTasksFromRepository_CallViewToDisplay() {
-    // Given an initialized StatisticsViewModel with no tasks
-    TASKS.clear();
-    setTasksAvailable(TASKS);
+    @Test
+    public void loadEmptyTasksFromRepository_CallViewToDisplay() {
+        // Given an initialized StatisticsViewModel with no tasks
+        TASKS.clear();
+        setTasksAvailable(TASKS);
 
-    // When loading of Tasks is requested
-    statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+        // When loading of Tasks is requested
+        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
-    //Then progress indicator is shown
-    testObserver.assertValueAt(0, StatisticsViewState::isLoading);
+        //Then progress indicator is shown
+        mTestObserver.assertValueAt(0, StatisticsViewState::isLoading);
 
-    // Callback is captured and invoked with stubbed tasks
-    verify(tasksRepository).getTasks();
+        // Callback is captured and invoked with stubbed tasks
+        verify(mTasksRepository).getTasks();
 
-    // Then progress indicator is hidden and correct data is passed on to the view
-    testObserver.assertValueAt(1,
-        state -> !state.isLoading() && state.activeCount() == 0 && state.completedCount() == 0);
-  }
+        // Then progress indicator is hidden and correct data is passed on to the view
+        mTestObserver.assertValueAt(1,
+                state -> !state.isLoading() && state.activeCount() == 0 && state.completedCount() == 0);
+    }
 
-  @Test public void loadNonEmptyTasksFromRepository_CallViewToDisplay() {
-    // Given an initialized StatisticsViewModel with 1 active and 2 completed tasks
-    setTasksAvailable(TASKS);
+    @Test
+    public void loadNonEmptyTasksFromRepository_CallViewToDisplay() {
+        // Given an initialized StatisticsViewModel with 1 active and 2 completed tasks
+        setTasksAvailable(TASKS);
 
-    // When loading of Tasks is requested
-    statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+        // When loading of Tasks is requested
+        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
-    //Then progress indicator is shown
-    testObserver.assertValueAt(0, StatisticsViewState::isLoading);
+        //Then progress indicator is shown
+        mTestObserver.assertValueAt(0, StatisticsViewState::isLoading);
 
-    // Then progress indicator is hidden and correct data is passed on to the view
-    testObserver.assertValueAt(1,
-        state -> !state.isLoading() && state.activeCount() == 1 && state.completedCount() == 2);
-  }
+        // Then progress indicator is hidden and correct data is passed on to the view
+        mTestObserver.assertValueAt(1,
+                state -> !state.isLoading() && state.activeCount() == 1 && state.completedCount() == 2);
+    }
 
-  @Test public void loadStatisticsWhenTasksAreUnavailable_CallErrorToDisplay() {
-    // Given that tasks data isn't available
-    setTasksNotAvailable();
+    @Test
+    public void loadStatisticsWhenTasksAreUnavailable_CallErrorToDisplay() {
+        // Given that tasks data isn't available
+        setTasksNotAvailable();
 
-    // When statistics are loaded
-    statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+        // When statistics are loaded
+        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
-    // Then an error message is shown
-    testObserver.assertValueAt(1, state -> state.error() != null);
-  }
+        // Then an error message is shown
+        mTestObserver.assertValueAt(1, state -> state.error() != null);
+    }
 
-  private void setTasksAvailable(List<Task> tasks) {
-    when(tasksRepository.getTasks()).thenReturn(Single.just(tasks));
-  }
+    private void setTasksAvailable(List<Task> tasks) {
+        when(mTasksRepository.getTasks()).thenReturn(Single.just(tasks));
+    }
 
-  private void setTasksNotAvailable() {
-    when(tasksRepository.getTasks()).thenReturn(Single.error(new Exception()));
-  }
+    private void setTasksNotAvailable() {
+        when(mTasksRepository.getTasks()).thenReturn(Single.error(new Exception()));
+    }
 }

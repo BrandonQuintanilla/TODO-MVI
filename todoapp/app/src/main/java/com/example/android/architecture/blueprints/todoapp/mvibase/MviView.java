@@ -11,7 +11,7 @@ import io.reactivex.Observable;
  * @param <S> Top class of the {@link MviViewState} the {@link MviView} will be subscribing to.
  */
 public interface MviView<I extends MviIntent, S extends MviViewState> {
-  Observable<I> intents();
+    Observable<I> intents();
 
-  void render(S state);
+    void render(S state);
 }

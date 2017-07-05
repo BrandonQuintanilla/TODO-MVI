@@ -142,6 +142,7 @@ State: TasksViewState{isLoading=false, tasksFilterType=ALL_TASKS, tasks=[Task wi
 * [AutoValue](https://github.com/google/auto/tree/master/value)
 * [Architecture Components](https://developer.android.com/topic/libraries/architecture/index.html)
 * [Timber](https://github.com/JakeWharton/timber)
+* [RxBinding](https://github.com/JakeWharton/RxBinding)
 
 ## Features
 

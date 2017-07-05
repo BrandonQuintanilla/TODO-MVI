@@ -3,37 +3,39 @@ package com.example.android.architecture.blueprints.todoapp.util;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.content.Context;
+
 import com.example.android.architecture.blueprints.todoapp.Injection;
 import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsViewModel;
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewModel;
 
 public class ToDoViewModelFactory implements ViewModelProvider.Factory {
-  private static ToDoViewModelFactory INSTANCE;
+    private static ToDoViewModelFactory INSTANCE;
 
-  private final Context applicationContext;
+    private final Context applicationContext;
 
-  private ToDoViewModelFactory(Context applicationContext) {
-    this.applicationContext = applicationContext;
-  }
-
-  public static ToDoViewModelFactory getInstance(Context context) {
-    if (INSTANCE == null) {
-      INSTANCE = new ToDoViewModelFactory(context.getApplicationContext());
+    private ToDoViewModelFactory(Context applicationContext) {
+        this.applicationContext = applicationContext;
     }
-    return INSTANCE;
-  }
 
-  @SuppressWarnings("unchecked") @Override
-  public <T extends ViewModel> T create(Class<T> modelClass) {
-    if (modelClass == StatisticsViewModel.class) {
-      return (T) new StatisticsViewModel(Injection.provideTasksRepository(applicationContext),
-          Injection.provideSchedulerProvider());
+    public static ToDoViewModelFactory getInstance(Context context) {
+        if (INSTANCE == null) {
+            INSTANCE = new ToDoViewModelFactory(context.getApplicationContext());
+        }
+        return INSTANCE;
     }
-    if (modelClass == TasksViewModel.class) {
-      return (T) new TasksViewModel(Injection.provideTasksRepository(applicationContext),
-          Injection.provideSchedulerProvider());
-    } else {
-      throw new IllegalArgumentException("unknown model class " + modelClass);
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends ViewModel> T create(Class<T> modelClass) {
+        if (modelClass == StatisticsViewModel.class) {
+            return (T) new StatisticsViewModel(Injection.provideTasksRepository(applicationContext),
+                    Injection.provideSchedulerProvider());
+        }
+        if (modelClass == TasksViewModel.class) {
+            return (T) new TasksViewModel(Injection.provideTasksRepository(applicationContext),
+                    Injection.provideSchedulerProvider());
+        } else {
+            throw new IllegalArgumentException("unknown model class " + modelClass);
+        }
     }
-  }
 }

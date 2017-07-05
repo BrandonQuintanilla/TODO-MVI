@@ -17,40 +17,43 @@
 package com.example.android.architecture.blueprints.todoapp.data.source;
 
 import android.support.annotation.NonNull;
+
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+
+import java.util.List;
+
 import io.reactivex.Completable;
 import io.reactivex.Single;
-import java.util.List;
 
 /**
  * Main entry point for accessing tasks data.
  * <p>
  */
 public interface TasksDataSource {
-  default Single<List<Task>> getTasks(boolean forceUpdate) {
-    if (forceUpdate) refreshTasks();
-    return getTasks();
-  }
+    default Single<List<Task>> getTasks(boolean forceUpdate) {
+        if (forceUpdate) refreshTasks();
+        return getTasks();
+    }
 
-  Single<List<Task>> getTasks();
+    Single<List<Task>> getTasks();
 
-  Single<Task> getTask(@NonNull String taskId);
+    Single<Task> getTask(@NonNull String taskId);
 
-  void saveTask(@NonNull Task task);
+    void saveTask(@NonNull Task task);
 
-  Completable completeTask(@NonNull Task task);
+    Completable completeTask(@NonNull Task task);
 
-  void completeTask(@NonNull String taskId);
+    void completeTask(@NonNull String taskId);
 
-  Completable activateTask(@NonNull Task task);
+    Completable activateTask(@NonNull Task task);
 
-  void activateTask(@NonNull String taskId);
+    void activateTask(@NonNull String taskId);
 
-  Completable clearCompletedTasks();
+    Completable clearCompletedTasks();
 
-  void refreshTasks();
+    void refreshTasks();
 
-  void deleteAllTasks();
+    void deleteAllTasks();
 
-  void deleteTask(@NonNull String taskId);
+    void deleteTask(@NonNull String taskId);
 }

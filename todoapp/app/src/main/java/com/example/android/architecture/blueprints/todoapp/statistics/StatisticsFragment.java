@@ -26,9 +26,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
+
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 
@@ -36,77 +38,84 @@ import io.reactivex.disposables.CompositeDisposable;
  * Main UI for the statistics screen.
  */
 public class StatisticsFragment extends Fragment
-    implements MviView<StatisticsIntent, StatisticsViewState>, LifecycleRegistryOwner {
-  LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
+        implements MviView<StatisticsIntent, StatisticsViewState>, LifecycleRegistryOwner {
+    private LifecycleRegistry mLifecycleRegistry = new LifecycleRegistry(this);
 
-  private TextView statisticsTV;
-  private StatisticsViewModel viewModel;
-  private CompositeDisposable disposables;
+    private TextView mStatisticsTV;
+    private StatisticsViewModel mViewModel;
+    private CompositeDisposable mDisposables;
 
-  public static StatisticsFragment newInstance() {
-    return new StatisticsFragment();
-  }
-
-  @Nullable @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
-      Bundle savedInstanceState) {
-    View root = inflater.inflate(R.layout.statistics_frag, container, false);
-    statisticsTV = (TextView) root.findViewById(R.id.statistics);
-    return root;
-  }
-
-  @Override public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
-    viewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
-        .get(StatisticsViewModel.class);
-    disposables = new CompositeDisposable();
-    bind();
-  }
-
-  private void bind() {
-    disposables.add(viewModel.states().subscribe(this::render));
-    viewModel.processIntents(intents());
-  }
-
-  @Override public void onDestroy() {
-    super.onDestroy();
-    disposables.dispose();
-  }
-
-  @Override public Observable<StatisticsIntent> intents() {
-    return initialIntent();
-  }
-
-  private Observable<StatisticsIntent> initialIntent() {
-    return Observable.just(StatisticsIntent.InitialIntent.create());
-  }
-
-  @Override public void render(StatisticsViewState state) {
-    if (state.isLoading()) statisticsTV.setText(getString(R.string.loading));
-    if (state.error() != null) {
-      statisticsTV.setText(getResources().getString(R.string.statistics_error));
+    public static StatisticsFragment newInstance() {
+        return new StatisticsFragment();
     }
 
-    if (state.error() == null && !state.isLoading()) {
-      showStatistics(state.activeCount(), state.completedCount());
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.statistics_frag, container, false);
+        mStatisticsTV = (TextView) root.findViewById(R.id.statistics);
+        return root;
     }
-  }
 
-  private void showStatistics(int numberOfActiveTasks, int numberOfCompletedTasks) {
-    if (numberOfCompletedTasks == 0 && numberOfActiveTasks == 0) {
-      statisticsTV.setText(getResources().getString(R.string.statistics_no_tasks));
-    } else {
-      String displayString = getResources().getString(R.string.statistics_active_tasks)
-          + " "
-          + numberOfActiveTasks
-          + "\n"
-          + getResources().getString(R.string.statistics_completed_tasks)
-          + " "
-          + numberOfCompletedTasks;
-      statisticsTV.setText(displayString);
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mViewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+                .get(StatisticsViewModel.class);
+        mDisposables = new CompositeDisposable();
+        bind();
     }
-  }
 
-  @Override public LifecycleRegistry getLifecycle() {
-    return lifecycleRegistry;
-  }
+    private void bind() {
+        mDisposables.add(mViewModel.states().subscribe(this::render));
+        mViewModel.processIntents(intents());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mDisposables.dispose();
+    }
+
+    @Override
+    public Observable<StatisticsIntent> intents() {
+        return initialIntent();
+    }
+
+    private Observable<StatisticsIntent> initialIntent() {
+        return Observable.just(StatisticsIntent.InitialIntent.create());
+    }
+
+    @Override
+    public void render(StatisticsViewState state) {
+        if (state.isLoading()) mStatisticsTV.setText(getString(R.string.loading));
+        if (state.error() != null) {
+            mStatisticsTV.setText(getResources().getString(R.string.statistics_error));
+        }
+
+        if (state.error() == null && !state.isLoading()) {
+            showStatistics(state.activeCount(), state.completedCount());
+        }
+    }
+
+    private void showStatistics(int numberOfActiveTasks, int numberOfCompletedTasks) {
+        if (numberOfCompletedTasks == 0 && numberOfActiveTasks == 0) {
+            mStatisticsTV.setText(getResources().getString(R.string.statistics_no_tasks));
+        } else {
+            String displayString = getResources().getString(R.string.statistics_active_tasks)
+                    + " "
+                    + numberOfActiveTasks
+                    + "\n"
+                    + getResources().getString(R.string.statistics_completed_tasks)
+                    + " "
+                    + numberOfCompletedTasks;
+            mStatisticsTV.setText(displayString);
+        }
+    }
+
+    @Override
+    public LifecycleRegistry getLifecycle() {
+        return mLifecycleRegistry;
+    }
 }
