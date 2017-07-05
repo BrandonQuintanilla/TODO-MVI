@@ -11,7 +11,7 @@ import timber.log.Timber;
  * @param <S> Top class of the {@link MviViewState} the {@link MviViewModel} will be emitting.
  */
 public interface MviViewModel<I extends MviIntent, S extends MviViewState> {
-  void forwardIntents(Observable<I> intents);
+  void processIntents(Observable<I> intents);
 
   Observable<S> states();
 

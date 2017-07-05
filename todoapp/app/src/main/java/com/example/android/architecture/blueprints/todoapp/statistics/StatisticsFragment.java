@@ -64,7 +64,7 @@ public class StatisticsFragment extends Fragment
 
   private void bind() {
     disposables.add(viewModel.states().subscribe(this::render));
-    viewModel.forwardIntents(intents());
+    viewModel.processIntents(intents());
   }
 
   @Override public void onDestroy() {

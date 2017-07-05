@@ -99,8 +99,7 @@ public class TasksLocalDataSource implements TasksDataSource {
         TaskEntry.TABLE_NAME, TaskEntry.COLUMN_NAME_ENTRY_ID);
     return mDatabaseHelper.createQuery(TaskEntry.TABLE_NAME, sql, taskId)
         .mapToOne(mTaskMapperFunction)
-        .firstElement()
-        .toSingle();
+        .firstOrError();
   }
 
   @Override public void saveTask(@NonNull Task task) {

@@ -68,7 +68,7 @@ public class TasksViewModelTest {
     // Given an initialized TasksViewModel with initialized tasks
     when(tasksRepository.getTasks(anyBoolean())).thenReturn(Single.just(TASKS));
     // When loading of Tasks is requested
-    tasksViewModel.forwardIntents(Observable.just(TasksIntent.InitialIntent.create()));
+    tasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()));
 
     // Then progress indicator is shown
 
@@ -82,7 +82,7 @@ public class TasksViewModelTest {
     // Given an initialized TasksViewModel with initialized tasks
     when(tasksRepository.getTasks(anyBoolean())).thenReturn(Single.just(TASKS));
     // When loading of Tasks is requested
-    tasksViewModel.forwardIntents(
+    tasksViewModel.processIntents(
         Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.ACTIVE_TASKS)));
 
     //Then progress indicator is shown
@@ -95,7 +95,7 @@ public class TasksViewModelTest {
     // Given an initialized TasksViewModel with initialized tasks
     when(tasksRepository.getTasks(anyBoolean())).thenReturn(Single.just(TASKS));
     // When loading of Tasks is requested
-    tasksViewModel.forwardIntents(
+    tasksViewModel.processIntents(
         Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.COMPLETED_TASKS)));
 
     //Then progress indicator is shown
@@ -112,7 +112,7 @@ public class TasksViewModelTest {
     when(tasksRepository.getTasks()).thenReturn(Single.just(Collections.emptyList()));
 
     // When task is marked as complete
-    tasksViewModel.forwardIntents(Observable.just(TasksIntent.CompleteTaskIntent.create(task)));
+    tasksViewModel.processIntents(Observable.just(TasksIntent.CompleteTaskIntent.create(task)));
 
     // Then repository is called and task marked complete UI is shown
     verify(tasksRepository).completeTask(task);
@@ -128,7 +128,7 @@ public class TasksViewModelTest {
     when(tasksRepository.getTasks()).thenReturn(Single.just(Collections.emptyList()));
 
     // When task is marked as activated
-    tasksViewModel.forwardIntents(Observable.just(TasksIntent.ActivateTaskIntent.create(task)));
+    tasksViewModel.processIntents(Observable.just(TasksIntent.ActivateTaskIntent.create(task)));
 
     // Then repository is called and task marked active UI is shown
     verify(tasksRepository).activateTask(task);
@@ -141,7 +141,7 @@ public class TasksViewModelTest {
     when(tasksRepository.getTasks(anyBoolean())).thenReturn(Single.error(new Exception()));
 
     // When tasks are loaded
-    tasksViewModel.forwardIntents(Observable.just(TasksIntent.InitialIntent.create()));
+    tasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()));
 
     // Then an error message is shown
     testObserver.assertValueAt(1, state -> state.error() != null);

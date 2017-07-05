@@ -55,7 +55,7 @@ public class StatisticsViewModel extends ViewModel
     compose().subscribe(this.statesSubject);
   }
 
-  @Override public void forwardIntents(Observable<StatisticsIntent> intents) {
+  @Override public void processIntents(Observable<StatisticsIntent> intents) {
     intents.subscribe(intentsSubject);
   }
 

@@ -24,7 +24,6 @@ import com.google.common.collect.Lists;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +68,7 @@ public class StatisticsViewModelTest {
     setTasksAvailable(TASKS);
 
     // When loading of Tasks is requested
-    statisticsViewModel.forwardIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+    statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
     //Then progress indicator is shown
     testObserver.assertValueAt(0, StatisticsViewState::isLoading);
@@ -87,7 +86,7 @@ public class StatisticsViewModelTest {
     setTasksAvailable(TASKS);
 
     // When loading of Tasks is requested
-    statisticsViewModel.forwardIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+    statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
     //Then progress indicator is shown
     testObserver.assertValueAt(0, StatisticsViewState::isLoading);
@@ -102,7 +101,7 @@ public class StatisticsViewModelTest {
     setTasksNotAvailable();
 
     // When statistics are loaded
-    statisticsViewModel.forwardIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+    statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
     // Then an error message is shown
     testObserver.assertValueAt(1, state -> state.error() != null);

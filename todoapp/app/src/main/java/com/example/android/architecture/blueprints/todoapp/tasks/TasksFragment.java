@@ -97,7 +97,7 @@ public class TasksFragment extends Fragment
 
   private void bind() {
     disposables.add(viewModel.states().subscribe(this::render));
-    viewModel.forwardIntents(intents());
+    viewModel.processIntents(intents());
 
     disposables.add(
         listAdapter.getTaskClickObservable().subscribe(task -> showTaskDetailsUi(task.getId())));
@@ -266,7 +266,6 @@ public class TasksFragment extends Fragment
   }
 
   private Observable<TasksIntent.RefreshIntent> refreshIntent() {
-    //swipeRefreshLayout.setOnRefreshListener(() -> viewModel.loadTasks(false));
     return RxSwipeRefreshLayout.refreshes(swipeRefreshLayout)
         .map(ignored -> TasksIntent.RefreshIntent.create(false))
         .mergeWith(refreshIntentPublisher);

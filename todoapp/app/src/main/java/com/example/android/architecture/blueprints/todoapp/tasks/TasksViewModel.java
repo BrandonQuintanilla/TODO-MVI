@@ -54,7 +54,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
     compose().subscribe(this.statesSubject);
   }
 
-  @Override public void forwardIntents(Observable<TasksIntent> intents) {
+  @Override public void processIntents(Observable<TasksIntent> intents) {
     intents.subscribe(intentsSubject);
   }
 
