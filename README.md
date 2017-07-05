@@ -1,4 +1,8 @@
-# TODO-MVP-RXJAVA
+# TODO-MVI-RXJAVA [WIP]
+
+DONE: Statistics, Tasks  
+TODO: TaskDetail, AddEditTask  
+
 
 Project owners: [Benoit Quenaudon](https://github.com/oldergod)
 
@@ -171,14 +175,7 @@ Similar with TODO-MVP. There is actually no addition, nor change compared to the
 Compared to TODO-MVP, new classes were added for 1) setting the interfaces to help writing the MVI architecture and its components, 2) providing the ViewModel instances via the `ViewModelFactory`, and 3) handing the `Schedulers` that provide the working threads.
 
 ```
--------------------------------------------------------------------------------
-Language                     files          blank        comment           code
--------------------------------------------------------------------------------
-Java                            49           1110           1413           3740 (3450 in MVP)
-XML                             34             97            337            601
--------------------------------------------------------------------------------
-SUM:                            83           1207           1750           4341
-
+TODO
 ```
 ### Maintainability
 
