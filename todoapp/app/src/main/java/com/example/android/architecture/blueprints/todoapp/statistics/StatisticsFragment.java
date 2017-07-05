@@ -36,7 +36,7 @@ import io.reactivex.disposables.CompositeDisposable;
  * Main UI for the statistics screen.
  */
 public class StatisticsFragment extends Fragment
-    implements MviView<StatisticsViewState>, LifecycleRegistryOwner {
+    implements MviView<StatisticsIntent, StatisticsViewState>, LifecycleRegistryOwner {
   LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
 
   private TextView statisticsTV;

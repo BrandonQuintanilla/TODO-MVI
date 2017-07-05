@@ -58,7 +58,7 @@ import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFil
  * Display a grid of {@link Task}s. User can choose to view all, active or completed tasks.
  */
 public class TasksFragment extends Fragment
-    implements LifecycleRegistryOwner, MviView<TasksViewState> {
+    implements LifecycleRegistryOwner, MviView<TasksIntent, TasksViewState> {
   LifecycleRegistry lifecycleRegistry = new LifecycleRegistry(this);
 
   private TasksViewModel viewModel;

@@ -37,7 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Listens to user actions from the UI ({@link TasksFragment}), retrieves the data and updates the
  * UI as required.
  */
-public class TasksViewModel extends ViewModel implements MviViewModel<TasksIntent> {
+public class TasksViewModel extends ViewModel implements MviViewModel<TasksIntent, TasksViewState> {
   @NonNull private PublishSubject<MviIntent> intentsSubject;
   @NonNull private PublishSubject<TasksViewState> statesSubject;
   @NonNull private TasksRepository tasksRepository;
