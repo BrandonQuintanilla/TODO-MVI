@@ -19,17 +19,11 @@ package com.example.android.architecture.blueprints.todoapp.statistics;
 import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 
-import com.example.android.architecture.blueprints.todoapp.data.Task;
-import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
-import com.example.android.architecture.blueprints.todoapp.util.Pair;
-import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableTransformer;
-import io.reactivex.Single;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
@@ -46,14 +40,10 @@ public class StatisticsViewModel extends ViewModel
     @NonNull
     private PublishSubject<StatisticsViewState> mStatesSubject;
     @NonNull
-    private TasksRepository mTasksRepository;
-    @NonNull
-    private BaseSchedulerProvider mSchedulerProvider;
+    private StatisticsActionProcessorHolder mActionProccessorHolder;
 
-    public StatisticsViewModel(@NonNull TasksRepository tasksRepository,
-                               @NonNull BaseSchedulerProvider schedulerProvider) {
-        this.mTasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null");
-        this.mSchedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
+    public StatisticsViewModel(@NonNull StatisticsActionProcessorHolder actionProcessorHolder) {
+        this.mActionProccessorHolder = checkNotNull(actionProcessorHolder, "actionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
         mStatesSubject = PublishSubject.create();
@@ -76,7 +66,7 @@ public class StatisticsViewModel extends ViewModel
                 .scan(initialIntentFilter)
                 .map(this::actionFromIntent)
                 .doOnNext(MviViewModel::logAction)
-                .compose(actionProcessor)
+                .compose(mActionProccessorHolder.actionProcessor)
                 .doOnNext(MviViewModel::logResult)
                 .scan(StatisticsViewState.idle(), reducer)
                 .doOnNext(MviViewModel::logState)
@@ -113,37 +103,6 @@ public class StatisticsViewModel extends ViewModel
         }
         throw new IllegalArgumentException("do not know how to treat this intent " + intent);
     }
-
-    private ObservableTransformer<StatisticsAction.LoadStatistics, StatisticsResult.LoadStatistics>
-            loadStatisticsProcessor = actions -> actions.flatMap(action -> mTasksRepository.getTasks()
-            .toObservable()
-            .flatMap(Observable::fromIterable)
-            .publish(shared -> //
-                    Single.zip( //
-                            shared.filter(Task::isActive).count(), //
-                            shared.filter(Task::isCompleted).count(), //
-                            Pair::create).toObservable())
-            .map(pair -> StatisticsResult.LoadStatistics.success(pair.first().intValue(),
-                    pair.second().intValue()))
-            .onErrorReturn(StatisticsResult.LoadStatistics::failure)
-            .subscribeOn(mSchedulerProvider.io())
-            .observeOn(mSchedulerProvider.ui())
-            .startWith(StatisticsResult.LoadStatistics.inFlight()));
-
-    private ObservableTransformer<StatisticsAction.GetLastState, StatisticsResult.GetLastState>
-            getLastStateProcessor =
-            actions -> actions.map(ignored -> StatisticsResult.GetLastState.create());
-
-    private ObservableTransformer<StatisticsAction, StatisticsResult> actionProcessor =
-            actions -> actions.publish(shared -> Observable.merge(
-                    shared.ofType(StatisticsAction.LoadStatistics.class).compose(loadStatisticsProcessor),
-                    shared.ofType(StatisticsAction.GetLastState.class).compose(getLastStateProcessor))
-                    .mergeWith(
-                            // Error for not implemented actions
-                            shared.filter(v -> !(v instanceof StatisticsAction.LoadStatistics)
-                                    && !(v instanceof StatisticsAction.GetLastState))
-                                    .flatMap(w -> Observable.error(
-                                            new IllegalArgumentException("Unknown Action type: " + w)))));
 
     private static BiFunction<StatisticsViewState, StatisticsResult, StatisticsViewState> reducer =
             (previousState, result) -> {
