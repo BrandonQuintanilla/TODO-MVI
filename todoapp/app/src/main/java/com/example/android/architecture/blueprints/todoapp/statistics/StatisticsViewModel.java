@@ -36,14 +36,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class StatisticsViewModel extends ViewModel
         implements MviViewModel<StatisticsIntent, StatisticsViewState> {
     @NonNull
-    private PublishSubject<MviIntent> mIntentsSubject;
+    private PublishSubject<StatisticsIntent> mIntentsSubject;
     @NonNull
     private PublishSubject<StatisticsViewState> mStatesSubject;
     @NonNull
-    private StatisticsActionProcessorHolder mActionProccessorHolder;
+    private StatisticsActionProcessorHolder mActionProcessorHolder;
 
     public StatisticsViewModel(@NonNull StatisticsActionProcessorHolder actionProcessorHolder) {
-        this.mActionProccessorHolder = checkNotNull(actionProcessorHolder, "actionProcessorHolder cannot be null");
+        this.mActionProcessorHolder = checkNotNull(actionProcessorHolder, "actionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
         mStatesSubject = PublishSubject.create();
@@ -66,7 +66,7 @@ public class StatisticsViewModel extends ViewModel
                 .scan(initialIntentFilter)
                 .map(this::actionFromIntent)
                 .doOnNext(MviViewModel::logAction)
-                .compose(mActionProccessorHolder.actionProcessor)
+                .compose(mActionProcessorHolder.actionProcessor)
                 .doOnNext(MviViewModel::logResult)
                 .scan(StatisticsViewState.idle(), reducer)
                 .doOnNext(MviViewModel::logState)
@@ -81,7 +81,7 @@ public class StatisticsViewModel extends ViewModel
                 });
     }
 
-    private BiFunction<MviIntent, MviIntent, MviIntent> initialIntentFilter =
+    private BiFunction<StatisticsIntent, StatisticsIntent, StatisticsIntent> initialIntentFilter =
             (previousIntent, newIntent) -> {
                 // if isReConnection (e.g. after config change)
                 // i.e. we are inside the scan, meaning there has already

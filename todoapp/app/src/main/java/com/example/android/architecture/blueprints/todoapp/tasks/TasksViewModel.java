@@ -39,7 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class TasksViewModel extends ViewModel implements MviViewModel<TasksIntent, TasksViewState> {
     @NonNull
-    private PublishSubject<MviIntent> mIntentsSubject;
+    private PublishSubject<TasksIntent> mIntentsSubject;
     @NonNull
     private PublishSubject<TasksViewState> mStatesSubject;
     @NonNull
@@ -84,7 +84,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                 });
     }
 
-    private BiFunction<MviIntent, MviIntent, MviIntent> initialIntentFilter =
+    private BiFunction<TasksIntent, TasksIntent, TasksIntent> initialIntentFilter =
             (previousIntent, newIntent) -> {
                 // if isReConnection (e.g. after config change)
                 // i.e. we are inside the scan, meaning there has already
