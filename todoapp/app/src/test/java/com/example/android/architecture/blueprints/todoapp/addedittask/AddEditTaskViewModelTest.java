@@ -39,9 +39,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for the implementation of {@link AddEditTaskPresenter}.
+ * Unit tests for the implementation of {@link AddEditTaskViewModel}.
  */
-public class AddEditTaskPresenterTest {
+public class AddEditTaskViewModelTest {
 
     @Mock
     private TasksRepository mTasksRepository;
@@ -51,7 +51,7 @@ public class AddEditTaskPresenterTest {
 
     private BaseSchedulerProvider mSchedulerProvider;
 
-    private AddEditTaskPresenter mAddEditTaskPresenter;
+    private AddEditTaskViewModel mAddEditTaskViewModel;
 
     @Before
     public void setupMocksAndView() {
@@ -68,21 +68,21 @@ public class AddEditTaskPresenterTest {
     @Test
     public void createPresenter_setsThePresenterToView() {
         // Get a reference to the class under test
-        mAddEditTaskPresenter = new AddEditTaskPresenter(null, mTasksRepository, mAddEditTaskView, true,
+        mAddEditTaskViewModel = new AddEditTaskViewModel(null, mTasksRepository, mAddEditTaskView, true,
                 mSchedulerProvider);
 
         // Then the presenter is set to the view
-        verify(mAddEditTaskView).setPresenter(mAddEditTaskPresenter);
+        verify(mAddEditTaskView).setPresenter(mAddEditTaskViewModel);
     }
 
     @Test
     public void saveNewTaskToRepository_showsSuccessMessageUi() {
         // Get a reference to the class under test
-        mAddEditTaskPresenter = new AddEditTaskPresenter(null, mTasksRepository, mAddEditTaskView, true,
+        mAddEditTaskViewModel = new AddEditTaskViewModel(null, mTasksRepository, mAddEditTaskView, true,
                 mSchedulerProvider);
 
         // When the presenter is asked to save a task
-        mAddEditTaskPresenter.saveTask("New Task Title", "Some Task Description");
+        mAddEditTaskViewModel.saveTask("New Task Title", "Some Task Description");
 
         // Then a task is saved in the repository and the view updated
         verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
@@ -92,11 +92,11 @@ public class AddEditTaskPresenterTest {
     @Test
     public void saveTask_emptyTaskShowsErrorUi() {
         // Get a reference to the class under test
-        mAddEditTaskPresenter = new AddEditTaskPresenter(null, mTasksRepository, mAddEditTaskView, true,
+        mAddEditTaskViewModel = new AddEditTaskViewModel(null, mTasksRepository, mAddEditTaskView, true,
                 mSchedulerProvider);
 
         // When the presenter is asked to save an empty task
-        mAddEditTaskPresenter.saveTask("", "");
+        mAddEditTaskViewModel.saveTask("", "");
 
         // Then an empty not error is shown in the UI
         verify(mAddEditTaskView).showEmptyTaskError();
@@ -105,11 +105,11 @@ public class AddEditTaskPresenterTest {
     @Test
     public void saveExistingTaskToRepository_showsSuccessMessageUi() {
         // Get a reference to the class under test
-        mAddEditTaskPresenter =
-                new AddEditTaskPresenter("1", mTasksRepository, mAddEditTaskView, true, mSchedulerProvider);
+        mAddEditTaskViewModel =
+                new AddEditTaskViewModel("1", mTasksRepository, mAddEditTaskView, true, mSchedulerProvider);
 
         // When the presenter is asked to save an existing task
-        mAddEditTaskPresenter.saveTask("Existing Task Title", "Some Task Description");
+        mAddEditTaskViewModel.saveTask("Existing Task Title", "Some Task Description");
 
         // Then a task is saved in the repository and the view updated
         verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
@@ -122,19 +122,19 @@ public class AddEditTaskPresenterTest {
         when(mTasksRepository.getTask(testTask.getId())).thenReturn(Single.just(testTask));
 
         // Get a reference to the class under test
-        mAddEditTaskPresenter =
-                new AddEditTaskPresenter(testTask.getId(), mTasksRepository, mAddEditTaskView, true,
+        mAddEditTaskViewModel =
+                new AddEditTaskViewModel(testTask.getId(), mTasksRepository, mAddEditTaskView, true,
                         mSchedulerProvider);
 
         // When the presenter is asked to populate an existing task
-        mAddEditTaskPresenter.populateTask();
+        mAddEditTaskViewModel.populateTask();
 
         // Then the task repository is queried and the view updated
         verify(mTasksRepository).getTask(eq(testTask.getId()));
 
         verify(mAddEditTaskView).setTitle(testTask.getTitle());
         verify(mAddEditTaskView).setDescription(testTask.getDescription());
-        assertThat(mAddEditTaskPresenter.isDataMissing(), is(false));
+        assertThat(mAddEditTaskViewModel.isDataMissing(), is(false));
     }
 
     @Test
@@ -144,12 +144,12 @@ public class AddEditTaskPresenterTest {
                 Single.error(new NoSuchElementException("The MaybeSource is empty")));
 
         // Get a reference to the class under test
-        mAddEditTaskPresenter =
-                new AddEditTaskPresenter(testTask.getId(), mTasksRepository, mAddEditTaskView, true,
+        mAddEditTaskViewModel =
+                new AddEditTaskViewModel(testTask.getId(), mTasksRepository, mAddEditTaskView, true,
                         mSchedulerProvider);
 
         // When the presenter is asked to populate an existing task
-        mAddEditTaskPresenter.populateTask();
+        mAddEditTaskViewModel.populateTask();
 
         // Then the task repository is queried and the view updated
         verify(mTasksRepository).getTask(eq(testTask.getId()));
