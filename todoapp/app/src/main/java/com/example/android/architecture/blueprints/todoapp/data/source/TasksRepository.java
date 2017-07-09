@@ -138,7 +138,7 @@ public class TasksRepository implements TasksDataSource {
     }
 
     @Override
-    public void saveTask(@NonNull Task task) {
+    public Completable saveTask(@NonNull Task task) {
         checkNotNull(task);
         mTasksRemoteDataSource.saveTask(task);
         mTasksLocalDataSource.saveTask(task);
@@ -148,6 +148,7 @@ public class TasksRepository implements TasksDataSource {
             mCachedTasks = new LinkedHashMap<>();
         }
         mCachedTasks.put(task.getId(), task);
+        return Completable.complete();
     }
 
     @Override

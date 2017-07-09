@@ -64,8 +64,9 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     }
 
     @Override
-    public void saveTask(@NonNull Task task) {
+    public Completable saveTask(@NonNull Task task) {
         TASKS_SERVICE_DATA.put(task.getId(), task);
+        return Completable.complete();
     }
 
     @Override

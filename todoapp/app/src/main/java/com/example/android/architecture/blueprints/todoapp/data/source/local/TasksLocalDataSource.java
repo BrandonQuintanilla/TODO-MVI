@@ -112,7 +112,7 @@ public class TasksLocalDataSource implements TasksDataSource {
     }
 
     @Override
-    public void saveTask(@NonNull Task task) {
+    public Completable saveTask(@NonNull Task task) {
         checkNotNull(task);
         ContentValues values = new ContentValues();
         values.put(TaskEntry.COLUMN_NAME_ENTRY_ID, task.getId());
@@ -120,6 +120,7 @@ public class TasksLocalDataSource implements TasksDataSource {
         values.put(TaskEntry.COLUMN_NAME_DESCRIPTION, task.getDescription());
         values.put(TaskEntry.COLUMN_NAME_COMPLETED, task.isCompleted());
         mDatabaseHelper.insert(TaskEntry.TABLE_NAME, values, SQLiteDatabase.CONFLICT_REPLACE);
+        return Completable.complete();
     }
 
     @Override

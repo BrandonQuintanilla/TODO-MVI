@@ -39,7 +39,7 @@ public interface TasksDataSource {
 
     Single<Task> getTask(@NonNull String taskId);
 
-    void saveTask(@NonNull Task task);
+    Completable saveTask(@NonNull Task task);
 
     Completable completeTask(@NonNull Task task);
 

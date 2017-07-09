@@ -17,8 +17,8 @@
 package com.example.android.architecture.blueprints.todoapp.addedittask;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -29,21 +29,24 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.android.architecture.blueprints.todoapp.R;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
+import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
+import com.jakewharton.rxbinding2.view.RxView;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import timber.log.Timber;
 
 /**
  * Main UI for the add task screen. Users can enter a task title and description.
  */
-public class AddEditTaskFragment extends Fragment implements AddEditTaskContract.View {
-
+public class AddEditTaskFragment extends Fragment implements MviView<AddEditTaskIntent, AddEditTaskViewState> {
     public static final String ARGUMENT_EDIT_TASK_ID = "EDIT_TASK_ID";
-
-    private AddEditTaskContract.Presenter mPresenter;
-
     private TextView mTitle;
-
     private TextView mDescription;
+    private FloatingActionButton fab;
+    private AddEditTaskViewModel mViewModel;
+    private CompositeDisposable mDisposables = new CompositeDisposable();
 
     public static AddEditTaskFragment newInstance() {
         return new AddEditTaskFragment();
@@ -52,29 +55,14 @@ public class AddEditTaskFragment extends Fragment implements AddEditTaskContract
     @Override
     public void onResume() {
         super.onResume();
-        mPresenter.subscribe();
+//        mPresenter.subscribe();
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        mPresenter.unsubscribe();
-    }
+    public void onDestroy() {
+        super.onDestroy();
 
-    @Override
-    public void setPresenter(@NonNull AddEditTaskContract.Presenter presenter) {
-        mPresenter = checkNotNull(presenter);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        FloatingActionButton fab =
-                (FloatingActionButton) getActivity().findViewById(R.id.fab_edit_task_done);
-        fab.setImageResource(R.drawable.ic_done);
-        fab.setOnClickListener(__ -> mPresenter.saveTask(mTitle.getText().toString(),
-                mDescription.getText().toString()));
+        mDisposables.dispose();
     }
 
     @Nullable
@@ -88,29 +76,80 @@ public class AddEditTaskFragment extends Fragment implements AddEditTaskContract
         return root;
     }
 
+
     @Override
-    public void showEmptyTaskError() {
-        Snackbar.make(mTitle, getString(R.string.empty_task_message), Snackbar.LENGTH_LONG).show();
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        fab = (FloatingActionButton) getActivity().findViewById(R.id.fab_edit_task_done);
+        fab.setImageResource(R.drawable.ic_done);
+
+        mViewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+                .get(AddEditTaskViewModel.class);
+        mDisposables = new CompositeDisposable();
+        bind();
+    }
+
+    private void bind() {
+        mDisposables.add(mViewModel.states().subscribe(this::render));
+        mViewModel.processIntents(intents());
     }
 
     @Override
-    public void showTasksList() {
+    public Observable<AddEditTaskIntent> intents() {
+        return Observable.merge(initialIntent(), saveTaskIntent());
+    }
+
+    private Observable<AddEditTaskIntent.InitialIntent> initialIntent() {
+        return Observable.just(AddEditTaskIntent.InitialIntent.create(getArgumentTaskId()));
+    }
+
+    private Observable<AddEditTaskIntent.SaveTask> saveTaskIntent() {
+        Timber.d("CONNARD saveTaskIntent");
+        return RxView.clicks(fab).map(ignored ->
+                AddEditTaskIntent.SaveTask.create(
+                        getArgumentTaskId(),
+                        mTitle.getText().toString(),
+                        mDescription.getText().toString()));
+    }
+
+    @Override
+    public void render(AddEditTaskViewState state) {
+        if (state.isSaved()) {
+            showTasksList();
+            return;
+        }
+        if (state.isEmpty()) {
+            showEmptyTaskError();
+        }
+        if (!state.title().isEmpty()) {
+            setTitle(state.title());
+        }
+        if (!state.description().isEmpty()) {
+            setDescription(state.description());
+        }
+    }
+
+    private void showEmptyTaskError() {
+        Snackbar.make(mTitle, getString(R.string.empty_task_message), Snackbar.LENGTH_LONG).show();
+    }
+
+    private void showTasksList() {
         getActivity().setResult(Activity.RESULT_OK);
         getActivity().finish();
     }
 
-    @Override
-    public void setTitle(String title) {
+    private void setTitle(String title) {
         mTitle.setText(title);
     }
 
-    @Override
-    public void setDescription(String description) {
+    private void setDescription(String description) {
         mDescription.setText(description);
     }
 
-    @Override
-    public boolean isActive() {
-        return isAdded();
+    @Nullable
+    private String getArgumentTaskId() {
+        Bundle args = getArguments();
+        if (args == null) return null;
+        return args.getString(ARGUMENT_EDIT_TASK_ID);
     }
 }

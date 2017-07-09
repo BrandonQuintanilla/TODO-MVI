@@ -20,17 +20,14 @@ import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
-import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
-import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
@@ -42,18 +39,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class TasksViewModel extends ViewModel implements MviViewModel<TasksIntent, TasksViewState> {
     @NonNull
-    private PublishSubject<MviIntent> mIntentsSubject;
+    private PublishSubject<TasksIntent> mIntentsSubject;
     @NonNull
     private PublishSubject<TasksViewState> mStatesSubject;
     @NonNull
-    private TasksRepository mTasksRepository;
-    @NonNull
-    private BaseSchedulerProvider mSchedulerProvider;
+    private TasksActionProcessorHolder mActionProcessorHolder;
 
-    public TasksViewModel(@NonNull TasksRepository tasksRepository,
-                          @NonNull BaseSchedulerProvider schedulerProvider) {
-        this.mTasksRepository = checkNotNull(tasksRepository, "tasksRepository cannot be null");
-        this.mSchedulerProvider = checkNotNull(schedulerProvider, "schedulerProvider cannot be null");
+    public TasksViewModel(@NonNull TasksActionProcessorHolder taskActionProcessorHolder) {
+        this.mActionProcessorHolder = checkNotNull(taskActionProcessorHolder, "taskActionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
         mStatesSubject = PublishSubject.create();
@@ -76,7 +69,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                 .scan(initialIntentFilter)
                 .map(this::actionFromIntent)
                 .doOnNext(MviViewModel::logAction)
-                .compose(actionProcessor)
+                .compose(mActionProcessorHolder.actionProcessor)
                 .doOnNext(MviViewModel::logResult)
                 .scan(TasksViewState.idle(), reducer)
                 .doOnNext(MviViewModel::logState)
@@ -91,7 +84,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                 });
     }
 
-    private BiFunction<MviIntent, MviIntent, MviIntent> initialIntentFilter =
+    private BiFunction<TasksIntent, TasksIntent, TasksIntent> initialIntentFilter =
             (previousIntent, newIntent) -> {
                 // if isReConnection (e.g. after config change)
                 // i.e. we are inside the scan, meaning there has already
@@ -131,69 +124,6 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
         }
         throw new IllegalArgumentException("do not know how to treat this intent " + intent);
     }
-
-    private ObservableTransformer<TasksAction.LoadTasks, TasksResult.LoadTasks> loadTasksProcessor =
-            actions -> actions.flatMap(action -> mTasksRepository.getTasks(action.forceUpdate())
-                    .toObservable()
-                    .map(tasks -> TasksResult.LoadTasks.success(tasks, action.filterType()))
-                    .onErrorReturn(TasksResult.LoadTasks::failure)
-                    .subscribeOn(mSchedulerProvider.io())
-                    .observeOn(mSchedulerProvider.ui())
-                    .startWith(TasksResult.LoadTasks.inFlight()));
-
-    private ObservableTransformer<TasksAction.GetLastState, TasksResult.GetLastState>
-            getLastStateProcessor = actions -> actions.map(ignored -> TasksResult.GetLastState.create());
-
-    private ObservableTransformer<TasksAction.ActivateTaskAction, TasksResult.ActivateTaskResult>
-            activateTaskProcessor = actions -> actions.flatMap(
-            action -> mTasksRepository.activateTask(action.task())
-                    .andThen(mTasksRepository.getTasks())
-                    .toObservable()
-                    .map(TasksResult.ActivateTaskResult::success)
-                    .onErrorReturn(TasksResult.ActivateTaskResult::failure)
-                    .subscribeOn(mSchedulerProvider.io())
-                    .observeOn(mSchedulerProvider.ui())
-                    .startWith(TasksResult.ActivateTaskResult.inFlight()));
-
-    private ObservableTransformer<TasksAction.CompleteTaskAction, TasksResult.CompleteTaskResult>
-            completeTaskProcessor = actions -> actions.flatMap(
-            action -> mTasksRepository.completeTask(action.task())
-                    .andThen(mTasksRepository.getTasks())
-                    .toObservable()
-                    .map(TasksResult.CompleteTaskResult::success)
-                    .onErrorReturn(TasksResult.CompleteTaskResult::failure)
-                    .subscribeOn(mSchedulerProvider.io())
-                    .observeOn(mSchedulerProvider.ui())
-                    .startWith(TasksResult.CompleteTaskResult.inFlight()));
-
-    private ObservableTransformer<TasksAction.ClearCompletedTasksAction, TasksResult.ClearCompletedTasksResult>
-            clearCompletedTasksProcessor = actions -> actions.flatMap(
-            action -> mTasksRepository.clearCompletedTasks()
-                    .andThen(mTasksRepository.getTasks())
-                    .toObservable()
-                    .map(TasksResult.ClearCompletedTasksResult::success)
-                    .onErrorReturn(TasksResult.ClearCompletedTasksResult::failure)
-                    .subscribeOn(mSchedulerProvider.io())
-                    .observeOn(mSchedulerProvider.ui())
-                    .startWith(TasksResult.ClearCompletedTasksResult.inFlight()));
-
-    private ObservableTransformer<TasksAction, TasksResult> actionProcessor =
-            actions -> actions.publish(shared -> Observable.merge(
-                    shared.ofType(TasksAction.LoadTasks.class).compose(loadTasksProcessor),
-                    shared.ofType(TasksAction.GetLastState.class).compose(getLastStateProcessor),
-                    shared.ofType(TasksAction.ActivateTaskAction.class).compose(activateTaskProcessor),
-                    shared.ofType(TasksAction.CompleteTaskAction.class).compose(completeTaskProcessor))
-                    .mergeWith(shared.ofType(TasksAction.ClearCompletedTasksAction.class)
-                            .compose(clearCompletedTasksProcessor))
-                    .mergeWith(
-                            // Error for not implemented actions
-                            shared.filter(v -> !(v instanceof TasksAction.LoadTasks)
-                                    && !(v instanceof TasksAction.GetLastState)
-                                    && !(v instanceof TasksAction.ActivateTaskAction)
-                                    && !(v instanceof TasksAction.CompleteTaskAction)
-                                    && !(v instanceof TasksAction.ClearCompletedTasksAction))
-                                    .flatMap(w -> Observable.error(
-                                            new IllegalArgumentException("Unknown Action type: " + w)))));
 
     private static BiFunction<TasksViewState, TasksResult, TasksViewState> reducer =
             (previousState, result) -> {

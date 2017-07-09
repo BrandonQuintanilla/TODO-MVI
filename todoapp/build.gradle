@@ -43,7 +43,7 @@ ext {
   espressoVersion = '2.2.2'
   rxjavaVersion = '2.1.1'
   rxandroidVersion = '2.0.1'
-  sqlbriteVersion = '2.0.0-SNAPSHOT'
+  sqlbriteVersion = '2.0.0'
   jsr305Version = '3.0.1'
   autoValueVersion = '1.3'
   timberVersion = '4.5.1'

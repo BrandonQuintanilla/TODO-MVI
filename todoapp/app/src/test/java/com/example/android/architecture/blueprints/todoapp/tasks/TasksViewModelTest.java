@@ -60,7 +60,8 @@ public class TasksViewModelTest {
         mSchedulerProvider = new ImmediateSchedulerProvider();
 
         // Get a reference to the class under test
-        mTasksViewModel = new TasksViewModel(mTasksRepository, mSchedulerProvider);
+        mTasksViewModel = new TasksViewModel(
+                new TasksActionProcessorHolder(mTasksRepository, mSchedulerProvider));
 
         // We subscribe the tasks to 3, with one active and two completed
         TASKS = Lists.newArrayList(new Task("Title1", "Description1"),
