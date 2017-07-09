@@ -31,7 +31,6 @@ abstract class TasksViewState implements MviViewState {
     public abstract Builder buildWith();
 
     static TasksViewState idle() {
-        // TODO(benoit)
         return new AutoValue_TasksViewState.Builder().isLoading(false)
                 .tasksFilterType(ALL_TASKS)
                 .tasks(Collections.emptyList())

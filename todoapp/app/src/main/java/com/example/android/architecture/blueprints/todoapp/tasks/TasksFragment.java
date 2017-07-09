@@ -111,7 +111,8 @@ public class TasksFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
-        // TODO(benoit) conflicting with the initial intent but...
+        // conflicting with the initial intent but needed when coming back from the
+        // AddEditTask activity to refresh the list.
         mRefreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(false));
     }
 
