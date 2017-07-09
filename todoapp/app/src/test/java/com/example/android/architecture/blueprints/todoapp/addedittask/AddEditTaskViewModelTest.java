@@ -28,10 +28,11 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.NoSuchElementException;
 
+import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.observers.TestObserver;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
@@ -45,13 +46,9 @@ public class AddEditTaskViewModelTest {
 
     @Mock
     private TasksRepository mTasksRepository;
-
-    @Mock
-    private AddEditTaskContract.View mAddEditTaskView;
-
     private BaseSchedulerProvider mSchedulerProvider;
-
     private AddEditTaskViewModel mAddEditTaskViewModel;
+    private TestObserver<AddEditTaskViewState> mTestObserver;
 
     @Before
     public void setupMocksAndView() {
@@ -61,80 +58,65 @@ public class AddEditTaskViewModelTest {
 
         mSchedulerProvider = new ImmediateSchedulerProvider();
 
-        // The presenter wont't update the view unless it's active.
-        when(mAddEditTaskView.isActive()).thenReturn(true);
-    }
-
-    @Test
-    public void createPresenter_setsThePresenterToView() {
-        // Get a reference to the class under test
-        mAddEditTaskViewModel = new AddEditTaskViewModel(null, mTasksRepository, mAddEditTaskView, true,
-                mSchedulerProvider);
-
-        // Then the presenter is set to the view
-        verify(mAddEditTaskView).setPresenter(mAddEditTaskViewModel);
+        mAddEditTaskViewModel = new AddEditTaskViewModel(
+                new AddEditTaskActionProcessorHolder(mTasksRepository, mSchedulerProvider));
+        mTestObserver = mAddEditTaskViewModel.states().test();
     }
 
     @Test
     public void saveNewTaskToRepository_showsSuccessMessageUi() {
-        // Get a reference to the class under test
-        mAddEditTaskViewModel = new AddEditTaskViewModel(null, mTasksRepository, mAddEditTaskView, true,
-                mSchedulerProvider);
-
         // When the presenter is asked to save a task
-        mAddEditTaskViewModel.saveTask("New Task Title", "Some Task Description");
+        mAddEditTaskViewModel.processIntents(Observable.just(
+                AddEditTaskIntent.SaveTask.create(null, "New Task Title", "Some Task Description")
+        ));
 
         // Then a task is saved in the repository and the view updated
         verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
-        verify(mAddEditTaskView).showTasksList(); // shown in the UI
+        mTestObserver.assertValueAt(0, state -> state.isSaved() && !state.isEmpty());
     }
 
     @Test
     public void saveTask_emptyTaskShowsErrorUi() {
-        // Get a reference to the class under test
-        mAddEditTaskViewModel = new AddEditTaskViewModel(null, mTasksRepository, mAddEditTaskView, true,
-                mSchedulerProvider);
-
         // When the presenter is asked to save an empty task
-        mAddEditTaskViewModel.saveTask("", "");
+        mAddEditTaskViewModel.processIntents(Observable.just(
+                AddEditTaskIntent.SaveTask.create(null, "", "")
+        ));
 
         // Then an empty not error is shown in the UI
-        verify(mAddEditTaskView).showEmptyTaskError();
+        verify(mTasksRepository, never()).saveTask(any(Task.class)); // saved to the model
+        mTestObserver.assertValueAt(0, AddEditTaskViewState::isEmpty);
     }
 
     @Test
     public void saveExistingTaskToRepository_showsSuccessMessageUi() {
-        // Get a reference to the class under test
-        mAddEditTaskViewModel =
-                new AddEditTaskViewModel("1", mTasksRepository, mAddEditTaskView, true, mSchedulerProvider);
+        when(mTasksRepository.saveTask(any(Task.class))).thenReturn(Completable.complete());
 
         // When the presenter is asked to save an existing task
-        mAddEditTaskViewModel.saveTask("Existing Task Title", "Some Task Description");
+        mAddEditTaskViewModel.processIntents(Observable.just(
+                AddEditTaskIntent.SaveTask.create("1", "Existing Task Title", "Some Task Description")
+        ));
 
         // Then a task is saved in the repository and the view updated
         verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
-        verify(mAddEditTaskView).showTasksList(); // shown in the UI
+        mTestObserver.assertValueAt(0, state -> state.isSaved() && !state.isEmpty());
     }
 
     @Test
     public void populateTask_callsRepoAndUpdatesViewOnSuccess() {
-        Task testTask = new Task("TITLE", "DESCRIPTION");
+        final Task testTask = new Task("TITLE", "DESCRIPTION");
         when(mTasksRepository.getTask(testTask.getId())).thenReturn(Single.just(testTask));
 
-        // Get a reference to the class under test
-        mAddEditTaskViewModel =
-                new AddEditTaskViewModel(testTask.getId(), mTasksRepository, mAddEditTaskView, true,
-                        mSchedulerProvider);
-
         // When the presenter is asked to populate an existing task
-        mAddEditTaskViewModel.populateTask();
+        mAddEditTaskViewModel.processIntents(Observable.just(
+                AddEditTaskIntent.InitialIntent.create(testTask.getId())
+                )
+        );
 
         // Then the task repository is queried and the view updated
         verify(mTasksRepository).getTask(eq(testTask.getId()));
-
-        verify(mAddEditTaskView).setTitle(testTask.getTitle());
-        verify(mAddEditTaskView).setDescription(testTask.getDescription());
-        assertThat(mAddEditTaskViewModel.isDataMissing(), is(false));
+        mTestObserver.assertValueAt(1, state ->
+                state.title().equals(testTask.getTitle()) &&
+                        state.description().equals(testTask.getDescription()));
     }
 
     @Test
@@ -143,19 +125,17 @@ public class AddEditTaskViewModelTest {
         when(mTasksRepository.getTask(testTask.getId())).thenReturn(
                 Single.error(new NoSuchElementException("The MaybeSource is empty")));
 
-        // Get a reference to the class under test
-        mAddEditTaskViewModel =
-                new AddEditTaskViewModel(testTask.getId(), mTasksRepository, mAddEditTaskView, true,
-                        mSchedulerProvider);
-
         // When the presenter is asked to populate an existing task
-        mAddEditTaskViewModel.populateTask();
+        mAddEditTaskViewModel.processIntents(Observable.just(
+                AddEditTaskIntent.InitialIntent.create(testTask.getId())
+        ));
 
         // Then the task repository is queried and the view updated
         verify(mTasksRepository).getTask(eq(testTask.getId()));
 
-        verify(mAddEditTaskView).showEmptyTaskError();
-        verify(mAddEditTaskView, never()).setTitle(testTask.getTitle());
-        verify(mAddEditTaskView, never()).setDescription(testTask.getDescription());
+        mTestObserver.assertValueAt(1, state ->
+                state.error() != null &&
+                        state.title().isEmpty() &&
+                        state.description().isEmpty());
     }
 }
