@@ -27,20 +27,22 @@ public class StatisticsActionProcessorHolder {
     }
 
     private ObservableTransformer<StatisticsAction.LoadStatistics, StatisticsResult.LoadStatistics>
-            loadStatisticsProcessor = actions -> actions.flatMap(action -> mTasksRepository.getTasks()
-            .toObservable()
-            .flatMap(Observable::fromIterable)
-            .publish(shared -> //
-                    Single.zip( //
-                            shared.filter(Task::isActive).count(), //
-                            shared.filter(Task::isCompleted).count(), //
-                            Pair::create).toObservable())
-            .map(pair -> StatisticsResult.LoadStatistics.success(pair.first().intValue(),
-                    pair.second().intValue()))
-            .onErrorReturn(StatisticsResult.LoadStatistics::failure)
-            .subscribeOn(mSchedulerProvider.io())
-            .observeOn(mSchedulerProvider.ui())
-            .startWith(StatisticsResult.LoadStatistics.inFlight()));
+            loadStatisticsProcessor = actions ->
+            actions.flatMap(action ->
+                    mTasksRepository.getTasks()
+                            .toObservable()
+                            .flatMap(Observable::fromIterable)
+                            .publish(shared ->
+                                    Single.zip(
+                                            shared.filter(Task::isActive).count(),
+                                            shared.filter(Task::isCompleted).count(),
+                                            Pair::create).toObservable())
+                            .map(pair -> StatisticsResult.LoadStatistics.success(pair.first().intValue(),
+                                    pair.second().intValue()))
+                            .onErrorReturn(StatisticsResult.LoadStatistics::failure)
+                            .subscribeOn(mSchedulerProvider.io())
+                            .observeOn(mSchedulerProvider.ui())
+                            .startWith(StatisticsResult.LoadStatistics.inFlight()));
 
     private ObservableTransformer<StatisticsAction.GetLastState, StatisticsResult.GetLastState>
             getLastStateProcessor =

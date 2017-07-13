@@ -111,8 +111,8 @@ public class TasksScreenTest {
         return new TypeSafeMatcher<View>() {
             @Override
             public boolean matchesSafely(View item) {
-                return allOf(isDescendantOfA(isAssignableFrom(ListView.class)), withText(itemText)).matches(
-                        item);
+                return allOf(isDescendantOfA(isAssignableFrom(ListView.class)), withText(itemText))
+                        .matches(item);
             }
 
             @Override
@@ -517,10 +517,6 @@ public class TasksScreenTest {
 
     private void clickCheckBoxForTask(String title) {
         onView(allOf(withId(R.id.complete), hasSibling(withText(title)))).perform(click());
-    }
-
-    private String getText(int stringId) {
-        return mTasksActivityTestRule.getActivity().getResources().getString(stringId);
     }
 
     private String getToolbarNavigationContentDescription() {

@@ -21,7 +21,6 @@ import android.support.annotation.NonNull;
 
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
-import com.example.android.architecture.blueprints.todoapp.util.EspressoIdlingResource;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.BiFunction;
@@ -69,16 +68,7 @@ public class StatisticsViewModel extends ViewModel
                 .compose(mActionProcessorHolder.actionProcessor)
                 .doOnNext(MviViewModel::logResult)
                 .scan(StatisticsViewState.idle(), reducer)
-                .doOnNext(MviViewModel::logState)
-                .doOnNext(state -> {
-                    // The network request might be handled in a different thread so make sure Espresso knows
-                    // that the app is busy until the response is handled.
-                    if (state.isLoading()) {
-                        EspressoIdlingResource.increment();
-                    } else if (!EspressoIdlingResource.getIdlingResource().isIdleNow()) {
-                        EspressoIdlingResource.decrement(); // Set app as idle.
-                    }
-                });
+                .doOnNext(MviViewModel::logState);
     }
 
     private BiFunction<StatisticsIntent, StatisticsIntent, StatisticsIntent> initialIntentFilter =

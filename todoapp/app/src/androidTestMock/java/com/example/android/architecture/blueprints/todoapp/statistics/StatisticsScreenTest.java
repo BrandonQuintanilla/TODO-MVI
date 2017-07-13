@@ -21,11 +21,13 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
+
 import com.example.android.architecture.blueprints.todoapp.Injection;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,47 +42,52 @@ import static org.hamcrest.Matchers.containsString;
 /**
  * Tests for the statistics screen.
  */
-@RunWith(AndroidJUnit4.class) @LargeTest public class StatisticsScreenTest {
+@RunWith(AndroidJUnit4.class)
+@LargeTest
+public class StatisticsScreenTest {
 
-  /**
-   * {@link ActivityTestRule} is a JUnit {@link Rule @Rule} to launch your activity under test.
-   *
-   * <p>
-   * Rules are interceptors which are executed for each test method and are important building
-   * blocks of Junit tests.
-   */
-  @Rule public ActivityTestRule<StatisticsActivity> mStatisticsActivityTestRule =
-      new ActivityTestRule<>(StatisticsActivity.class, true, false);
+    /**
+     * {@link ActivityTestRule} is a JUnit {@link Rule @Rule} to launch your activity under test.
+     * <p>
+     * <p>
+     * Rules are interceptors which are executed for each test method and are important building
+     * blocks of Junit tests.
+     */
+    @Rule
+    public ActivityTestRule<StatisticsActivity> mStatisticsActivityTestRule =
+            new ActivityTestRule<>(StatisticsActivity.class, true, false);
 
-  /**
-   * Setup your test fixture with a fake task id. The {@link TaskDetailActivity} is started with
-   * a particular task id, which is then loaded from the service API.
-   *
-   * <p>
-   * Note that this test runs hermetically and is fully isolated using a fake implementation of
-   * the service API. This is a great way to make your tests more reliable and faster at the same
-   * time, since they are isolated from any outside dependencies.
-   */
-  @Before public void intentWithStubbedTaskId() {
-    // Given some tasks
-    TasksRepository.destroyInstance();
-    TasksRepository repository =
-        Injection.provideTasksRepository(InstrumentationRegistry.getContext());
-    repository.saveTask(new Task("Title1", "", false));
-    repository.saveTask(new Task("Title2", "", true));
+    /**
+     * Setup your test fixture with a fake task id. The {@link TaskDetailActivity} is started with
+     * a particular task id, which is then loaded from the service API.
+     * <p>
+     * <p>
+     * Note that this test runs hermetically and is fully isolated using a fake implementation of
+     * the service API. This is a great way to make your tests more reliable and faster at the same
+     * time, since they are isolated from any outside dependencies.
+     */
+    @Before
+    public void intentWithStubbedTaskId() {
+        // Given some tasks
+        TasksRepository.destroyInstance();
+        TasksRepository repository =
+                Injection.provideTasksRepository(InstrumentationRegistry.getTargetContext());
+        repository.saveTask(new Task("Title1", "", false));
+        repository.saveTask(new Task("Title2", "", true));
 
-    // Lazily start the Activity from the ActivityTestRule
-    Intent startIntent = new Intent();
-    mStatisticsActivityTestRule.launchActivity(startIntent);
-  }
+        // Lazily start the Activity from the ActivityTestRule
+        Intent startIntent = new Intent();
+        mStatisticsActivityTestRule.launchActivity(startIntent);
+    }
 
-  @Test public void Tasks_ShowsNonEmptyMessage() throws Exception {
-    // Check that the active and completed tasks text is displayed
-    String expectedActiveTaskText =
-        InstrumentationRegistry.getTargetContext().getString(R.string.statistics_active_tasks);
-    onView(withText(containsString(expectedActiveTaskText))).check(matches(isDisplayed()));
-    String expectedCompletedTaskText =
-        InstrumentationRegistry.getTargetContext().getString(R.string.statistics_completed_tasks);
-    onView(withText(containsString(expectedCompletedTaskText))).check(matches(isDisplayed()));
-  }
+    @Test
+    public void Tasks_ShowsNonEmptyMessage() throws Exception {
+        // Check that the active and completed tasks text is displayed
+        String expectedActiveTaskText =
+                InstrumentationRegistry.getTargetContext().getString(R.string.statistics_active_tasks);
+        onView(withText(containsString(expectedActiveTaskText))).check(matches(isDisplayed()));
+        String expectedCompletedTaskText =
+                InstrumentationRegistry.getTargetContext().getString(R.string.statistics_completed_tasks);
+        onView(withText(containsString(expectedCompletedTaskText))).check(matches(isDisplayed()));
+    }
 }

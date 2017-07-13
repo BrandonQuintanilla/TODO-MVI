@@ -49,7 +49,7 @@ public class StatisticsViewModelTest {
     private TestObserver<StatisticsViewState> mTestObserver;
 
     @Before
-    public void setupStatisticsPresenter() {
+    public void setupStatisticsViewModel() {
         // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
         // inject the mocks in the test the initMocks method needs to be called.
         MockitoAnnotations.initMocks(this);
@@ -74,18 +74,20 @@ public class StatisticsViewModelTest {
         TASKS.clear();
         setTasksAvailable(TASKS);
 
-        // When loading of Tasks is requested
+        // When loading of Tasks is process by first initial intent
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
-        //Then progress indicator is shown
+        // Then loading state is emitted
         mTestObserver.assertValueAt(0, StatisticsViewState::isLoading);
 
         // Callback is captured and invoked with stubbed tasks
         verify(mTasksRepository).getTasks();
 
-        // Then progress indicator is hidden and correct data is passed on to the view
+        // Then not loading, data furnished state in emitted to the view
         mTestObserver.assertValueAt(1,
-                state -> !state.isLoading() && state.activeCount() == 0 && state.completedCount() == 0);
+                state -> !state.isLoading() &&
+                        state.activeCount() == 0 &&
+                        state.completedCount() == 0);
     }
 
     @Test
@@ -93,7 +95,7 @@ public class StatisticsViewModelTest {
         // Given an initialized StatisticsViewModel with 1 active and 2 completed tasks
         setTasksAvailable(TASKS);
 
-        // When loading of Tasks is requested
+        // When loading of Tasks is process by first initial intent
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
         //Then progress indicator is shown
