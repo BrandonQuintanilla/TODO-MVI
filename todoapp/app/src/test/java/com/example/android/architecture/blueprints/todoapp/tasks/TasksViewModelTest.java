@@ -74,12 +74,12 @@ public class TasksViewModelTest {
     public void loadAllTasksFromRepositoryAndLoadIntoView() {
         // Given an initialized TasksViewModel with initialized tasks
         when(mTasksRepository.getTasks(anyBoolean())).thenReturn(Single.just(TASKS));
-        // When loading of Tasks is requested
+        // When loading of Tasks is initiated
         mTasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()));
 
-        // Then progress indicator is shown
+        // Then progress indicator state is emitted
         mTestObserver.assertValueAt(0, TasksViewState::isLoading);
-        // Then progress indicator is hidden and all tasks are shown in UI
+        // Then progress indicator state is canceled and all tasks are emitted
         mTestObserver.assertValueAt(1, tasksViewState -> !tasksViewState.isLoading());
     }
 
@@ -87,13 +87,13 @@ public class TasksViewModelTest {
     public void loadActiveTasksFromRepositoryAndLoadIntoView() {
         // Given an initialized TasksViewModel with initialized tasks
         when(mTasksRepository.getTasks(anyBoolean())).thenReturn(Single.just(TASKS));
-        // When loading of Tasks is requested
+        // When loading of Tasks is initiated
         mTasksViewModel.processIntents(
                 Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.ACTIVE_TASKS)));
 
-        //Then progress indicator is shown
+        // Then progress indicator state is emitted
         mTestObserver.assertValueAt(0, TasksViewState::isLoading);
-        // Then progress indicator is hidden and active tasks are shown in UI
+        // Then progress indicator state is canceled and all tasks are emitted
         mTestObserver.assertValueAt(1, tasksViewState -> !tasksViewState.isLoading());
     }
 
@@ -105,9 +105,9 @@ public class TasksViewModelTest {
         mTasksViewModel.processIntents(
                 Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.COMPLETED_TASKS)));
 
-        //Then progress indicator is shown
+        // Then progress indicator state is emitted
         mTestObserver.assertValueAt(0, TasksViewState::isLoading);
-        // Then progress indicator is hidden and completed tasks are shown in UI
+        // Then progress indicator state is canceled and all tasks are emitted
         mTestObserver.assertValueAt(1, tasksViewState -> !tasksViewState.isLoading());
     }
 
@@ -122,7 +122,7 @@ public class TasksViewModelTest {
         // When task is marked as complete
         mTasksViewModel.processIntents(Observable.just(TasksIntent.CompleteTaskIntent.create(task)));
 
-        // Then repository is called and task marked complete UI is shown
+        // Then repository is called and task marked complete state is emitted
         verify(mTasksRepository).completeTask(task);
         verify(mTasksRepository).getTasks();
         mTestObserver.assertValueAt(0, TasksViewState::taskComplete);
@@ -139,7 +139,7 @@ public class TasksViewModelTest {
         // When task is marked as activated
         mTasksViewModel.processIntents(Observable.just(TasksIntent.ActivateTaskIntent.create(task)));
 
-        // Then repository is called and task marked active UI is shown
+        // Then repository is called and task marked active state is emitted
         verify(mTasksRepository).activateTask(task);
         verify(mTasksRepository).getTasks();
         mTestObserver.assertValueAt(0, TasksViewState::taskActivated);
@@ -153,7 +153,7 @@ public class TasksViewModelTest {
         // When tasks are loaded
         mTasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()));
 
-        // Then an error message is shown
+        // Then an error containing state is emitted
         mTestObserver.assertValueAt(1, state -> state.error() != null);
     }
 }

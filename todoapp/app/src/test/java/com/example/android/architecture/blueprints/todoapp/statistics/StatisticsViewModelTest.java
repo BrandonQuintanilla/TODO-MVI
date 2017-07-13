@@ -74,7 +74,7 @@ public class StatisticsViewModelTest {
         TASKS.clear();
         setTasksAvailable(TASKS);
 
-        // When loading of Tasks is process by first initial intent
+        // When loading of Tasks is initiated by first initial intent
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
         // Then loading state is emitted
@@ -95,7 +95,7 @@ public class StatisticsViewModelTest {
         // Given an initialized StatisticsViewModel with 1 active and 2 completed tasks
         setTasksAvailable(TASKS);
 
-        // When loading of Tasks is process by first initial intent
+        // When loading of Tasks is initiated by first initial intent
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
         //Then progress indicator is shown
@@ -111,7 +111,7 @@ public class StatisticsViewModelTest {
         // Given that tasks data isn't available
         setTasksNotAvailable();
 
-        // When statistics are loaded
+        // When loading of Tasks is initiated by first initial intent
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
         // Then an error message is shown
