@@ -43,11 +43,11 @@ public interface TasksDataSource {
 
     Completable completeTask(@NonNull Task task);
 
-    void completeTask(@NonNull String taskId);
+    Completable completeTask(@NonNull String taskId);
 
     Completable activateTask(@NonNull Task task);
 
-    void activateTask(@NonNull String taskId);
+    Completable activateTask(@NonNull String taskId);
 
     Completable clearCompletedTasks();
 
@@ -55,5 +55,5 @@ public interface TasksDataSource {
 
     void deleteAllTasks();
 
-    void deleteTask(@NonNull String taskId);
+    Completable deleteTask(@NonNull String taskId);
 }
