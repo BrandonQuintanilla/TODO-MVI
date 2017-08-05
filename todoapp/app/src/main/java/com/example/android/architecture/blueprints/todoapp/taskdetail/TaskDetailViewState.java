@@ -2,16 +2,8 @@ package com.example.android.architecture.blueprints.todoapp.taskdetail;
 
 import android.support.annotation.Nullable;
 
-import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
-import com.example.android.architecture.blueprints.todoapp.tasks.AutoValue_TasksViewState;
-import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType;
 import com.google.auto.value.AutoValue;
-
-import java.util.Collections;
-import java.util.List;
-
-import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ALL_TASKS;
 
 @AutoValue
 abstract class TaskDetailViewState implements MviViewState {
