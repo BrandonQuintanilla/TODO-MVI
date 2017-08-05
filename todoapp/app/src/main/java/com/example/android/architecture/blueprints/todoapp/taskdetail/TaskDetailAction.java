@@ -2,10 +2,6 @@ package com.example.android.architecture.blueprints.todoapp.taskdetail;
 
 import android.support.annotation.NonNull;
 
-import com.example.android.architecture.blueprints.todoapp.addedittask.AutoValue_AddEditTaskAction_CreateTask;
-import com.example.android.architecture.blueprints.todoapp.addedittask.AutoValue_AddEditTaskAction_GetLastState;
-import com.example.android.architecture.blueprints.todoapp.addedittask.AutoValue_AddEditTaskAction_PopulateTask;
-import com.example.android.architecture.blueprints.todoapp.addedittask.AutoValue_AddEditTaskAction_UpdateTask;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.google.auto.value.AutoValue;
 
@@ -32,7 +28,7 @@ interface TaskDetailAction extends MviAction {
     abstract class ActivateTask implements TaskDetailAction {
         abstract String taskId();
 
-        public static DeleteTask create(@NonNull String taskId) {
+        public static ActivateTask create(@NonNull String taskId) {
             return new AutoValue_TaskDetailAction_ActivateTask(taskId);
         }
     }
@@ -41,7 +37,7 @@ interface TaskDetailAction extends MviAction {
     abstract class CompleteTask implements TaskDetailAction {
         abstract String taskId();
 
-        public static DeleteTask create(@NonNull String taskId) {
+        public static CompleteTask create(@NonNull String taskId) {
             return new AutoValue_TaskDetailAction_CompleteTask(taskId);
         }
     }
