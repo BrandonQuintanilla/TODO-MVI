@@ -130,13 +130,14 @@ public class TasksLocalDataSource implements TasksDataSource {
     }
 
     @Override
-    public void completeTask(@NonNull String taskId) {
+    public Completable completeTask(@NonNull String taskId) {
         ContentValues values = new ContentValues();
         values.put(TaskEntry.COLUMN_NAME_COMPLETED, true);
 
         String selection = TaskEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
         String[] selectionArgs = {taskId};
         mDatabaseHelper.update(TaskEntry.TABLE_NAME, values, selection, selectionArgs);
+        return Completable.complete();
     }
 
     @Override
@@ -146,13 +147,14 @@ public class TasksLocalDataSource implements TasksDataSource {
     }
 
     @Override
-    public void activateTask(@NonNull String taskId) {
+    public Completable activateTask(@NonNull String taskId) {
         ContentValues values = new ContentValues();
         values.put(TaskEntry.COLUMN_NAME_COMPLETED, false);
 
         String selection = TaskEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
         String[] selectionArgs = {taskId};
         mDatabaseHelper.update(TaskEntry.TABLE_NAME, values, selection, selectionArgs);
+        return Completable.complete();
     }
 
     @Override
@@ -175,9 +177,10 @@ public class TasksLocalDataSource implements TasksDataSource {
     }
 
     @Override
-    public void deleteTask(@NonNull String taskId) {
+    public Completable deleteTask(@NonNull String taskId) {
         String selection = TaskEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
         String[] selectionArgs = {taskId};
         mDatabaseHelper.delete(TaskEntry.TABLE_NAME, selection, selectionArgs);
+        return Completable.complete();
     }
 }

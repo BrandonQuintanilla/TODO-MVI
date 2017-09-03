@@ -6,6 +6,7 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.google.auto.value.AutoValue;
 
 interface TaskDetailAction extends MviAction {
+
     @AutoValue
     abstract class PopulateTask implements TaskDetailAction {
         abstract String taskId();

@@ -35,7 +35,6 @@ import com.jakewharton.rxbinding2.view.RxView;
 
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
-import timber.log.Timber;
 
 /**
  * Main UI for the add task screen. Users can enter a task title and description.
@@ -104,7 +103,6 @@ public class AddEditTaskFragment extends Fragment implements MviView<AddEditTask
     }
 
     private Observable<AddEditTaskIntent.SaveTask> saveTaskIntent() {
-        Timber.d("CONNARD saveTaskIntent");
         return RxView.clicks(fab).map(ignored ->
                 AddEditTaskIntent.SaveTask.create(
                         getArgumentTaskId(),

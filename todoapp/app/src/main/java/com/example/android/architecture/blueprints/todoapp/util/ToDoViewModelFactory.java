@@ -10,6 +10,8 @@ import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTa
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskViewModel;
 import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsActionProcessorHolder;
 import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsViewModel;
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActionProcessorHolder;
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewModel;
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksActionProcessorHolder;
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewModel;
 
@@ -48,6 +50,12 @@ public class ToDoViewModelFactory implements ViewModelProvider.Factory {
         if (modelClass == AddEditTaskViewModel.class) {
             return (T) new AddEditTaskViewModel(
                     new AddEditTaskActionProcessorHolder(
+                            Injection.provideTasksRepository(applicationContext),
+                            Injection.provideSchedulerProvider()));
+        }
+        if (modelClass == TaskDetailViewModel.class) {
+            return (T) new TaskDetailViewModel(
+                    new TaskDetailActionProcessorHolder(
                             Injection.provideTasksRepository(applicationContext),
                             Injection.provideSchedulerProvider()));
         }

@@ -2,7 +2,6 @@ package com.example.android.architecture.blueprints.todoapp.taskdetail;
 
 import android.support.annotation.NonNull;
 
-import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 
@@ -75,9 +74,13 @@ public class TaskDetailActionProcessorHolder {
             actions -> actions.publish(shared -> Observable.merge(
                     shared.ofType(TaskDetailAction.PopulateTask.class).compose(populateTaskProcessor),
                     shared.ofType(TaskDetailAction.CompleteTask.class).compose(completeTaskProcessor),
-                    shared.ofType(TaskDetailAction.ActivateTask.class).compose(activateTaskProcessor),
-                    shared.ofType(TaskDetailAction.DeleteTask.class).compose(deleteTaskProcessor),
-                    shared.ofType(TaskDetailAction.GetLastState.class).compose(getLastStateProcessor))
+                    shared.ofType(TaskDetailAction.ActivateTask.class).compose(activateTaskProcessor))
+                    .mergeWith(
+                            Observable.merge(
+                                    shared.ofType(TaskDetailAction.DeleteTask.class).compose(deleteTaskProcessor),
+                                    shared.ofType(TaskDetailAction.GetLastState.class).compose(getLastStateProcessor))
+
+                    )
                     .mergeWith(
                             // Error for not implemented actions
                             shared.filter(v -> !(v instanceof TaskDetailAction.PopulateTask) &&

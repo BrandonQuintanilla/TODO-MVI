@@ -50,4 +50,5 @@ interface TaskDetailIntent extends MviIntent {
             return new AutoValue_TaskDetailIntent_CompleteTaskIntent(taskId);
         }
     }
+
 }

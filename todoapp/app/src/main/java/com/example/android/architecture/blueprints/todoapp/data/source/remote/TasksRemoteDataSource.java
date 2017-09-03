@@ -91,9 +91,10 @@ public class TasksRemoteDataSource implements TasksDataSource {
     }
 
     @Override
-    public void completeTask(@NonNull String taskId) {
+    public Completable completeTask(@NonNull String taskId) {
         // Not required for the remote data source because the {@link TasksRepository} handles
         // converting from a {@code taskId} to a {@link task} using its cached data.
+        return Completable.complete();
     }
 
     @Override
@@ -104,9 +105,10 @@ public class TasksRemoteDataSource implements TasksDataSource {
     }
 
     @Override
-    public void activateTask(@NonNull String taskId) {
+    public Completable activateTask(@NonNull String taskId) {
         // Not required for the remote data source because the {@link TasksRepository} handles
         // converting from a {@code taskId} to a {@link task} using its cached data.
+        return Completable.complete();
     }
 
     @Override
@@ -133,7 +135,8 @@ public class TasksRemoteDataSource implements TasksDataSource {
     }
 
     @Override
-    public void deleteTask(@NonNull String taskId) {
+    public Completable deleteTask(@NonNull String taskId) {
         TASKS_SERVICE_DATA.remove(taskId);
+        return Completable.complete();
     }
 }

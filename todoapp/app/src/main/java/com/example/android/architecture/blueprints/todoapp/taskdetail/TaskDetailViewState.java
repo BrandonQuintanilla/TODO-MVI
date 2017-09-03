@@ -12,6 +12,8 @@ abstract class TaskDetailViewState implements MviViewState {
 
     abstract String description();
 
+    abstract boolean completed();
+
     @Nullable
     abstract Throwable error();
 
@@ -27,6 +29,7 @@ abstract class TaskDetailViewState implements MviViewState {
         return new AutoValue_TaskDetailViewState.Builder()
                 .title("")
                 .description("")
+                .completed(false)
                 .error(null)
                 .taskComplete(false)
                 .taskActivated(false)
@@ -39,6 +42,8 @@ abstract class TaskDetailViewState implements MviViewState {
         abstract Builder title(String title);
 
         abstract Builder description(String description);
+
+        abstract Builder completed(boolean completed);
 
         abstract Builder error(@Nullable Throwable error);
 
