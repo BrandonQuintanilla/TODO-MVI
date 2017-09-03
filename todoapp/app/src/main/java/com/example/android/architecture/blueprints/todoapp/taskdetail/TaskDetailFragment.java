@@ -153,18 +153,6 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
     @Override
     public void render(TaskDetailViewState state) {
 
-        if (state.taskComplete()){
-            showTaskMarkedComplete();
-        }
-
-        if (state.taskActivated()){
-            showTaskMarkedActive();
-        }
-
-        if (state.taskDeleted()){
-            showTaskDeleted();
-        }
-
         if (!state.title().isEmpty()) {
             showTitle(state.title());
         } else {
@@ -177,7 +165,19 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
             hideDescription();
         }
 
-        mDetailCompleteStatus.setChecked(state.completed());
+        showActive(state.active());
+
+        if (state.taskComplete()){
+            showTaskMarkedComplete();
+        }
+
+        if (state.taskActivated()){
+            showTaskMarkedActive();
+        }
+
+        if (state.taskDeleted()){
+            showTaskDeleted();
+        }
 
     }
 
