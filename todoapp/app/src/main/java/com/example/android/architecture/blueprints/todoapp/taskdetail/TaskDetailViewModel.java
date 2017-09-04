@@ -165,7 +165,7 @@ public class TaskDetailViewModel extends ViewModel
                         case SUCCESS:
                             return stateBuilder
                                     .taskActivated(false)
-                                    .completed(false)
+                                    .active(false)
                                     .build();
 
                         case FAILURE:
@@ -182,7 +182,7 @@ public class TaskDetailViewModel extends ViewModel
                         case SUCCESS:
                             return stateBuilder
                                     .taskActivated(false)
-                                    .completed(true)
+                                    .active(true)
                                     .build();
 
                         case FAILURE:
