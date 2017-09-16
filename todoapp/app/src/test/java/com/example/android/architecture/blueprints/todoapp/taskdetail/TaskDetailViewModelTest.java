@@ -97,7 +97,7 @@ public class TaskDetailViewModelTest {
 
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).deleteTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(0, state -> state.taskDeleted());
+        mTestObserver.assertValueAt(1, TaskDetailViewState::taskDeleted);
     }
 
     @Test
@@ -112,7 +112,66 @@ public class TaskDetailViewModelTest {
 
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).deleteTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(0, state -> state.error() != null);
+        mTestObserver.assertValueAt(1, state -> state.error() != null);
     }
+
+    @Test
+    public void completeTask_marksTaskAsComplete_showsSuccessMessageUi() {
+        when(mTasksRepository.completeTask(anyString())).thenReturn(Completable.complete());
+
+        // When an existing task saving intent is emitted by the view
+        mTaskDetailViewModel.processIntents(Observable.just(
+                TaskDetailIntent.CompleteTaskIntent.create("1")
+        ));
+
+        // Then a task is saved in the repository and the view updates
+        verify(mTasksRepository).completeTask(anyString()); // saved to the model
+        mTestObserver.assertValueAt(1, TaskDetailViewState::taskComplete);
+    }
+
+    @Test
+    public void completeTask_showsErrorMessageUi() {
+        when(mTasksRepository.completeTask(anyString()))
+                .thenReturn(Completable.error(new NoSuchElementException("Task does not exist")));
+
+        // When an existing task saving intent is emitted by the view
+        mTaskDetailViewModel.processIntents(Observable.just(
+                TaskDetailIntent.CompleteTaskIntent.create("1")
+        ));
+
+        // Then a task is saved in the repository and the view updates
+        verify(mTasksRepository).completeTask(anyString()); // saved to the model
+        mTestObserver.assertValueAt(1, state -> state.error() != null);
+    }
+
+    @Test
+    public void activateTask_marksTaskAsActive_showsSuccessMessageUi() {
+        when(mTasksRepository.activateTask(anyString())).thenReturn(Completable.complete());
+
+        // When an existing task saving intent is emitted by the view
+        mTaskDetailViewModel.processIntents(Observable.just(
+                TaskDetailIntent.ActivateTaskIntent.create("1")
+        ));
+
+        // Then a task is saved in the repository and the view updates
+        verify(mTasksRepository).completeTask(anyString()); // saved to the model
+        mTestObserver.assertValueAt(2, TaskDetailViewState::taskActivated);
+    }
+
+    @Test
+    public void activateTask_showsErrorMessageUi() {
+        when(mTasksRepository.activateTask(anyString()))
+                .thenReturn(Completable.error(new NoSuchElementException("Task does not exist")));
+
+        // When an existing task saving intent is emitted by the view
+        mTaskDetailViewModel.processIntents(Observable.just(
+                TaskDetailIntent.ActivateTaskIntent.create("1")
+        ));
+
+        // Then a task is saved in the repository and the view updates
+        verify(mTasksRepository).activateTask(anyString()); // saved to the model
+        mTestObserver.assertValueAt(2, state -> state.error() != null);
+    }
+
 
 }
