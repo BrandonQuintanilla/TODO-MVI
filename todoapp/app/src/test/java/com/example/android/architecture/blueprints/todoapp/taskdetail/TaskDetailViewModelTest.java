@@ -117,7 +117,10 @@ public class TaskDetailViewModelTest {
 
     @Test
     public void completeTask_marksTaskAsComplete_showsSuccessMessageUi() {
+        Task task = new Task("Complete Requested", "For this task");
+
         when(mTasksRepository.completeTask(anyString())).thenReturn(Completable.complete());
+        when(mTasksRepository.getTask(anyString())).thenReturn(Single.just(task));
 
         // When an existing task saving intent is emitted by the view
         mTaskDetailViewModel.processIntents(Observable.just(
@@ -125,28 +128,32 @@ public class TaskDetailViewModelTest {
         ));
 
         // Then a task is saved in the repository and the view updates
-        verify(mTasksRepository).completeTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(1, TaskDetailViewState::taskComplete);
+        verify(mTasksRepository).completeTask(anyString());
+        verify(mTasksRepository).getTask(anyString());
+        mTestObserver.assertValueAt(0, TaskDetailViewState::taskComplete);
     }
 
     @Test
     public void completeTask_showsErrorMessageUi() {
         when(mTasksRepository.completeTask(anyString()))
-                .thenReturn(Completable.error(new NoSuchElementException("Task does not exist")));
+                .thenReturn(Completable.complete());
+        when(mTasksRepository.getTask(anyString()))
+                .thenReturn(Single.error(new NoSuchElementException("The MaybeSource is empty")));
 
         // When an existing task saving intent is emitted by the view
         mTaskDetailViewModel.processIntents(Observable.just(
                 TaskDetailIntent.CompleteTaskIntent.create("1")
         ));
 
-        // Then a task is saved in the repository and the view updates
-        verify(mTasksRepository).completeTask(anyString()); // saved to the model
         mTestObserver.assertValueAt(1, state -> state.error() != null);
     }
 
     @Test
     public void activateTask_marksTaskAsActive_showsSuccessMessageUi() {
+        Task task = new Task("Activate Requested", "For this task");
+
         when(mTasksRepository.activateTask(anyString())).thenReturn(Completable.complete());
+        when(mTasksRepository.getTask(anyString())).thenReturn(Single.just(task));
 
         // When an existing task saving intent is emitted by the view
         mTaskDetailViewModel.processIntents(Observable.just(
@@ -154,23 +161,23 @@ public class TaskDetailViewModelTest {
         ));
 
         // Then a task is saved in the repository and the view updates
-        verify(mTasksRepository).completeTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(2, TaskDetailViewState::taskActivated);
+        verify(mTasksRepository).activateTask(anyString());
+        verify(mTasksRepository).getTask(anyString());
+        mTestObserver.assertValueAt(0, TaskDetailViewState::taskActivated);
     }
 
     @Test
     public void activateTask_showsErrorMessageUi() {
-        when(mTasksRepository.activateTask(anyString()))
-                .thenReturn(Completable.error(new NoSuchElementException("Task does not exist")));
+        when(mTasksRepository.activateTask(anyString())).thenReturn(Completable.complete());
+        when(mTasksRepository.getTask(anyString()))
+                .thenReturn(Single.error(new NoSuchElementException("The MaybeSource is empty")));
 
         // When an existing task saving intent is emitted by the view
         mTaskDetailViewModel.processIntents(Observable.just(
                 TaskDetailIntent.ActivateTaskIntent.create("1")
         ));
 
-        // Then a task is saved in the repository and the view updates
-        verify(mTasksRepository).activateTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(2, state -> state.error() != null);
+        mTestObserver.assertValueAt(1, state -> state.error() != null);
     }
 
 

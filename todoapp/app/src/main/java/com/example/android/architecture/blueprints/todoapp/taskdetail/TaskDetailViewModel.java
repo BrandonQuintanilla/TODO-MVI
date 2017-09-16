@@ -181,16 +181,16 @@ public class TaskDetailViewModel extends ViewModel
                     switch (completeTaskResult.status()) {
                         case SUCCESS:
                             return stateBuilder
-                                    .taskActivated(false)
+                                    .taskComplete(false)
                                     .active(true)
                                     .build();
 
                         case FAILURE:
                             return stateBuilder
-                                    .taskActivated(false)
+                                    .taskComplete(false)
                                     .error(completeTaskResult.error()).build();
                         case IN_FLIGHT:
-                            return stateBuilder.taskActivated(true).build();
+                            return stateBuilder.taskComplete(true).build();
                     }
                 }
                 throw new IllegalStateException("Mishandled result? Should not happen―as always: " + result);
