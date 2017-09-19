@@ -198,7 +198,11 @@ public class TasksRepository implements TasksDataSource {
     public Completable activateTask(@NonNull String taskId) {
         checkNotNull(taskId);
         Task taskWithId = getTaskWithId(taskId);
-        return activateTask(taskWithId);
+        if (taskWithId != null) {
+            return activateTask(taskWithId);
+        } else {
+            return Completable.complete();
+        }
     }
 
     @Override
