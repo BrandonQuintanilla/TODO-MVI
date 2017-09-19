@@ -225,7 +225,7 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
     }
 
     public void showActive(boolean isActive){
-        mDetailCompleteStatus.setChecked(isActive);
+        mDetailCompleteStatus.setChecked(!isActive);
     }
 
     public void showDescription(@NonNull String description) {
