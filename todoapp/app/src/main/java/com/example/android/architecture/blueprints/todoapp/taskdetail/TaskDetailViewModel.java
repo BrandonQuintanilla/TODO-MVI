@@ -177,7 +177,7 @@ public class TaskDetailViewModel extends ViewModel
                     switch (completeTaskResult.status()) {
                         case SUCCESS:
                             return stateBuilder
-                                    .taskComplete(false)
+                                    .taskComplete(true)
                                     .active(true)
                                     .build();
 
