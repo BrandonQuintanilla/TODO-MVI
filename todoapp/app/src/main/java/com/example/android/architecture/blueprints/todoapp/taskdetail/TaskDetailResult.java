@@ -1,13 +1,12 @@
 package com.example.android.architecture.blueprints.todoapp.taskdetail;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.google.auto.value.AutoValue;
-
-import javax.annotation.Nullable;
 
 import static com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus.FAILURE;
 import static com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus.IN_FLIGHT;
@@ -20,10 +19,10 @@ interface TaskDetailResult extends MviResult {
         @NonNull
         abstract LceStatus status();
 
-        @android.support.annotation.Nullable
+        @Nullable
         abstract Task task();
 
-        @android.support.annotation.Nullable
+        @Nullable
         abstract Throwable error();
 
         @NonNull
