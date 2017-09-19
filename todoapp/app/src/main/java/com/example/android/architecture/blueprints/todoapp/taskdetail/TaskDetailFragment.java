@@ -106,7 +106,7 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
         mDisposables.add(mViewModel.states().subscribe(this::render));
         mViewModel.processIntents(intents());
 
-        RxView.clicks(fab).throttleFirst(200, TimeUnit.MILLISECONDS)
+        RxView.clicks(fab).debounce(200, TimeUnit.MILLISECONDS)
                 .subscribe(view -> showEditTask(getArgumentTaskId()));
     }
 
