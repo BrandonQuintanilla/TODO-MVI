@@ -92,12 +92,8 @@ public class TaskDetailViewModel extends ViewModel
     private TaskDetailAction actionFromIntent(MviIntent intent) {
         if (intent instanceof TaskDetailIntent.InitialIntent) {
             String taskId = ((TaskDetailIntent.InitialIntent) intent).taskId();
-            if (taskId == null) {
-                // nothing to do here so getting the idle state with GetLastState intent
-                return TaskDetailAction.GetLastState.create();
-            } else {
-                return TaskDetailAction.PopulateTask.create(taskId);
-            }
+            checkNotNull(taskId);
+            return TaskDetailAction.PopulateTask.create(taskId);
         }
         if (intent instanceof TaskDetailIntent.DeleteTask) {
             TaskDetailIntent.DeleteTask deleteTaskIntent = (TaskDetailIntent.DeleteTask) intent;
