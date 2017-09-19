@@ -150,9 +150,9 @@ public class TaskDetailViewModel extends ViewModel
                         case SUCCESS:
                             return stateBuilder.taskDeleted(true).build();
                         case FAILURE:
-                            return stateBuilder.taskComplete(false).error(deleteTaskResult.error()).build();
+                            return stateBuilder.taskDeleted(false).error(deleteTaskResult.error()).build();
                         case IN_FLIGHT:
-                            return stateBuilder.taskComplete(true).build();
+                            return stateBuilder.taskDeleted(true).build();
                     }
                 } else if (result instanceof TaskDetailResult.ActivateTaskResult) {
                     TaskDetailResult.ActivateTaskResult activateTaskResult =
