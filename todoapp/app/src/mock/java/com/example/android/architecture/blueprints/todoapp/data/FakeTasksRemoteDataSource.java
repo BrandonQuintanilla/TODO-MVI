@@ -77,10 +77,11 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     }
 
     @Override
-    public void completeTask(@NonNull String taskId) {
+    public Completable completeTask(@NonNull String taskId) {
         Task task = TASKS_SERVICE_DATA.get(taskId);
         Task completedTask = new Task(task.getTitle(), task.getDescription(), task.getId(), true);
         TASKS_SERVICE_DATA.put(taskId, completedTask);
+        return null;
     }
 
     @Override
@@ -91,10 +92,11 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     }
 
     @Override
-    public void activateTask(@NonNull String taskId) {
+    public Completable activateTask(@NonNull String taskId) {
         Task task = TASKS_SERVICE_DATA.get(taskId);
         Task activeTask = new Task(task.getTitle(), task.getDescription(), task.getId());
         TASKS_SERVICE_DATA.put(taskId, activeTask);
+        return null;
     }
 
     @Override
@@ -115,8 +117,9 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
     }
 
     @Override
-    public void deleteTask(@NonNull String taskId) {
+    public Completable deleteTask(@NonNull String taskId) {
         TASKS_SERVICE_DATA.remove(taskId);
+        return null;
     }
 
     @Override

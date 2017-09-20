@@ -17,6 +17,7 @@
 package com.example.android.architecture.blueprints.todoapp.taskdetail;
 
 import android.app.Activity;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -36,14 +37,20 @@ import android.widget.TextView;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskFragment;
-import com.google.common.base.Preconditions;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
+import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
+import com.jakewharton.rxbinding2.view.RxView;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.subjects.PublishSubject;
 
 /**
  * Main UI for the task detail screen.
  */
-public class TaskDetailFragment extends Fragment implements TaskDetailContract.View {
+public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIntent, TaskDetailViewState> {
 
     @NonNull
     private static final String ARGUMENT_TASK_ID = "TASK_ID";
@@ -51,13 +58,15 @@ public class TaskDetailFragment extends Fragment implements TaskDetailContract.V
     @NonNull
     private static final int REQUEST_EDIT_TASK = 1;
 
-    private TaskDetailContract.Presenter mPresenter;
-
     private TextView mDetailTitle;
-
     private TextView mDetailDescription;
-
     private CheckBox mDetailCompleteStatus;
+    private FloatingActionButton fab;
+
+    TaskDetailViewModel mViewModel;
+
+    private CompositeDisposable mDisposables = new CompositeDisposable();
+    private PublishSubject<TaskDetailIntent.DeleteTask> mDeleteTaskIntentPublisher = PublishSubject.create();
 
     public static TaskDetailFragment newInstance(@Nullable String taskId) {
         Bundle arguments = new Bundle();
@@ -65,18 +74,6 @@ public class TaskDetailFragment extends Fragment implements TaskDetailContract.V
         TaskDetailFragment fragment = new TaskDetailFragment();
         fragment.setArguments(arguments);
         return fragment;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mPresenter.subscribe();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mPresenter.unsubscribe();
     }
 
     @Nullable
@@ -90,24 +87,107 @@ public class TaskDetailFragment extends Fragment implements TaskDetailContract.V
         mDetailCompleteStatus = (CheckBox) root.findViewById(R.id.task_detail_complete);
 
         // Set up floating action button
-        FloatingActionButton fab =
-                (FloatingActionButton) getActivity().findViewById(R.id.fab_edit_task);
-
-        fab.setOnClickListener(__ -> mPresenter.editTask());
+        fab = (FloatingActionButton) getActivity().findViewById(R.id.fab_edit_task);
 
         return root;
     }
 
     @Override
-    public void setPresenter(@NonNull TaskDetailContract.Presenter presenter) {
-        mPresenter = checkNotNull(presenter);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        mViewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+                .get(TaskDetailViewModel.class);
+        mDisposables = new CompositeDisposable();
+        bind();
+    }
+
+    private void bind() {
+        mDisposables.add(mViewModel.states().subscribe(this::render));
+        mViewModel.processIntents(intents());
+
+        RxView.clicks(fab).debounce(200, TimeUnit.MILLISECONDS)
+                .subscribe(view -> showEditTask(getArgumentTaskId()));
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        mDisposables.dispose();
+    }
+
+    @Override
+    public Observable<TaskDetailIntent> intents() {
+        return Observable.merge(initialIntent(), checkBoxIntents(), deleteIntent());
+    }
+
+    private Observable<TaskDetailIntent.InitialIntent> initialIntent() {
+        return Observable.just(TaskDetailIntent.InitialIntent.create(getArgumentTaskId()));
+    }
+
+    private Observable<TaskDetailIntent> checkBoxIntents() {
+        return RxView.clicks(mDetailCompleteStatus).map(
+                activated -> {
+                    if (mDetailCompleteStatus.isChecked()) {
+                        return TaskDetailIntent.CompleteTaskIntent.create(getArgumentTaskId());
+                    } else {
+                        return TaskDetailIntent.ActivateTaskIntent.create(getArgumentTaskId());
+                    }
+                }
+        );
+
+    }
+
+    private Observable<TaskDetailIntent.DeleteTask> deleteIntent() {
+        return mDeleteTaskIntentPublisher;
+    }
+
+    @Nullable
+    private String getArgumentTaskId() {
+        Bundle args = getArguments();
+        if (args == null) return null;
+        return args.getString(ARGUMENT_TASK_ID);
+    }
+
+    @Override
+    public void render(TaskDetailViewState state) {
+
+        setLoadingIndicator(state.loading());
+
+        if (!state.title().isEmpty()) {
+            showTitle(state.title());
+        } else {
+            hideTitle();
+        }
+
+        if (!state.description().isEmpty()) {
+            showDescription(state.description());
+        } else {
+            hideDescription();
+        }
+
+        showActive(state.active());
+
+        if (state.taskComplete()){
+            showTaskMarkedComplete();
+        }
+
+        if (state.taskActivated()){
+            showTaskMarkedActive();
+        }
+
+        if (state.taskDeleted()){
+            showTaskDeleted();
+        }
+
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_delete:
-                mPresenter.deleteTask();
+                mDeleteTaskIntentPublisher.onNext(TaskDetailIntent.DeleteTask.create(getArgumentTaskId()));
                 return true;
         }
         return false;
@@ -117,68 +197,6 @@ public class TaskDetailFragment extends Fragment implements TaskDetailContract.V
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.taskdetail_fragment_menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public void setLoadingIndicator(boolean active) {
-        if (active) {
-            mDetailTitle.setText("");
-            mDetailDescription.setText(getString(R.string.loading));
-        }
-    }
-
-    @Override
-    public void hideDescription() {
-        mDetailDescription.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void hideTitle() {
-        mDetailTitle.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void showDescription(@NonNull String description) {
-        mDetailDescription.setVisibility(View.VISIBLE);
-        mDetailDescription.setText(description);
-    }
-
-    @Override
-    public void showCompletionStatus(final boolean complete) {
-        Preconditions.checkNotNull(mDetailCompleteStatus);
-
-        mDetailCompleteStatus.setChecked(complete);
-        mDetailCompleteStatus.setOnCheckedChangeListener(
-                (buttonView, isChecked) -> {
-                    if (isChecked) {
-                        mPresenter.completeTask();
-                    } else {
-                        mPresenter.activateTask();
-                    }
-                });
-    }
-
-    @Override
-    public void showEditTask(@NonNull String taskId) {
-        Intent intent = new Intent(getContext(), AddEditTaskActivity.class);
-        intent.putExtra(AddEditTaskFragment.ARGUMENT_EDIT_TASK_ID, taskId);
-        startActivityForResult(intent, REQUEST_EDIT_TASK);
-    }
-
-    @Override
-    public void showTaskDeleted() {
-        getActivity().finish();
-    }
-
-    public void showTaskMarkedComplete() {
-        Snackbar.make(getView(), getString(R.string.task_marked_complete), Snackbar.LENGTH_LONG)
-                .show();
-    }
-
-    @Override
-    public void showTaskMarkedActive() {
-        Snackbar.make(getView(), getString(R.string.task_marked_active), Snackbar.LENGTH_LONG)
-                .show();
     }
 
     @Override
@@ -193,21 +211,58 @@ public class TaskDetailFragment extends Fragment implements TaskDetailContract.V
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    @Override
+    public void setLoadingIndicator(boolean active) {
+        if (active) {
+            mDetailTitle.setText("");
+            mDetailDescription.setText(getString(R.string.loading));
+        }
+    }
+
+    public void hideDescription() {
+        mDetailDescription.setVisibility(View.GONE);
+    }
+
+    public void hideTitle() {
+        mDetailTitle.setVisibility(View.GONE);
+    }
+
+    public void showActive(boolean isActive){
+        mDetailCompleteStatus.setChecked(!isActive);
+    }
+
+    public void showDescription(@NonNull String description) {
+        mDetailDescription.setVisibility(View.VISIBLE);
+        mDetailDescription.setText(description);
+    }
+
+    private void showEditTask(@NonNull String taskId) {
+        Intent intent = new Intent(getContext(), AddEditTaskActivity.class);
+        intent.putExtra(AddEditTaskFragment.ARGUMENT_EDIT_TASK_ID, taskId);
+        startActivityForResult(intent, REQUEST_EDIT_TASK);
+    }
+
+    public void showTaskDeleted() {
+        getActivity().finish();
+    }
+
+    public void showTaskMarkedComplete() {
+        Snackbar.make(getView(), getString(R.string.task_marked_complete), Snackbar.LENGTH_LONG)
+                .show();
+    }
+
+    public void showTaskMarkedActive() {
+        Snackbar.make(getView(), getString(R.string.task_marked_active), Snackbar.LENGTH_LONG)
+                .show();
+    }
+
     public void showTitle(@NonNull String title) {
         mDetailTitle.setVisibility(View.VISIBLE);
         mDetailTitle.setText(title);
     }
 
-    @Override
     public void showMissingTask() {
         mDetailTitle.setText("");
         mDetailDescription.setText(getString(R.string.no_data));
-    }
-
-    @Override
-    public boolean isActive() {
-        return isAdded();
     }
 
 }

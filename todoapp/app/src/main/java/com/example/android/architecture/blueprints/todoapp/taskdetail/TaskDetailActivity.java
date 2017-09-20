@@ -21,7 +21,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import com.example.android.architecture.blueprints.todoapp.Injection;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.util.ActivityUtils;
 
@@ -58,12 +57,6 @@ public class TaskDetailActivity extends AppCompatActivity {
                     taskDetailFragment, R.id.contentFrame);
         }
 
-        // Create the presenter
-        new TaskDetailPresenter(
-                taskId,
-                Injection.provideTasksRepository(getApplicationContext()),
-                taskDetailFragment,
-                Injection.provideSchedulerProvider());
     }
 
     @Override

@@ -168,11 +168,13 @@ public class TasksRepository implements TasksDataSource {
     }
 
     @Override
-    public void completeTask(@NonNull String taskId) {
+    public Completable completeTask(@NonNull String taskId) {
         checkNotNull(taskId);
         Task taskWithId = getTaskWithId(taskId);
         if (taskWithId != null) {
-            completeTask(taskWithId);
+            return completeTask(taskWithId);
+        } else {
+            return Completable.complete();
         }
     }
 
@@ -193,12 +195,24 @@ public class TasksRepository implements TasksDataSource {
     }
 
     @Override
-    public void activateTask(@NonNull String taskId) {
+    public Completable activateTask(@NonNull String taskId) {
         checkNotNull(taskId);
         Task taskWithId = getTaskWithId(taskId);
         if (taskWithId != null) {
-            activateTask(taskWithId);
+            return activateTask(taskWithId);
+        } else {
+            return Completable.complete();
         }
+    }
+
+    @Override
+    public Completable deleteTask(@NonNull String taskId) {
+        checkNotNull(taskId);
+        mTasksRemoteDataSource.deleteTask(checkNotNull(taskId));
+        mTasksLocalDataSource.deleteTask(checkNotNull(taskId));
+
+        mCachedTasks.remove(taskId);
+        return Completable.complete();
     }
 
     @Override
@@ -266,14 +280,6 @@ public class TasksRepository implements TasksDataSource {
             mCachedTasks = new LinkedHashMap<>();
         }
         mCachedTasks.clear();
-    }
-
-    @Override
-    public void deleteTask(@NonNull String taskId) {
-        mTasksRemoteDataSource.deleteTask(checkNotNull(taskId));
-        mTasksLocalDataSource.deleteTask(checkNotNull(taskId));
-
-        mCachedTasks.remove(taskId);
     }
 
     @Nullable
