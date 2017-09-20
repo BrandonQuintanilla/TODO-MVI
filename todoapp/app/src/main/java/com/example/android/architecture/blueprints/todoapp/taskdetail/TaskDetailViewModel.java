@@ -134,12 +134,14 @@ public class TaskDetailViewModel extends ViewModel
                             stateBuilder.title(task.getTitle());
                             stateBuilder.description(task.getDescription());
                             stateBuilder.active(task.isActive());
+                            stateBuilder.loading(false);
                             return stateBuilder.build();
                         case FAILURE:
                             Throwable error = checkNotNull(populateTaskResult.error());
+                            stateBuilder.loading(false);
                             return stateBuilder.error(error).build();
                         case IN_FLIGHT:
-                            // nothing to do
+                            stateBuilder.loading(true);
                             return stateBuilder.build();
                     }
                 }

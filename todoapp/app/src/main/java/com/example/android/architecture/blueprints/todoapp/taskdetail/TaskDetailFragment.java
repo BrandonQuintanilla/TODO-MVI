@@ -153,6 +153,8 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
     @Override
     public void render(TaskDetailViewState state) {
 
+        setLoadingIndicator(state.loading());
+
         if (!state.title().isEmpty()) {
             showTitle(state.title());
         } else {

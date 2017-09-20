@@ -14,6 +14,8 @@ abstract class TaskDetailViewState implements MviViewState {
 
     abstract boolean active();
 
+    abstract boolean loading();
+
     @Nullable
     abstract Throwable error();
 
@@ -30,6 +32,7 @@ abstract class TaskDetailViewState implements MviViewState {
                 .title("")
                 .description("")
                 .active(false)
+                .loading(false)
                 .error(null)
                 .taskComplete(false)
                 .taskActivated(false)
@@ -44,6 +47,8 @@ abstract class TaskDetailViewState implements MviViewState {
         abstract Builder description(String description);
 
         abstract Builder active(boolean active);
+
+        abstract Builder loading(boolean loading);
 
         abstract Builder error(@Nullable Throwable error);
 
