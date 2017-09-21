@@ -1,10 +1,7 @@
 # TODO-MVI-RXJAVA [WIP]
 
-DONE: Statistics, Tasks  
-TODO: TaskDetail, AddEditTask  
-
-
-Project owners: [Benoit Quenaudon](https://github.com/oldergod)
+DONE: Statistics, Tasks, TaskDetail, AddEditTask
+TODO: Clean ups
 
 ### Summary
 
