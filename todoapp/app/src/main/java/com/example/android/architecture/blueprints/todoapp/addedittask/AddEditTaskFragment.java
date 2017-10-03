@@ -52,12 +52,6 @@ public class AddEditTaskFragment extends Fragment implements MviView<AddEditTask
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-//        mPresenter.subscribe();
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
 

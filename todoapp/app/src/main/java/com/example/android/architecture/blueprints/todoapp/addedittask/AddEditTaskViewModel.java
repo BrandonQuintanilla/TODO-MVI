@@ -43,9 +43,6 @@ public class AddEditTaskViewModel extends ViewModel
     @NonNull
     private AddEditTaskActionProcessorHolder mActionProcessorHolder;
 
-    /**
-     * Creates a presenter for the add/edit view.
-     */
     public AddEditTaskViewModel(@NonNull AddEditTaskActionProcessorHolder actionProcessorHolder) {
         mActionProcessorHolder = checkNotNull(actionProcessorHolder);
 

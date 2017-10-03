@@ -43,9 +43,6 @@ public class TaskDetailViewModel extends ViewModel
     @NonNull
     private TaskDetailActionProcessorHolder mActionProcessorHolder;
 
-    /**
-     * Creates a presenter for the add/edit view.
-     */
     public TaskDetailViewModel(@NonNull TaskDetailActionProcessorHolder actionProcessorHolder) {
         mActionProcessorHolder = checkNotNull(actionProcessorHolder);
 
