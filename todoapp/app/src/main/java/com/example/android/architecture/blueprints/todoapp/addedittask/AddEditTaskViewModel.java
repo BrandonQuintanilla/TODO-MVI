@@ -66,14 +66,11 @@ public class AddEditTaskViewModel extends ViewModel
     }
 
     private Observable<AddEditTaskViewState> compose() {
-        return mIntentsSubject.doOnNext(MviViewModel::logIntent)
+        return mIntentsSubject
                 .scan(initialIntentFilter)
                 .map(this::actionFromIntent)
-                .doOnNext(MviViewModel::logAction)
                 .compose(mActionProcessorHolder.actionProcessor)
-                .doOnNext(MviViewModel::logResult)
-                .scan(AddEditTaskViewState.idle(), reducer)
-                .doOnNext(MviViewModel::logState);
+                .scan(AddEditTaskViewState.idle(), reducer);
     }
 
     private BiFunction<AddEditTaskIntent, AddEditTaskIntent, AddEditTaskIntent> initialIntentFilter =

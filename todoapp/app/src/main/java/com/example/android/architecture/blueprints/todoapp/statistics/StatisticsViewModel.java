@@ -61,14 +61,11 @@ public class StatisticsViewModel extends ViewModel
     }
 
     private Observable<StatisticsViewState> compose() {
-        return mIntentsSubject.doOnNext(MviViewModel::logIntent)
+        return mIntentsSubject
                 .scan(initialIntentFilter)
                 .map(this::actionFromIntent)
-                .doOnNext(MviViewModel::logAction)
                 .compose(mActionProcessorHolder.actionProcessor)
-                .doOnNext(MviViewModel::logResult)
-                .scan(StatisticsViewState.idle(), reducer)
-                .doOnNext(MviViewModel::logState);
+                .scan(StatisticsViewState.idle(), reducer);
     }
 
     private BiFunction<StatisticsIntent, StatisticsIntent, StatisticsIntent> initialIntentFilter =

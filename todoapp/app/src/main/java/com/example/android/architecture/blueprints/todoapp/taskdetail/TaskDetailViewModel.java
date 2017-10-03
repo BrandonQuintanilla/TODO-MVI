@@ -66,14 +66,11 @@ public class TaskDetailViewModel extends ViewModel
     }
 
     private Observable<TaskDetailViewState> compose() {
-        return mIntentsSubject.doOnNext(MviViewModel::logIntent)
+        return mIntentsSubject
                 .scan(initialIntentFilter)
                 .map(this::actionFromIntent)
-                .doOnNext(MviViewModel::logAction)
                 .compose(mActionProcessorHolder.actionProcessor)
-                .doOnNext(MviViewModel::logResult)
-                .scan(TaskDetailViewState.idle(), reducer)
-                .doOnNext(MviViewModel::logState);
+                .scan(TaskDetailViewState.idle(), reducer);
     }
 
     private BiFunction<TaskDetailIntent, TaskDetailIntent, TaskDetailIntent> initialIntentFilter =
