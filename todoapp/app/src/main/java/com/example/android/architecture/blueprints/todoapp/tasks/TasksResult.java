@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
+import com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus;
 import com.google.auto.value.AutoValue;
 
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.List;
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.FAILURE;
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.IN_FLIGHT;
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.SUCCESS;
+import static com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus.HIDE;
+import static com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus.SHOW;
 
 interface TasksResult extends MviResult {
     @AutoValue
@@ -58,24 +61,32 @@ interface TasksResult extends MviResult {
         abstract LceStatus status();
 
         @Nullable
+        abstract UiNotificationStatus uiNotificationStatus();
+
+        @Nullable
         abstract List<Task> tasks();
 
         @Nullable
         abstract Throwable error();
 
         @NonNull
+        static ActivateTaskResult hideUiNotification() {
+            return new AutoValue_TasksResult_ActivateTaskResult(SUCCESS, HIDE, null, null);
+        }
+
+        @NonNull
         static ActivateTaskResult success(@NonNull List<Task> tasks) {
-            return new AutoValue_TasksResult_ActivateTaskResult(SUCCESS, tasks, null);
+            return new AutoValue_TasksResult_ActivateTaskResult(SUCCESS, SHOW, tasks, null);
         }
 
         @NonNull
         static ActivateTaskResult failure(Throwable error) {
-            return new AutoValue_TasksResult_ActivateTaskResult(FAILURE, null, error);
+            return new AutoValue_TasksResult_ActivateTaskResult(FAILURE, null, null, error);
         }
 
         @NonNull
         static ActivateTaskResult inFlight() {
-            return new AutoValue_TasksResult_ActivateTaskResult(IN_FLIGHT, null, null);
+            return new AutoValue_TasksResult_ActivateTaskResult(IN_FLIGHT, null, null, null);
         }
     }
 

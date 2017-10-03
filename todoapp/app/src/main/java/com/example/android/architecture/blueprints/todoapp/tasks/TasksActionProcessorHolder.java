@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 
+import java.util.concurrent.TimeUnit;
+
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 
@@ -39,7 +41,14 @@ public class TasksActionProcessorHolder {
             action -> mTasksRepository.activateTask(action.task())
                     .andThen(mTasksRepository.getTasks())
                     .toObservable()
-                    .map(TasksResult.ActivateTaskResult::success)
+                    .flatMap(tasks ->
+                            // Emit success result and
+                            // emit an other result 2s later to hide the related UI notification
+                            Observable.timer(2, TimeUnit.SECONDS)
+                                    .take(1)
+                                    .map(ignored -> TasksResult.ActivateTaskResult.hideUiNotification())
+                                    .startWith(TasksResult.ActivateTaskResult.success(tasks))
+                    )
                     .onErrorReturn(TasksResult.ActivateTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())

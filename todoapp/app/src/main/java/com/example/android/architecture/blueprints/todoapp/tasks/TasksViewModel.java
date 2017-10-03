@@ -30,6 +30,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
+import static com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus.SHOW;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -150,13 +151,18 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                             (TasksResult.ActivateTaskResult) result;
                     switch (activateTaskResult.status()) {
                         case SUCCESS:
-                            List<Task> tasks = filteredTasks(checkNotNull(activateTaskResult.tasks()),
-                                    previousState.tasksFilterType());
-                            return stateBuilder.taskActivated(false).tasks(tasks).build();
+                            stateBuilder.taskActivated(activateTaskResult.uiNotificationStatus() == SHOW);
+                            if (activateTaskResult.tasks() != null) {
+                                List<Task> tasks =
+                                        filteredTasks(checkNotNull(activateTaskResult.tasks()),
+                                                previousState.tasksFilterType());
+                                stateBuilder.tasks(tasks);
+                            }
+                            return stateBuilder.build();
                         case FAILURE:
-                            return stateBuilder.taskActivated(false).error(activateTaskResult.error()).build();
+                            return stateBuilder.error(activateTaskResult.error()).build();
                         case IN_FLIGHT:
-                            return stateBuilder.taskActivated(true).build();
+                            return stateBuilder.build();
                     }
                 } else if (result instanceof TasksResult.ClearCompletedTasksResult) {
                     TasksResult.ClearCompletedTasksResult clearCompletedTasks =
