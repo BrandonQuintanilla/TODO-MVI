@@ -4,7 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
-import com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus;
+import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.google.auto.value.AutoValue;
 

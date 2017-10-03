@@ -2,7 +2,7 @@ package com.example.android.architecture.blueprints.todoapp.statistics;
 
 import android.support.annotation.NonNull;
 
-import com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus;
+import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.google.auto.value.AutoValue;
 

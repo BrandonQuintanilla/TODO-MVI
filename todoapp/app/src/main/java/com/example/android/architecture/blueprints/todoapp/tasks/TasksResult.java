@@ -3,7 +3,7 @@ package com.example.android.architecture.blueprints.todoapp.tasks;
 import android.support.annotation.NonNull;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
-import com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus;
+import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.google.auto.value.AutoValue;
 
@@ -11,9 +11,9 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import static com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus.FAILURE;
-import static com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus.IN_FLIGHT;
-import static com.example.android.architecture.blueprints.todoapp.mvibase.LceStatus.SUCCESS;
+import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.FAILURE;
+import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.IN_FLIGHT;
+import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.SUCCESS;
 
 interface TasksResult extends MviResult {
     @AutoValue
