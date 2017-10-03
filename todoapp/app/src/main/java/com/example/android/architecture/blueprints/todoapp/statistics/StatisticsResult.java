@@ -1,12 +1,11 @@
 package com.example.android.architecture.blueprints.todoapp.statistics;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
+import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.google.auto.value.AutoValue;
-
-import javax.annotation.Nullable;
 
 interface StatisticsResult extends MviResult {
     @AutoValue

@@ -1,15 +1,14 @@
 package com.example.android.architecture.blueprints.todoapp.tasks;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
-import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
+import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.google.auto.value.AutoValue;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.FAILURE;
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.IN_FLIGHT;
