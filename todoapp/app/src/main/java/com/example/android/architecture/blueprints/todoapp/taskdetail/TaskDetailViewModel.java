@@ -144,7 +144,7 @@ public class TaskDetailViewModel extends ViewModel
                             (TaskDetailResult.DeleteTaskResult) result;
                     switch (deleteTaskResult.status()) {
                         case SUCCESS:
-                            return stateBuilder.taskDeleted(true).build();
+                            return stateBuilder.taskDeleted(false).build();
                         case FAILURE:
                             return stateBuilder.taskDeleted(false).error(deleteTaskResult.error()).build();
                         case IN_FLIGHT:
@@ -156,7 +156,7 @@ public class TaskDetailViewModel extends ViewModel
                     switch (activateTaskResult.status()) {
                         case SUCCESS:
                             return stateBuilder
-                                    .taskActivated(true)
+                                    .taskActivated(false)
                                     .active(true)
                                     .build();
 
@@ -173,8 +173,8 @@ public class TaskDetailViewModel extends ViewModel
                     switch (completeTaskResult.status()) {
                         case SUCCESS:
                             return stateBuilder
-                                    .taskComplete(true)
-                                    .active(true)
+                                    .taskComplete(false)
+                                    .active(false)
                                     .build();
 
                         case FAILURE:
