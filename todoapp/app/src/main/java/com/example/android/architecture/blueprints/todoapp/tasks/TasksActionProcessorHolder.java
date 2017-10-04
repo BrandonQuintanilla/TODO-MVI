@@ -5,11 +5,10 @@ import android.support.annotation.NonNull;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 
-import java.util.concurrent.TimeUnit;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 
+import static com.example.android.architecture.blueprints.todoapp.util.ObservableUtils.pairWithDelay;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class TasksActionProcessorHolder {
@@ -98,11 +97,4 @@ public class TasksActionProcessorHolder {
                                     && !(v instanceof TasksAction.ClearCompletedTasksAction))
                                     .flatMap(w -> Observable.error(
                                             new IllegalArgumentException("Unknown Action type: " + w)))));
-
-    private <T> Observable<T> pairWithDelay(T immediate, T delayed) {
-        return Observable.timer(2, TimeUnit.SECONDS)
-                .take(1)
-                .map(ignored -> delayed)
-                .startWith(immediate);
-    }
 }
