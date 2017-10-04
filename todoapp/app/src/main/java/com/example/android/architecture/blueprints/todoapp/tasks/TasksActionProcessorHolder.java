@@ -8,6 +8,7 @@ import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseS
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 
+import static com.example.android.architecture.blueprints.todoapp.util.ObservableUtils.pairWithDelay;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class TasksActionProcessorHolder {
@@ -39,7 +40,11 @@ public class TasksActionProcessorHolder {
             action -> mTasksRepository.activateTask(action.task())
                     .andThen(mTasksRepository.getTasks())
                     .toObservable()
-                    .map(TasksResult.ActivateTaskResult::success)
+                    .flatMap(tasks ->
+                            pairWithDelay(
+                                    TasksResult.ActivateTaskResult.success(tasks),
+                                    TasksResult.ActivateTaskResult.hideUiNotification())
+                    )
                     .onErrorReturn(TasksResult.ActivateTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())
@@ -50,7 +55,11 @@ public class TasksActionProcessorHolder {
             action -> mTasksRepository.completeTask(action.task())
                     .andThen(mTasksRepository.getTasks())
                     .toObservable()
-                    .map(TasksResult.CompleteTaskResult::success)
+                    .flatMap(tasks ->
+                            pairWithDelay(
+                                    TasksResult.CompleteTaskResult.success(tasks),
+                                    TasksResult.CompleteTaskResult.hideUiNotification())
+                    )
                     .onErrorReturn(TasksResult.CompleteTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())
@@ -61,7 +70,11 @@ public class TasksActionProcessorHolder {
             action -> mTasksRepository.clearCompletedTasks()
                     .andThen(mTasksRepository.getTasks())
                     .toObservable()
-                    .map(TasksResult.ClearCompletedTasksResult::success)
+                    .flatMap(tasks ->
+                            pairWithDelay(
+                                    TasksResult.ClearCompletedTasksResult.success(tasks),
+                                    TasksResult.ClearCompletedTasksResult.hideUiNotification())
+                    )
                     .onErrorReturn(TasksResult.ClearCompletedTasksResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())

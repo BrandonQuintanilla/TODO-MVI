@@ -125,7 +125,7 @@ public class TasksViewModelTest {
         // Then repository is called and task marked complete state is emitted
         verify(mTasksRepository).completeTask(task);
         verify(mTasksRepository).getTasks();
-        mTestObserver.assertValueAt(0, TasksViewState::taskComplete);
+        mTestObserver.assertValueAt(1, TasksViewState::taskComplete);
     }
 
     @Test
@@ -142,7 +142,7 @@ public class TasksViewModelTest {
         // Then repository is called and task marked active state is emitted
         verify(mTasksRepository).activateTask(task);
         verify(mTasksRepository).getTasks();
-        mTestObserver.assertValueAt(0, TasksViewState::taskActivated);
+        mTestObserver.assertValueAt(1, TasksViewState::taskActivated);
     }
 
     @Test
