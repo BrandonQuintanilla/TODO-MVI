@@ -97,7 +97,7 @@ public class TaskDetailViewModelTest {
 
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).deleteTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(1, TaskDetailViewState::taskDeleted);
+        mTestObserver.assertValueAt(0, TaskDetailViewState::taskDeleted);
     }
 
     @Test
