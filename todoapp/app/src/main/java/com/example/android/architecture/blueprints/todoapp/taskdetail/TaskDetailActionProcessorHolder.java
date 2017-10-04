@@ -45,9 +45,10 @@ public class TaskDetailActionProcessorHolder {
             action -> mTasksRepository.completeTask(action.taskId())
                     .andThen(mTasksRepository.getTask(action.taskId()))
                     .toObservable()
-                    .flatMap(task -> pairWithDelay(
-                            TaskDetailResult.CompleteTaskResult.success(task),
-                            TaskDetailResult.CompleteTaskResult.hideUiNotification()))
+                    .flatMap(task ->
+                            pairWithDelay(
+                                    TaskDetailResult.CompleteTaskResult.success(task),
+                                    TaskDetailResult.CompleteTaskResult.hideUiNotification()))
                     .onErrorReturn(TaskDetailResult.CompleteTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())
@@ -58,9 +59,10 @@ public class TaskDetailActionProcessorHolder {
             action -> mTasksRepository.activateTask(action.taskId())
                     .andThen(mTasksRepository.getTask(action.taskId()))
                     .toObservable()
-                    .flatMap(task -> pairWithDelay(
-                            TaskDetailResult.ActivateTaskResult.success(task),
-                            TaskDetailResult.ActivateTaskResult.hideUiNotification()))
+                    .flatMap(task ->
+                            pairWithDelay(
+                                    TaskDetailResult.ActivateTaskResult.success(task),
+                                    TaskDetailResult.ActivateTaskResult.hideUiNotification()))
                     .onErrorReturn(TaskDetailResult.ActivateTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())
