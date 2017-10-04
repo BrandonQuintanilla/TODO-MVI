@@ -138,13 +138,18 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                             (TasksResult.CompleteTaskResult) result;
                     switch (completeTaskResult.status()) {
                         case SUCCESS:
-                            List<Task> tasks = filteredTasks(checkNotNull(completeTaskResult.tasks()),
-                                    previousState.tasksFilterType());
-                            return stateBuilder.taskComplete(false).tasks(tasks).build();
+                            stateBuilder.taskComplete(completeTaskResult.uiNotificationStatus() == SHOW);
+                            if (completeTaskResult.tasks() != null) {
+                                List<Task> tasks =
+                                        filteredTasks(checkNotNull(completeTaskResult.tasks()),
+                                                previousState.tasksFilterType());
+                                stateBuilder.tasks(tasks);
+                            }
+                            return stateBuilder.build();
                         case FAILURE:
-                            return stateBuilder.taskComplete(false).error(completeTaskResult.error()).build();
+                            return stateBuilder.error(completeTaskResult.error()).build();
                         case IN_FLIGHT:
-                            return stateBuilder.taskComplete(true).build();
+                            return stateBuilder.build();
                     }
                 } else if (result instanceof TasksResult.ActivateTaskResult) {
                     TasksResult.ActivateTaskResult activateTaskResult =
@@ -169,15 +174,18 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                             (TasksResult.ClearCompletedTasksResult) result;
                     switch (clearCompletedTasks.status()) {
                         case SUCCESS:
-                            List<Task> tasks = filteredTasks(checkNotNull(clearCompletedTasks.tasks()),
-                                    previousState.tasksFilterType());
-                            return stateBuilder.completedTasksCleared(false).tasks(tasks).build();
+                            stateBuilder.completedTasksCleared(clearCompletedTasks.uiNotificationStatus() == SHOW);
+                            if (clearCompletedTasks.tasks() != null) {
+                                List<Task> tasks =
+                                        filteredTasks(checkNotNull(clearCompletedTasks.tasks()),
+                                                previousState.tasksFilterType());
+                                stateBuilder.tasks(tasks);
+                            }
+                            return stateBuilder.build();
                         case FAILURE:
-                            return stateBuilder.completedTasksCleared(false)
-                                    .error(clearCompletedTasks.error())
-                                    .build();
+                            return stateBuilder.error(clearCompletedTasks.error()).build();
                         case IN_FLIGHT:
-                            return stateBuilder.completedTasksCleared(true).build();
+                            return stateBuilder.build();
                     }
                 } else {
                     throw new IllegalArgumentException("Don't know this result " + result);

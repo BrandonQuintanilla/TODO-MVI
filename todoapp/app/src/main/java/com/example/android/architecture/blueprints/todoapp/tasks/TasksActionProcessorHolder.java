@@ -42,12 +42,9 @@ public class TasksActionProcessorHolder {
                     .andThen(mTasksRepository.getTasks())
                     .toObservable()
                     .flatMap(tasks ->
-                            // Emit success result and
-                            // emit an other result 2s later to hide the related UI notification
-                            Observable.timer(2, TimeUnit.SECONDS)
-                                    .take(1)
-                                    .map(ignored -> TasksResult.ActivateTaskResult.hideUiNotification())
-                                    .startWith(TasksResult.ActivateTaskResult.success(tasks))
+                            pairWithDelay(
+                                    TasksResult.ActivateTaskResult.success(tasks),
+                                    TasksResult.ActivateTaskResult.hideUiNotification())
                     )
                     .onErrorReturn(TasksResult.ActivateTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
@@ -59,7 +56,11 @@ public class TasksActionProcessorHolder {
             action -> mTasksRepository.completeTask(action.task())
                     .andThen(mTasksRepository.getTasks())
                     .toObservable()
-                    .map(TasksResult.CompleteTaskResult::success)
+                    .flatMap(tasks ->
+                            pairWithDelay(
+                                    TasksResult.CompleteTaskResult.success(tasks),
+                                    TasksResult.CompleteTaskResult.hideUiNotification())
+                    )
                     .onErrorReturn(TasksResult.CompleteTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())
@@ -70,7 +71,11 @@ public class TasksActionProcessorHolder {
             action -> mTasksRepository.clearCompletedTasks()
                     .andThen(mTasksRepository.getTasks())
                     .toObservable()
-                    .map(TasksResult.ClearCompletedTasksResult::success)
+                    .flatMap(tasks ->
+                            pairWithDelay(
+                                    TasksResult.ClearCompletedTasksResult.success(tasks),
+                                    TasksResult.ClearCompletedTasksResult.hideUiNotification())
+                    )
                     .onErrorReturn(TasksResult.ClearCompletedTasksResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())
@@ -93,4 +98,11 @@ public class TasksActionProcessorHolder {
                                     && !(v instanceof TasksAction.ClearCompletedTasksAction))
                                     .flatMap(w -> Observable.error(
                                             new IllegalArgumentException("Unknown Action type: " + w)))));
+
+    private <T> Observable<T> pairWithDelay(T immediate, T delayed) {
+        return Observable.timer(2, TimeUnit.SECONDS)
+                .take(1)
+                .map(ignored -> delayed)
+                .startWith(immediate);
+    }
 }
