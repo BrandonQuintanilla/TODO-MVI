@@ -169,16 +169,16 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
 
         showActive(state.active());
 
-        if (state.taskComplete()){
+        if (state.taskComplete()) {
             showTaskMarkedComplete();
         }
 
-        if (state.taskActivated()){
+        if (state.taskActivated()) {
             showTaskMarkedActive();
         }
 
-        if (state.taskDeleted()){
-            showTaskDeleted();
+        if (state.taskDeleted()) {
+            getActivity().finish();
         }
 
     }
@@ -226,7 +226,7 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
         mDetailTitle.setVisibility(View.GONE);
     }
 
-    public void showActive(boolean isActive){
+    public void showActive(boolean isActive) {
         mDetailCompleteStatus.setChecked(!isActive);
     }
 
@@ -239,10 +239,6 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
         Intent intent = new Intent(getContext(), AddEditTaskActivity.class);
         intent.putExtra(AddEditTaskFragment.ARGUMENT_EDIT_TASK_ID, taskId);
         startActivityForResult(intent, REQUEST_EDIT_TASK);
-    }
-
-    public void showTaskDeleted() {
-        getActivity().finish();
     }
 
     public void showTaskMarkedComplete() {

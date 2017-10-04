@@ -8,6 +8,7 @@ import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseS
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 
+import static com.example.android.architecture.blueprints.todoapp.util.ObservableUtils.pairWithDelay;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class TaskDetailActionProcessorHolder {
@@ -44,7 +45,9 @@ public class TaskDetailActionProcessorHolder {
             action -> mTasksRepository.completeTask(action.taskId())
                     .andThen(mTasksRepository.getTask(action.taskId()))
                     .toObservable()
-                    .map(TaskDetailResult.CompleteTaskResult::success)
+                    .flatMap(task -> pairWithDelay(
+                            TaskDetailResult.CompleteTaskResult.success(task),
+                            TaskDetailResult.CompleteTaskResult.hideUiNotification()))
                     .onErrorReturn(TaskDetailResult.CompleteTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())
@@ -55,7 +58,9 @@ public class TaskDetailActionProcessorHolder {
             action -> mTasksRepository.activateTask(action.taskId())
                     .andThen(mTasksRepository.getTask(action.taskId()))
                     .toObservable()
-                    .map(TaskDetailResult.ActivateTaskResult::success)
+                    .flatMap(task -> pairWithDelay(
+                            TaskDetailResult.ActivateTaskResult.success(task),
+                            TaskDetailResult.ActivateTaskResult.hideUiNotification()))
                     .onErrorReturn(TaskDetailResult.ActivateTaskResult::failure)
                     .subscribeOn(mSchedulerProvider.io())
                     .observeOn(mSchedulerProvider.ui())

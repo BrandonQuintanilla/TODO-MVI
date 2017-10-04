@@ -27,6 +27,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
+import static com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus.SHOW;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -144,11 +145,11 @@ public class TaskDetailViewModel extends ViewModel
                             (TaskDetailResult.DeleteTaskResult) result;
                     switch (deleteTaskResult.status()) {
                         case SUCCESS:
-                            return stateBuilder.taskDeleted(false).build();
-                        case FAILURE:
-                            return stateBuilder.taskDeleted(false).error(deleteTaskResult.error()).build();
-                        case IN_FLIGHT:
                             return stateBuilder.taskDeleted(true).build();
+                        case FAILURE:
+                            return stateBuilder.error(deleteTaskResult.error()).build();
+                        case IN_FLIGHT:
+                            return stateBuilder.build();
                     }
                 } else if (result instanceof TaskDetailResult.ActivateTaskResult) {
                     TaskDetailResult.ActivateTaskResult activateTaskResult =
@@ -156,16 +157,14 @@ public class TaskDetailViewModel extends ViewModel
                     switch (activateTaskResult.status()) {
                         case SUCCESS:
                             return stateBuilder
-                                    .taskActivated(false)
+                                    .taskActivated(activateTaskResult.uiNotificationStatus() == SHOW)
                                     .active(true)
                                     .build();
 
                         case FAILURE:
-                            return stateBuilder
-                                    .taskActivated(false)
-                                    .error(activateTaskResult.error()).build();
+                            return stateBuilder.error(activateTaskResult.error()).build();
                         case IN_FLIGHT:
-                            return stateBuilder.taskActivated(true).build();
+                            return stateBuilder.build();
                     }
                 } else if (result instanceof TaskDetailResult.CompleteTaskResult) {
                     TaskDetailResult.CompleteTaskResult completeTaskResult =
@@ -173,16 +172,14 @@ public class TaskDetailViewModel extends ViewModel
                     switch (completeTaskResult.status()) {
                         case SUCCESS:
                             return stateBuilder
-                                    .taskComplete(false)
+                                    .taskComplete(completeTaskResult.uiNotificationStatus() == SHOW)
                                     .active(false)
                                     .build();
 
                         case FAILURE:
-                            return stateBuilder
-                                    .taskComplete(false)
-                                    .error(completeTaskResult.error()).build();
+                            return stateBuilder.error(completeTaskResult.error()).build();
                         case IN_FLIGHT:
-                            return stateBuilder.taskComplete(true).build();
+                            return stateBuilder.build();
                     }
                 }
                 throw new IllegalStateException("Mishandled result? Should not happen―as always: " + result);

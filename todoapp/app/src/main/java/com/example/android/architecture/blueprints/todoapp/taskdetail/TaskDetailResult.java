@@ -4,13 +4,16 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
-import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
+import com.example.android.architecture.blueprints.todoapp.util.LceStatus;
+import com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus;
 import com.google.auto.value.AutoValue;
 
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.FAILURE;
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.IN_FLIGHT;
 import static com.example.android.architecture.blueprints.todoapp.util.LceStatus.SUCCESS;
+import static com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus.HIDE;
+import static com.example.android.architecture.blueprints.todoapp.util.UiNotificationStatus.SHOW;
 
 interface TaskDetailResult extends MviResult {
 
@@ -54,24 +57,32 @@ interface TaskDetailResult extends MviResult {
         abstract LceStatus status();
 
         @Nullable
+        abstract UiNotificationStatus uiNotificationStatus();
+
+        @Nullable
         abstract Task task();
 
         @Nullable
         abstract Throwable error();
 
         @NonNull
+        static ActivateTaskResult hideUiNotification() {
+            return new AutoValue_TaskDetailResult_ActivateTaskResult(SUCCESS, HIDE, null, null);
+        }
+
+        @NonNull
         static ActivateTaskResult success(@NonNull Task task) {
-            return new AutoValue_TaskDetailResult_ActivateTaskResult(SUCCESS, task, null);
+            return new AutoValue_TaskDetailResult_ActivateTaskResult(SUCCESS, SHOW, task, null);
         }
 
         @NonNull
         static ActivateTaskResult failure(Throwable error) {
-            return new AutoValue_TaskDetailResult_ActivateTaskResult(FAILURE, null, error);
+            return new AutoValue_TaskDetailResult_ActivateTaskResult(FAILURE, null, null, error);
         }
 
         @NonNull
         static ActivateTaskResult inFlight() {
-            return new AutoValue_TaskDetailResult_ActivateTaskResult(IN_FLIGHT, null, null);
+            return new AutoValue_TaskDetailResult_ActivateTaskResult(IN_FLIGHT, null, null, null);
         }
     }
 
@@ -81,24 +92,32 @@ interface TaskDetailResult extends MviResult {
         abstract LceStatus status();
 
         @Nullable
+        abstract UiNotificationStatus uiNotificationStatus();
+
+        @Nullable
         abstract Task task();
 
         @Nullable
         abstract Throwable error();
 
         @NonNull
+        static CompleteTaskResult hideUiNotification() {
+            return new AutoValue_TaskDetailResult_CompleteTaskResult(SUCCESS, HIDE, null, null);
+        }
+
+        @NonNull
         static CompleteTaskResult success(@NonNull Task task) {
-            return new AutoValue_TaskDetailResult_CompleteTaskResult(SUCCESS, task, null);
+            return new AutoValue_TaskDetailResult_CompleteTaskResult(SUCCESS, SHOW, task, null);
         }
 
         @NonNull
         static CompleteTaskResult failure(Throwable error) {
-            return new AutoValue_TaskDetailResult_CompleteTaskResult(FAILURE, null, error);
+            return new AutoValue_TaskDetailResult_CompleteTaskResult(FAILURE, null, null, error);
         }
 
         @NonNull
         static CompleteTaskResult inFlight() {
-            return new AutoValue_TaskDetailResult_CompleteTaskResult(IN_FLIGHT, null, null);
+            return new AutoValue_TaskDetailResult_CompleteTaskResult(IN_FLIGHT, null, null, null);
         }
     }
 
@@ -112,12 +131,12 @@ interface TaskDetailResult extends MviResult {
 
         @NonNull
         static DeleteTaskResult success() {
-            return new AutoValue_TaskDetailResult_DeleteTaskResult(SUCCESS,  null);
+            return new AutoValue_TaskDetailResult_DeleteTaskResult(SUCCESS, null);
         }
 
         @NonNull
         static DeleteTaskResult failure(Throwable error) {
-            return new AutoValue_TaskDetailResult_DeleteTaskResult(FAILURE,  error);
+            return new AutoValue_TaskDetailResult_DeleteTaskResult(FAILURE, error);
         }
 
         @NonNull
