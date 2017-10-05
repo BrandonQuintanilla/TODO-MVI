@@ -1,4 +1,4 @@
-# ToDo-MVI-RxJava
+# TODO-MVI-RxJava
 
 ### Summary
 
@@ -161,7 +161,7 @@ SUM:                           107           1366           1590           5365
 
 #### Ease of amending or adding a feature
 
-High.
+High. Side effects are restrained and since every part of the architecture has a well defined purpose, adding a feature is only a matter of creating a new isolated processor and plug it into the existing stream.
 
 #### Learning cost
 
