@@ -24,6 +24,7 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
@@ -62,19 +63,24 @@ public class AddEditTaskViewModel extends ViewModel
 
     private Observable<AddEditTaskViewState> compose() {
         return mIntentsSubject
-                // take only the first ever InitialIntent and all intents of other types
-                // to avoid reloading data on config changes
-                .publish(shared ->
-                        Observable.merge(
-                                shared.ofType(AddEditTaskIntent.InitialIntent.class).take(1),
-                                shared.filter(intent -> !(intent instanceof AddEditTaskIntent.InitialIntent))
-                        )
-                )
+                .compose(intentFilter)
                 .map(this::actionFromIntent)
                 .filter(action -> !(action instanceof AddEditTaskAction.SkipMe))
                 .compose(mActionProcessorHolder.actionProcessor)
                 .scan(AddEditTaskViewState.idle(), reducer);
     }
+
+    /**
+     * take only the first ever InitialIntent and all intents of other types
+     * to avoid reloading data on config changes
+     */
+    private ObservableTransformer<AddEditTaskIntent, AddEditTaskIntent> intentFilter =
+            intents -> intents.publish(shared ->
+                    Observable.merge(
+                            shared.ofType(AddEditTaskIntent.InitialIntent.class).take(1),
+                            shared.filter(intent -> !(intent instanceof AddEditTaskIntent.InitialIntent))
+                    )
+            );
 
     private AddEditTaskAction actionFromIntent(MviIntent intent) {
         if (intent instanceof AddEditTaskIntent.InitialIntent) {

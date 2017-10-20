@@ -44,19 +44,10 @@ public class StatisticsActionProcessorHolder {
                             .observeOn(mSchedulerProvider.ui())
                             .startWith(StatisticsResult.LoadStatistics.inFlight()));
 
-    private ObservableTransformer<StatisticsAction.GetLastState, StatisticsResult.GetLastState>
-            getLastStateProcessor =
-            actions -> actions.map(ignored -> StatisticsResult.GetLastState.create());
 
     ObservableTransformer<StatisticsAction, StatisticsResult> actionProcessor =
-            actions -> actions.publish(shared -> Observable.merge(
-                    shared.ofType(StatisticsAction.LoadStatistics.class).compose(loadStatisticsProcessor),
-                    shared.ofType(StatisticsAction.GetLastState.class).compose(getLastStateProcessor))
-                    .mergeWith(
-                            // Error for not implemented actions
-                            shared.filter(v -> !(v instanceof StatisticsAction.LoadStatistics)
-                                    && !(v instanceof StatisticsAction.GetLastState))
-                                    .flatMap(w -> Observable.error(
-                                            new IllegalArgumentException("Unknown Action type: " + w)))));
+            actions -> actions.publish(shared ->
+                    shared.ofType(StatisticsAction.LoadStatistics.class).compose(loadStatisticsProcessor)
+            );
 
 }
