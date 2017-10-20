@@ -42,11 +42,4 @@ interface TaskDetailAction extends MviAction {
             return new AutoValue_TaskDetailAction_CompleteTask(taskId);
         }
     }
-
-    @AutoValue
-    abstract class GetLastState implements TaskDetailAction {
-        public static GetLastState create() {
-            return new AutoValue_TaskDetailAction_GetLastState();
-        }
-    }
 }

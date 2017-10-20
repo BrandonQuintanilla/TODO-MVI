@@ -24,6 +24,7 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
@@ -40,7 +41,7 @@ public class TaskDetailViewModel extends ViewModel
     @NonNull
     private PublishSubject<TaskDetailIntent> mIntentsSubject;
     @NonNull
-    private PublishSubject<TaskDetailViewState> mStatesSubject;
+    private Observable<TaskDetailViewState> mStatesObservable;
     @NonNull
     private TaskDetailActionProcessorHolder mActionProcessorHolder;
 
@@ -48,9 +49,7 @@ public class TaskDetailViewModel extends ViewModel
         mActionProcessorHolder = checkNotNull(actionProcessorHolder);
 
         mIntentsSubject = PublishSubject.create();
-        mStatesSubject = PublishSubject.create();
-
-        compose().subscribe(this.mStatesSubject);
+        mStatesObservable = compose().skip(1).replay(1).autoConnect(0);
     }
 
     @Override
@@ -60,29 +59,28 @@ public class TaskDetailViewModel extends ViewModel
 
     @Override
     public Observable<TaskDetailViewState> states() {
-        return mStatesSubject;
+        return mStatesObservable;
     }
 
     private Observable<TaskDetailViewState> compose() {
         return mIntentsSubject
-                .scan(initialIntentFilter)
+                .compose(intentFilter)
                 .map(this::actionFromIntent)
                 .compose(mActionProcessorHolder.actionProcessor)
                 .scan(TaskDetailViewState.idle(), reducer);
     }
 
-    private BiFunction<TaskDetailIntent, TaskDetailIntent, TaskDetailIntent> initialIntentFilter =
-            (previousIntent, newIntent) -> {
-                // if isReConnection (e.g. after config change)
-                // i.e. we are inside the scan, meaning there has already
-                // been intent in the past, meaning the InitialIntent cannot
-                // be the first => it is a reconnection.
-                if (newIntent instanceof TaskDetailIntent.InitialIntent) {
-                    return TaskDetailIntent.GetLastState.create();
-                } else {
-                    return newIntent;
-                }
-            };
+    /**
+     * take only the first ever InitialIntent and all intents of other types
+     * to avoid reloading data on config changes
+     */
+    private ObservableTransformer<TaskDetailIntent, TaskDetailIntent> intentFilter =
+            intents -> intents.publish(shared ->
+                    Observable.merge(
+                            shared.ofType(TaskDetailIntent.InitialIntent.class).take(1),
+                            shared.filter(intent -> !(intent instanceof TaskDetailIntent.InitialIntent))
+                    )
+            );
 
     private TaskDetailAction actionFromIntent(MviIntent intent) {
         if (intent instanceof TaskDetailIntent.InitialIntent) {
@@ -107,19 +105,12 @@ public class TaskDetailViewModel extends ViewModel
             final String taskId = activateTaskIntent.taskId();
             return TaskDetailAction.ActivateTask.create(taskId);
         }
-
-        if (intent instanceof TaskDetailIntent.GetLastState) {
-            return TaskDetailAction.GetLastState.create();
-        }
         throw new IllegalArgumentException("do not know how to treat this intent " + intent);
     }
 
     private static BiFunction<TaskDetailViewState, TaskDetailResult, TaskDetailViewState> reducer =
             (previousState, result) -> {
                 TaskDetailViewState.Builder stateBuilder = previousState.buildWith();
-                if (result instanceof TaskDetailResult.GetLastState) {
-                    return stateBuilder.build();
-                }
                 if (result instanceof TaskDetailResult.PopulateTask) {
                     TaskDetailResult.PopulateTask populateTaskResult =
                             (TaskDetailResult.PopulateTask) result;
