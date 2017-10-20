@@ -72,7 +72,7 @@ public class AddEditTaskViewModelTest {
 
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
-        mTestObserver.assertValueAt(0, state -> state.isSaved() && !state.isEmpty());
+        mTestObserver.assertValueAt(1, state -> state.isSaved() && !state.isEmpty());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class AddEditTaskViewModelTest {
 
         // Then an empty task state is emitted back to the view
         verify(mTasksRepository, never()).saveTask(any(Task.class)); // saved to the model
-        mTestObserver.assertValueAt(0, AddEditTaskViewState::isEmpty);
+        mTestObserver.assertValueAt(1, AddEditTaskViewState::isEmpty);
     }
 
     @Test
@@ -98,7 +98,7 @@ public class AddEditTaskViewModelTest {
 
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
-        mTestObserver.assertValueAt(0, state -> state.isSaved() && !state.isEmpty());
+        mTestObserver.assertValueAt(1, state -> state.isSaved() && !state.isEmpty());
     }
 
     @Test
@@ -113,7 +113,7 @@ public class AddEditTaskViewModelTest {
 
         // Then the task repository is queried and a stated is emitted back
         verify(mTasksRepository).getTask(eq(testTask.getId()));
-        mTestObserver.assertValueAt(1, state ->
+        mTestObserver.assertValueAt(2, state ->
                 state.title().equals(testTask.getTitle()) &&
                         state.description().equals(testTask.getDescription()));
     }
@@ -131,7 +131,7 @@ public class AddEditTaskViewModelTest {
 
         // Then the task repository is queried and a stated is emitted back
         verify(mTasksRepository).getTask(eq(testTask.getId()));
-        mTestObserver.assertValueAt(1, state ->
+        mTestObserver.assertValueAt(2, state ->
                 state.error() != null &&
                         state.title().isEmpty() &&
                         state.description().isEmpty());

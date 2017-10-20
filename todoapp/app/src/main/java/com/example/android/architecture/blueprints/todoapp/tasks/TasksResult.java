@@ -49,13 +49,6 @@ interface TasksResult extends MviResult {
     }
 
     @AutoValue
-    abstract class GetLastState implements TasksResult {
-        static GetLastState create() {
-            return new AutoValue_TasksResult_GetLastState();
-        }
-    }
-
-    @AutoValue
     abstract class ActivateTaskResult implements TasksResult {
         @NonNull
         abstract LceStatus status();

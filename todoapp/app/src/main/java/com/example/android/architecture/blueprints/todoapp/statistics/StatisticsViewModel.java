@@ -46,7 +46,7 @@ public class StatisticsViewModel extends ViewModel
         this.mActionProcessorHolder = checkNotNull(actionProcessorHolder, "actionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
-        mStatesObservable = compose().skip(1).replay(1).autoConnect(0);
+        mStatesObservable = compose().replay(1).autoConnect(0);
     }
 
     @Override

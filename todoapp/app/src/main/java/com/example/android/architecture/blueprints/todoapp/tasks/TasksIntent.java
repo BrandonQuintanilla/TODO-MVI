@@ -13,13 +13,6 @@ interface TasksIntent extends MviIntent {
     }
 
     @AutoValue
-    abstract class GetLastState implements TasksIntent {
-        public static GetLastState create() {
-            return new AutoValue_TasksIntent_GetLastState();
-        }
-    }
-
-    @AutoValue
     abstract class RefreshIntent implements TasksIntent {
         abstract boolean forceUpdate();
 

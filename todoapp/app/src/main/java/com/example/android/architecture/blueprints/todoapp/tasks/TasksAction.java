@@ -24,13 +24,6 @@ interface TasksAction extends MviAction {
     }
 
     @AutoValue
-    abstract class GetLastState implements TasksAction {
-        public static GetLastState create() {
-            return new AutoValue_TasksAction_GetLastState();
-        }
-    }
-
-    @AutoValue
     abstract class ActivateTaskAction implements TasksAction {
         abstract Task task();
 

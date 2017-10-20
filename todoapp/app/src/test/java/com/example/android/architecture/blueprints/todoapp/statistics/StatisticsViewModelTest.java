@@ -78,13 +78,13 @@ public class StatisticsViewModelTest {
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
         // Then loading state is emitted
-        mTestObserver.assertValueAt(0, StatisticsViewState::isLoading);
+        mTestObserver.assertValueAt(1, StatisticsViewState::isLoading);
 
         // Callback is captured and invoked with stubbed tasks
         verify(mTasksRepository).getTasks();
 
         // Then not loading, data furnished state in emitted to the view
-        mTestObserver.assertValueAt(1,
+        mTestObserver.assertValueAt(2,
                 state -> !state.isLoading() &&
                         state.activeCount() == 0 &&
                         state.completedCount() == 0);
@@ -98,11 +98,11 @@ public class StatisticsViewModelTest {
         // When loading of Tasks is initiated by first initial intent
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
-        //Then progress indicator is shown
-        mTestObserver.assertValueAt(0, StatisticsViewState::isLoading);
+        // Then progress indicator is shown
+        mTestObserver.assertValueAt(1, StatisticsViewState::isLoading);
 
         // Then progress indicator is hidden and correct data is passed on to the view
-        mTestObserver.assertValueAt(1,
+        mTestObserver.assertValueAt(2,
                 state -> !state.isLoading() && state.activeCount() == 1 && state.completedCount() == 2);
     }
 
@@ -115,7 +115,7 @@ public class StatisticsViewModelTest {
         mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
 
         // Then an error message is shown
-        mTestObserver.assertValueAt(1, state -> state.error() != null);
+        mTestObserver.assertValueAt(2, state -> state.error() != null);
     }
 
     private void setTasksAvailable(List<Task> tasks) {
