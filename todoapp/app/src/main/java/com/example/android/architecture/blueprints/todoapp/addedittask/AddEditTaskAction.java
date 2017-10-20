@@ -40,9 +40,9 @@ interface AddEditTaskAction extends MviAction {
     }
 
     @AutoValue
-    abstract class GetLastState implements AddEditTaskAction {
-        public static GetLastState create() {
-            return new AutoValue_AddEditTaskAction_GetLastState();
+    abstract class SkipMe implements AddEditTaskAction {
+        public static SkipMe create() {
+            return new AutoValue_AddEditTaskAction_SkipMe();
         }
     }
 }
