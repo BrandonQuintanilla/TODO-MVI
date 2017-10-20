@@ -32,9 +32,6 @@ public class TasksActionProcessorHolder {
                     .observeOn(mSchedulerProvider.ui())
                     .startWith(TasksResult.LoadTasks.inFlight()));
 
-    private ObservableTransformer<TasksAction.GetLastState, TasksResult.GetLastState>
-            getLastStateProcessor = actions -> actions.map(ignored -> TasksResult.GetLastState.create());
-
     private ObservableTransformer<TasksAction.ActivateTaskAction, TasksResult.ActivateTaskResult>
             activateTaskProcessor = actions -> actions.flatMap(
             action -> mTasksRepository.activateTask(action.task())
@@ -83,7 +80,6 @@ public class TasksActionProcessorHolder {
     ObservableTransformer<TasksAction, TasksResult> actionProcessor =
             (Observable<TasksAction> actions) -> actions.publish(shared -> Observable.merge(
                     shared.ofType(TasksAction.LoadTasks.class).compose(loadTasksProcessor),
-                    shared.ofType(TasksAction.GetLastState.class).compose(getLastStateProcessor),
                     shared.ofType(TasksAction.ActivateTaskAction.class).compose(activateTaskProcessor),
                     shared.ofType(TasksAction.CompleteTaskAction.class).compose(completeTaskProcessor))
                     .mergeWith(shared.ofType(TasksAction.ClearCompletedTasksAction.class)
@@ -91,7 +87,6 @@ public class TasksActionProcessorHolder {
                     .mergeWith(
                             // Error for not implemented actions
                             shared.filter(v -> !(v instanceof TasksAction.LoadTasks)
-                                    && !(v instanceof TasksAction.GetLastState)
                                     && !(v instanceof TasksAction.ActivateTaskAction)
                                     && !(v instanceof TasksAction.CompleteTaskAction)
                                     && !(v instanceof TasksAction.ClearCompletedTasksAction))

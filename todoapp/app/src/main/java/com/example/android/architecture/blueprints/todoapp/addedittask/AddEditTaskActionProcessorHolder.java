@@ -49,8 +49,10 @@ public class AddEditTaskActionProcessorHolder {
 
     private ObservableTransformer<AddEditTaskAction.UpdateTask, AddEditTaskResult.UpdateTask>
             updateTaskProcessor =
-            actions -> actions.flatMap(action -> mTasksRepository.saveTask(
-                    new Task(action.title(), action.description(), action.taskId()))
+            actions -> actions.flatMap(action ->
+                    mTasksRepository.saveTask(
+                            new Task(action.title(), action.description(), action.taskId())
+                    )
                     .andThen(Observable.just(AddEditTaskResult.UpdateTask.create())));
 
     ObservableTransformer<AddEditTaskAction, AddEditTaskResult> actionProcessor =

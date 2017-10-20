@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
@@ -41,7 +42,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
     @NonNull
     private PublishSubject<TasksIntent> mIntentsSubject;
     @NonNull
-    private PublishSubject<TasksViewState> mStatesSubject;
+    private Observable<TasksViewState> mStatesObservable;
     @NonNull
     private TasksActionProcessorHolder mActionProcessorHolder;
 
@@ -49,9 +50,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
         this.mActionProcessorHolder = checkNotNull(taskActionProcessorHolder, "taskActionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
-        mStatesSubject = PublishSubject.create();
-
-        compose().subscribe(this.mStatesSubject);
+        mStatesObservable = compose().skip(1).replay(1).autoConnect(0);
     }
 
     @Override
@@ -61,29 +60,28 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
 
     @Override
     public Observable<TasksViewState> states() {
-        return mStatesSubject;
+        return mStatesObservable;
     }
 
     private Observable<TasksViewState> compose() {
         return mIntentsSubject
-                .scan(initialIntentFilter)
+                .compose(intentFilter)
                 .map(this::actionFromIntent)
                 .compose(mActionProcessorHolder.actionProcessor)
                 .scan(TasksViewState.idle(), reducer);
     }
 
-    private BiFunction<TasksIntent, TasksIntent, TasksIntent> initialIntentFilter =
-            (previousIntent, newIntent) -> {
-                // if isReConnection (e.g. after config change)
-                // i.e. we are inside the scan, meaning there has already
-                // been intent in the past, meaning the InitialIntent cannot
-                // be the first => it is a reconnection.
-                if (newIntent instanceof TasksIntent.InitialIntent) {
-                    return TasksIntent.GetLastState.create();
-                } else {
-                    return newIntent;
-                }
-            };
+    /**
+     * take only the first ever InitialIntent and all intents of other types
+     * to avoid reloading data on config changes
+     */
+    private ObservableTransformer<TasksIntent, TasksIntent> intentFilter =
+            intents -> intents.publish(shared ->
+                    Observable.merge(
+                            shared.ofType(TasksIntent.InitialIntent.class).take(1),
+                            shared.filter(intent -> !(intent instanceof TasksIntent.InitialIntent))
+                    )
+            );
 
     private TasksAction actionFromIntent(MviIntent intent) {
         if (intent instanceof TasksIntent.InitialIntent) {
@@ -95,9 +93,6 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
         }
         if (intent instanceof TasksIntent.RefreshIntent) {
             return TasksAction.LoadTasks.load(((TasksIntent.RefreshIntent) intent).forceUpdate());
-        }
-        if (intent instanceof TasksIntent.GetLastState) {
-            return TasksAction.GetLastState.create();
         }
         if (intent instanceof TasksIntent.ActivateTaskIntent) {
             return TasksAction.ActivateTaskAction.create(
@@ -131,8 +126,6 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                         case IN_FLIGHT:
                             return stateBuilder.isLoading(true).build();
                     }
-                } else if (result instanceof TasksResult.GetLastState) {
-                    return stateBuilder.build();
                 } else if (result instanceof TasksResult.CompleteTaskResult) {
                     TasksResult.CompleteTaskResult completeTaskResult =
                             (TasksResult.CompleteTaskResult) result;
