@@ -23,6 +23,7 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
@@ -37,7 +38,7 @@ public class StatisticsViewModel extends ViewModel
     @NonNull
     private PublishSubject<StatisticsIntent> mIntentsSubject;
     @NonNull
-    private PublishSubject<StatisticsViewState> mStatesSubject;
+    private Observable<StatisticsViewState> mStatesObservable;
     @NonNull
     private StatisticsActionProcessorHolder mActionProcessorHolder;
 
@@ -45,9 +46,7 @@ public class StatisticsViewModel extends ViewModel
         this.mActionProcessorHolder = checkNotNull(actionProcessorHolder, "actionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
-        mStatesSubject = PublishSubject.create();
-
-        compose().subscribe(this.mStatesSubject);
+        mStatesObservable = compose().skip(1).replay(1).autoConnect(0);
     }
 
     @Override
@@ -57,36 +56,32 @@ public class StatisticsViewModel extends ViewModel
 
     @Override
     public Observable<StatisticsViewState> states() {
-        return mStatesSubject;
+        return mStatesObservable;
     }
 
     private Observable<StatisticsViewState> compose() {
         return mIntentsSubject
-                .scan(initialIntentFilter)
+                .compose(intentFilter)
                 .map(this::actionFromIntent)
                 .compose(mActionProcessorHolder.actionProcessor)
                 .scan(StatisticsViewState.idle(), reducer);
     }
 
-    private BiFunction<StatisticsIntent, StatisticsIntent, StatisticsIntent> initialIntentFilter =
-            (previousIntent, newIntent) -> {
-                // if isReConnection (e.g. after config change)
-                // i.e. we are inside the scan, meaning there has already
-                // been intent in the past, meaning the InitialIntent cannot
-                // be the first => it is a reconnection.
-                if (newIntent instanceof StatisticsIntent.InitialIntent) {
-                    return StatisticsIntent.GetLastState.create();
-                } else {
-                    return newIntent;
-                }
-            };
+    /**
+     * take only the first ever InitialIntent and all intents of other types
+     * to avoid reloading data on config changes
+     */
+    private ObservableTransformer<StatisticsIntent, StatisticsIntent> intentFilter =
+            intents -> intents.publish(shared ->
+                    Observable.merge(
+                            shared.ofType(StatisticsIntent.InitialIntent.class).take(1),
+                            shared.filter(intent -> !(intent instanceof StatisticsIntent.InitialIntent))
+                    )
+            );
 
     private StatisticsAction actionFromIntent(MviIntent intent) {
         if (intent instanceof StatisticsIntent.InitialIntent) {
             return StatisticsAction.LoadStatistics.create();
-        }
-        if (intent instanceof StatisticsIntent.GetLastState) {
-            return StatisticsAction.GetLastState.create();
         }
         throw new IllegalArgumentException("do not know how to treat this intent " + intent);
     }
@@ -107,8 +102,6 @@ public class StatisticsViewModel extends ViewModel
                         case IN_FLIGHT:
                             return stateBuilder.isLoading(true).build();
                     }
-                } else if (result instanceof StatisticsResult.GetLastState) {
-                    return stateBuilder.build();
                 } else {
                     throw new IllegalArgumentException("Don't know this result " + result);
                 }

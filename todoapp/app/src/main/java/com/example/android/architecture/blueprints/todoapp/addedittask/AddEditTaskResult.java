@@ -56,11 +56,4 @@ interface AddEditTaskResult extends MviResult {
             return new AutoValue_AddEditTaskResult_UpdateTask();
         }
     }
-
-    @AutoValue
-    abstract class GetLastState implements AddEditTaskResult {
-        static GetLastState create() {
-            return new AutoValue_AddEditTaskResult_GetLastState();
-        }
-    }
 }

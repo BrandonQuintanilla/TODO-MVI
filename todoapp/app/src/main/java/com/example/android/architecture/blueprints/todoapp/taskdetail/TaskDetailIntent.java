@@ -17,13 +17,6 @@ interface TaskDetailIntent extends MviIntent {
     }
 
     @AutoValue
-    abstract class GetLastState implements TaskDetailIntent {
-        public static GetLastState create() {
-            return new AutoValue_TaskDetailIntent_GetLastState();
-        }
-    }
-
-    @AutoValue
     abstract class DeleteTask implements TaskDetailIntent {
 
         abstract String taskId();

@@ -18,13 +18,6 @@ interface AddEditTaskIntent extends MviIntent {
     }
 
     @AutoValue
-    abstract class GetLastState implements AddEditTaskIntent {
-        public static GetLastState create() {
-            return new AutoValue_AddEditTaskIntent_GetLastState();
-        }
-    }
-
-    @AutoValue
     abstract class SaveTask implements AddEditTaskIntent {
         @Nullable
         abstract String taskId();

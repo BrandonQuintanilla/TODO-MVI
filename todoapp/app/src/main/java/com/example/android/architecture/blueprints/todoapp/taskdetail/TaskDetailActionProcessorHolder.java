@@ -35,11 +35,6 @@ public class TaskDetailActionProcessorHolder {
                     .observeOn(mSchedulerProvider.ui())
                     .startWith(TaskDetailResult.PopulateTask.inFlight()));
 
-
-    private ObservableTransformer<TaskDetailAction.GetLastState, TaskDetailResult.GetLastState>
-            getLastStateProcessor =
-            actions -> actions.map(ignored -> TaskDetailResult.GetLastState.create());
-
     private ObservableTransformer<TaskDetailAction.CompleteTask, TaskDetailResult.CompleteTaskResult>
             completeTaskProcessor = actions -> actions.flatMap(
             action -> mTasksRepository.completeTask(action.taskId())
@@ -82,10 +77,7 @@ public class TaskDetailActionProcessorHolder {
                     shared.ofType(TaskDetailAction.PopulateTask.class).compose(populateTaskProcessor),
                     shared.ofType(TaskDetailAction.CompleteTask.class).compose(completeTaskProcessor),
                     shared.ofType(TaskDetailAction.ActivateTask.class).compose(activateTaskProcessor))
-                    .mergeWith(
-                            Observable.merge(
-                                    shared.ofType(TaskDetailAction.DeleteTask.class).compose(deleteTaskProcessor),
-                                    shared.ofType(TaskDetailAction.GetLastState.class).compose(getLastStateProcessor))
+                    .mergeWith(shared.ofType(TaskDetailAction.DeleteTask.class).compose(deleteTaskProcessor)
 
                     )
                     .mergeWith(
@@ -93,8 +85,7 @@ public class TaskDetailActionProcessorHolder {
                             shared.filter(v -> !(v instanceof TaskDetailAction.PopulateTask) &&
                                     !(v instanceof TaskDetailAction.CompleteTask) &&
                                     !(v instanceof TaskDetailAction.ActivateTask) &&
-                                    !(v instanceof TaskDetailAction.DeleteTask) &&
-                                    !(v instanceof TaskDetailAction.GetLastState))
+                                    !(v instanceof TaskDetailAction.DeleteTask))
                                     .flatMap(w -> Observable.error(
                                             new IllegalArgumentException("Unknown Action type: " + w)))));
 

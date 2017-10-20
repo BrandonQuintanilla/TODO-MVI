@@ -24,6 +24,7 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.subjects.PublishSubject;
 
@@ -39,7 +40,7 @@ public class AddEditTaskViewModel extends ViewModel
     @NonNull
     private PublishSubject<AddEditTaskIntent> mIntentsSubject;
     @NonNull
-    private PublishSubject<AddEditTaskViewState> mStatesSubject;
+    private Observable<AddEditTaskViewState> mStatesObservable;
     @NonNull
     private AddEditTaskActionProcessorHolder mActionProcessorHolder;
 
@@ -47,9 +48,7 @@ public class AddEditTaskViewModel extends ViewModel
         mActionProcessorHolder = checkNotNull(actionProcessorHolder);
 
         mIntentsSubject = PublishSubject.create();
-        mStatesSubject = PublishSubject.create();
-
-        compose().subscribe(this.mStatesSubject);
+        mStatesObservable = compose().skip(1).replay(1).autoConnect(0);
     }
 
     @Override
@@ -59,36 +58,36 @@ public class AddEditTaskViewModel extends ViewModel
 
     @Override
     public Observable<AddEditTaskViewState> states() {
-        return mStatesSubject;
+        return mStatesObservable;
     }
 
     private Observable<AddEditTaskViewState> compose() {
         return mIntentsSubject
-                .scan(initialIntentFilter)
+                .compose(intentFilter)
                 .map(this::actionFromIntent)
+                .filter(action -> !(action instanceof AddEditTaskAction.SkipMe))
                 .compose(mActionProcessorHolder.actionProcessor)
                 .scan(AddEditTaskViewState.idle(), reducer);
     }
 
-    private BiFunction<AddEditTaskIntent, AddEditTaskIntent, AddEditTaskIntent> initialIntentFilter =
-            (previousIntent, newIntent) -> {
-                // if isReConnection (e.g. after config change)
-                // i.e. we are inside the scan, meaning there has already
-                // been intent in the past, meaning the InitialIntent cannot
-                // be the first => it is a reconnection.
-                if (newIntent instanceof AddEditTaskIntent.InitialIntent) {
-                    return AddEditTaskIntent.GetLastState.create();
-                } else {
-                    return newIntent;
-                }
-            };
+    /**
+     * take only the first ever InitialIntent and all intents of other types
+     * to avoid reloading data on config changes
+     */
+    private ObservableTransformer<AddEditTaskIntent, AddEditTaskIntent> intentFilter =
+            intents -> intents.publish(shared ->
+                    Observable.merge(
+                            shared.ofType(AddEditTaskIntent.InitialIntent.class).take(1),
+                            shared.filter(intent -> !(intent instanceof AddEditTaskIntent.InitialIntent))
+                    )
+            );
 
     private AddEditTaskAction actionFromIntent(MviIntent intent) {
         if (intent instanceof AddEditTaskIntent.InitialIntent) {
             String taskId = ((AddEditTaskIntent.InitialIntent) intent).taskId();
             if (taskId == null) {
-                // nothing to do here so getting the idle state with GetLastState intent
-                return AddEditTaskAction.GetLastState.create();
+                // new Task, so nothing to do
+                return AddEditTaskAction.SkipMe.create();
             } else {
                 return AddEditTaskAction.PopulateTask.create(taskId);
             }
@@ -104,18 +103,12 @@ public class AddEditTaskViewModel extends ViewModel
                         taskId, saveTaskIntent.title(), saveTaskIntent.description());
             }
         }
-        if (intent instanceof AddEditTaskIntent.GetLastState) {
-            return AddEditTaskAction.GetLastState.create();
-        }
         throw new IllegalArgumentException("do not know how to treat this intent " + intent);
     }
 
     private static BiFunction<AddEditTaskViewState, AddEditTaskResult, AddEditTaskViewState> reducer =
             (previousState, result) -> {
                 AddEditTaskViewState.Builder stateBuilder = previousState.buildWith();
-                if (result instanceof AddEditTaskResult.GetLastState) {
-                    return stateBuilder.build();
-                }
                 if (result instanceof AddEditTaskResult.PopulateTask) {
                     AddEditTaskResult.PopulateTask populateTaskResult =
                             (AddEditTaskResult.PopulateTask) result;

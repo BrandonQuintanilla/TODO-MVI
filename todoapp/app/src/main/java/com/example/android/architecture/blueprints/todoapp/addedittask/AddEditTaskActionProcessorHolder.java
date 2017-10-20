@@ -53,22 +53,16 @@ public class AddEditTaskActionProcessorHolder {
                     new Task(action.title(), action.description(), action.taskId()))
                     .andThen(Observable.just(AddEditTaskResult.UpdateTask.create())));
 
-    private ObservableTransformer<AddEditTaskAction.GetLastState, AddEditTaskResult.GetLastState>
-            getLastStateProcessor =
-            actions -> actions.map(ignored -> AddEditTaskResult.GetLastState.create());
-
     ObservableTransformer<AddEditTaskAction, AddEditTaskResult> actionProcessor =
             actions -> actions.publish(shared -> Observable.merge(
                     shared.ofType(AddEditTaskAction.PopulateTask.class).compose(populateTaskProcessor),
                     shared.ofType(AddEditTaskAction.CreateTask.class).compose(createTaskProcessor),
-                    shared.ofType(AddEditTaskAction.UpdateTask.class).compose(updateTaskProcessor),
-                    shared.ofType(AddEditTaskAction.GetLastState.class).compose(getLastStateProcessor))
+                    shared.ofType(AddEditTaskAction.UpdateTask.class).compose(updateTaskProcessor))
                     .mergeWith(
                             // Error for not implemented actions
                             shared.filter(v -> !(v instanceof AddEditTaskAction.PopulateTask) &&
                                     !(v instanceof AddEditTaskAction.CreateTask) &&
-                                    !(v instanceof AddEditTaskAction.UpdateTask) &&
-                                    !(v instanceof AddEditTaskAction.GetLastState))
+                                    !(v instanceof AddEditTaskAction.UpdateTask))
                                     .flatMap(w -> Observable.error(
                                             new IllegalArgumentException("Unknown Action type: " + w)))));
 
