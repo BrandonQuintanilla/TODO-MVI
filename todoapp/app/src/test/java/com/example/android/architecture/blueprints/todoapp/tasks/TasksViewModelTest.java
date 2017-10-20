@@ -78,9 +78,9 @@ public class TasksViewModelTest {
         mTasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()));
 
         // Then progress indicator state is emitted
-        mTestObserver.assertValueAt(0, TasksViewState::isLoading);
+        mTestObserver.assertValueAt(1, TasksViewState::isLoading);
         // Then progress indicator state is canceled and all tasks are emitted
-        mTestObserver.assertValueAt(1, tasksViewState -> !tasksViewState.isLoading());
+        mTestObserver.assertValueAt(2, tasksViewState -> !tasksViewState.isLoading());
     }
 
     @Test
@@ -92,9 +92,9 @@ public class TasksViewModelTest {
                 Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.ACTIVE_TASKS)));
 
         // Then progress indicator state is emitted
-        mTestObserver.assertValueAt(0, TasksViewState::isLoading);
+        mTestObserver.assertValueAt(1, TasksViewState::isLoading);
         // Then progress indicator state is canceled and all tasks are emitted
-        mTestObserver.assertValueAt(1, tasksViewState -> !tasksViewState.isLoading());
+        mTestObserver.assertValueAt(2, tasksViewState -> !tasksViewState.isLoading());
     }
 
     @Test
@@ -106,9 +106,9 @@ public class TasksViewModelTest {
                 Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.COMPLETED_TASKS)));
 
         // Then progress indicator state is emitted
-        mTestObserver.assertValueAt(0, TasksViewState::isLoading);
+        mTestObserver.assertValueAt(1, TasksViewState::isLoading);
         // Then progress indicator state is canceled and all tasks are emitted
-        mTestObserver.assertValueAt(1, tasksViewState -> !tasksViewState.isLoading());
+        mTestObserver.assertValueAt(2, tasksViewState -> !tasksViewState.isLoading());
     }
 
     @Test
@@ -125,7 +125,7 @@ public class TasksViewModelTest {
         // Then repository is called and task marked complete state is emitted
         verify(mTasksRepository).completeTask(task);
         verify(mTasksRepository).getTasks();
-        mTestObserver.assertValueAt(1, TasksViewState::taskComplete);
+        mTestObserver.assertValueAt(2, TasksViewState::taskComplete);
     }
 
     @Test
@@ -142,7 +142,7 @@ public class TasksViewModelTest {
         // Then repository is called and task marked active state is emitted
         verify(mTasksRepository).activateTask(task);
         verify(mTasksRepository).getTasks();
-        mTestObserver.assertValueAt(1, TasksViewState::taskActivated);
+        mTestObserver.assertValueAt(2, TasksViewState::taskActivated);
     }
 
     @Test
@@ -154,6 +154,6 @@ public class TasksViewModelTest {
         mTasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()));
 
         // Then an error containing state is emitted
-        mTestObserver.assertValueAt(1, state -> state.error() != null);
+        mTestObserver.assertValueAt(2, state -> state.error() != null);
     }
 }

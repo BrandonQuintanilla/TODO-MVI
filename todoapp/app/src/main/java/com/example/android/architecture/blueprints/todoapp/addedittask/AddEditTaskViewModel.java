@@ -48,7 +48,7 @@ public class AddEditTaskViewModel extends ViewModel
         mActionProcessorHolder = checkNotNull(actionProcessorHolder);
 
         mIntentsSubject = PublishSubject.create();
-        mStatesObservable = compose().skip(1).replay(1).autoConnect(0);
+        mStatesObservable = compose().replay(1).autoConnect(0);
     }
 
     @Override

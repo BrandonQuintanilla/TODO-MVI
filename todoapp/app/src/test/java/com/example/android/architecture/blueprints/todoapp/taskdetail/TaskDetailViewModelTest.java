@@ -62,7 +62,7 @@ public class TaskDetailViewModelTest {
 
         // Then the task repository is queried and a stated is emitted back
         verify(mTasksRepository).getTask(eq(testTask.getId()));
-        mTestObserver.assertValueAt(1, state ->
+        mTestObserver.assertValueAt(2, state ->
                 state.title().equals(testTask.getTitle()) &&
                         state.description().equals(testTask.getDescription()));
     }
@@ -80,7 +80,7 @@ public class TaskDetailViewModelTest {
 
         // Then the task repository is queried and a stated is emitted back
         verify(mTasksRepository).getTask(eq(testTask.getId()));
-        mTestObserver.assertValueAt(1, state ->
+        mTestObserver.assertValueAt(2, state ->
                 state.error() != null &&
                         state.title().isEmpty() &&
                         state.description().isEmpty());
@@ -97,7 +97,7 @@ public class TaskDetailViewModelTest {
 
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).deleteTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(1, TaskDetailViewState::taskDeleted);
+        mTestObserver.assertValueAt(2, TaskDetailViewState::taskDeleted);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class TaskDetailViewModelTest {
 
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).deleteTask(anyString()); // saved to the model
-        mTestObserver.assertValueAt(1, state -> state.error() != null);
+        mTestObserver.assertValueAt(2, state -> state.error() != null);
     }
 
     @Test
@@ -130,7 +130,7 @@ public class TaskDetailViewModelTest {
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).completeTask(anyString());
         verify(mTasksRepository).getTask(anyString());
-        mTestObserver.assertValueAt(1, TaskDetailViewState::taskComplete);
+        mTestObserver.assertValueAt(2, TaskDetailViewState::taskComplete);
     }
 
     @Test
@@ -145,7 +145,7 @@ public class TaskDetailViewModelTest {
                 TaskDetailIntent.CompleteTaskIntent.create("1")
         ));
 
-        mTestObserver.assertValueAt(1, state -> state.error() != null);
+        mTestObserver.assertValueAt(2, state -> state.error() != null);
     }
 
     @Test
@@ -163,7 +163,7 @@ public class TaskDetailViewModelTest {
         // Then a task is saved in the repository and the view updates
         verify(mTasksRepository).activateTask(anyString());
         verify(mTasksRepository).getTask(anyString());
-        mTestObserver.assertValueAt(1, TaskDetailViewState::taskActivated);
+        mTestObserver.assertValueAt(2, TaskDetailViewState::taskActivated);
     }
 
     @Test
@@ -177,8 +177,6 @@ public class TaskDetailViewModelTest {
                 TaskDetailIntent.ActivateTaskIntent.create("1")
         ));
 
-        mTestObserver.assertValueAt(1, state -> state.error() != null);
+        mTestObserver.assertValueAt(2, state -> state.error() != null);
     }
-
-
 }

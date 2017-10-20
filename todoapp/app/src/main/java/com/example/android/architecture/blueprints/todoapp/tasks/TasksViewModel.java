@@ -50,7 +50,7 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
         this.mActionProcessorHolder = checkNotNull(taskActionProcessorHolder, "taskActionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
-        mStatesObservable = compose().skip(1).replay(1).autoConnect(0);
+        mStatesObservable = compose().replay(1).autoConnect(0);
     }
 
     @Override
