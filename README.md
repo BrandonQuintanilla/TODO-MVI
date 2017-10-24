@@ -101,7 +101,7 @@ Handling of the working threads is done with the help of RxJava's `Scheduler`s. 
 
 ### Immutability
 
-Data immutability is embraced to help keeping the logic simple. Immutability means that we do not need to manage data being mutated in other methods, in other threads, etc; because we are sure the data cannot change. Data immutability is implemented with the hlep of [AutoValue](https://github.com/google/auto/tree/master/value). Our all value objects are interfaces of which AutoValue will generate the implementation.
+Data immutability is embraced to help keeping the logic simple. Immutability means that we do not need to manage data being mutated in other methods, in other threads, etc; because we are sure the data cannot change. Data immutability is implemented with the help of [AutoValue](https://github.com/google/auto/tree/master/value). Our all value objects are interfaces of which AutoValue will generate the implementation.
 
 ### Functional Programming
 
