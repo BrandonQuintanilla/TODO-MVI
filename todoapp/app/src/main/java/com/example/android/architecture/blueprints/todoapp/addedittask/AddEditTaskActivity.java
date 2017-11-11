@@ -36,7 +36,7 @@ public class AddEditTaskActivity extends AppCompatActivity {
     private ActionBar mActionBar;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.addtask_act);
 
