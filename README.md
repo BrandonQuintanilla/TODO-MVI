@@ -33,13 +33,13 @@ public interface MviViewModel {
 
 A _ViewModel_ will a) process the _intents_ of the _View_, and b) emit a _view state_ back so the _View_ can reflect the change, if any.
 
-<img src="https://raw.githubusercontent.com/oldergod/android-architecture/dev-todo-mvi-rxjava/art/MVI_global.png" alt="View and ViewModel are simple functions."/>
+<img src="https://raw.githubusercontent.com/oldergod/android-architecture/todo-mvi-rxjava/art/MVI_global.png" alt="View and ViewModel are simple functions."/>
 
 ### The User is a function
 
 The MVI architecture sees the user as part of the data flow, a functionnal component taking input from the previous one and emitting event to the next. The user receives an input―the screen from the application―and ouputs back events (touch, click, scroll...). On Android, the input/output of the UI is at the same place; either physically as everything goes through the screen or in the program: I/O inside the activity or the fragment. Including the User to seperate the input of the view from its output helps keeping the code healty.
 
-<img src="https://raw.githubusercontent.com/oldergod/android-architecture/dev-todo-mvi-rxjava/art/MVI_detail.png" alt="Model-View-Intent architecture in details"/>
+<img src="https://raw.githubusercontent.com/oldergod/android-architecture/todo-mvi-rxjava/art/MVI_detail.png" alt="Model-View-Intent architecture in details"/>
 
 ### MVI in details
 
