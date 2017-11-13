@@ -1,5 +1,9 @@
 # TODO-MVI-RxJava
 
+### Contributors
+
+[Benoît Quenaudon](https://github.com/oldergod) and [David González](https://github.com/malmstein).
+
 ### Summary
 
 This version of the app is called TODO-MVI-RxJava. It is based on an Android ported version of the Model-View-Intent architecture and uses RxJava to implement the reactive caracteristic of the architecture. It is initially a fork of the [TODO-MVP-RXJAVA](https://github.com/googlesamples/android-architecture/tree/todo-mvp-rxjava).
