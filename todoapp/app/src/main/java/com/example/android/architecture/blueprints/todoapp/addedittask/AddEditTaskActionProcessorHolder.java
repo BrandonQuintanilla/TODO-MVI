@@ -89,8 +89,11 @@ public class AddEditTaskActionProcessorHolder {
      */
     ObservableTransformer<AddEditTaskAction, AddEditTaskResult> actionProcessor =
             actions -> actions.publish(shared -> Observable.merge(
+                    // Match PopulateTasks to populateTaskProcessor
                     shared.ofType(AddEditTaskAction.PopulateTask.class).compose(populateTaskProcessor),
+                    // Match CreateTasks to createTaskProcessor
                     shared.ofType(AddEditTaskAction.CreateTask.class).compose(createTaskProcessor),
+                    // Match UpdateTasks to updateTaskProcessor
                     shared.ofType(AddEditTaskAction.UpdateTask.class).compose(updateTaskProcessor))
                     .mergeWith(
                             // Error for not implemented actions

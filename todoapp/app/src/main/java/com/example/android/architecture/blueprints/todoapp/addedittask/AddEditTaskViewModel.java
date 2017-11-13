@@ -88,6 +88,7 @@ public class AddEditTaskViewModel extends ViewModel
                 // The Scan operator is used here for the caching.
                 .scan(AddEditTaskViewState.idle(), reducer)
                 // Emit the last one event of the stream on subscription
+                // Useful when a View rebinds to the ViewModel after rotation.
                 .replay(1)
                 // Create the stream on creation without waiting for anyone to subscribe
                 // This allows the stream to stay alive even when the UI disconnects and

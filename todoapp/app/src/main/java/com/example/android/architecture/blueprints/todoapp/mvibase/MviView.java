@@ -12,7 +12,8 @@ import io.reactivex.Observable;
  */
 public interface MviView<I extends MviIntent, S extends MviViewState> {
     /**
-     * Unique {@link Observable<I>} passed from the {@link MviView} to the {@link MviViewModel}.
+     * Unique {@link Observable<I>} used by the {@link MviViewModel}
+     * to listen to the {@link MviView}.
      * All the {@link MviView}'s {@link MviIntent}s must go through this {@link Observable<I>}.
      */
     Observable<I> intents();

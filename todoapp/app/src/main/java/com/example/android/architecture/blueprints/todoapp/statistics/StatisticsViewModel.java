@@ -19,8 +19,12 @@ package com.example.android.architecture.blueprints.todoapp.statistics;
 import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
@@ -35,10 +39,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class StatisticsViewModel extends ViewModel
         implements MviViewModel<StatisticsIntent, StatisticsViewState> {
+
+    /**
+     * Proxy subject used to keep the stream alive even after the UI gets recycled.
+     * This is basically used to keep ongoing events and the last cached State alive
+     * while the UI disconnects and reconnects on config changes.
+     */
     @NonNull
     private PublishSubject<StatisticsIntent> mIntentsSubject;
     @NonNull
     private Observable<StatisticsViewState> mStatesObservable;
+    /**
+     * Contains and executes the business logic of all emitted actions.
+     */
     @NonNull
     private StatisticsActionProcessorHolder mActionProcessorHolder;
 
@@ -46,7 +59,7 @@ public class StatisticsViewModel extends ViewModel
         this.mActionProcessorHolder = checkNotNull(actionProcessorHolder, "actionProcessorHolder cannot be null");
 
         mIntentsSubject = PublishSubject.create();
-        mStatesObservable = compose().replay(1).autoConnect(0);
+        mStatesObservable = compose();
     }
 
     @Override
@@ -59,12 +72,25 @@ public class StatisticsViewModel extends ViewModel
         return mStatesObservable;
     }
 
+    /**
+     * Compose all components to create the stream logic
+     */
     private Observable<StatisticsViewState> compose() {
         return mIntentsSubject
                 .compose(intentFilter)
                 .map(this::actionFromIntent)
                 .compose(mActionProcessorHolder.actionProcessor)
-                .scan(StatisticsViewState.idle(), reducer);
+                // Cache each state and pass it to the reducer to create a new state from
+                // the previous cached one and the latest Result emitted from the action processor.
+                // The Scan operator is used here for the caching.
+                .scan(StatisticsViewState.idle(), reducer)
+                // Emit the last one event of the stream on subscription.
+                // Useful when a View rebinds to the ViewModel after rotation.
+                .replay(1)
+                // Create the stream on creation without waiting for anyone to subscribe
+                // This allows the stream to stay alive even when the UI disconnects and
+                // match the stream's lifecycle to the ViewModel's one.
+                .autoConnect(0);
     }
 
     /**
@@ -79,6 +105,10 @@ public class StatisticsViewModel extends ViewModel
                     )
             );
 
+    /**
+     * Translate an {@link MviIntent} to an {@link MviAction}.
+     * Used to decouple the UI and the business logic to allow easy testings and reusability.
+     */
     private StatisticsAction actionFromIntent(MviIntent intent) {
         if (intent instanceof StatisticsIntent.InitialIntent) {
             return StatisticsAction.LoadStatistics.create();
@@ -86,6 +116,13 @@ public class StatisticsViewModel extends ViewModel
         throw new IllegalArgumentException("do not know how to treat this intent " + intent);
     }
 
+    /**
+     * The Reducer is where {@link MviViewState}, that the {@link MviView} will use to
+     * render itself, are created.
+     * It takes the last cached {@link MviViewState}, the latest {@link MviResult} and
+     * creates a new {@link MviViewState} by only updating the related fields.
+     * This is basically like a big switch statement of all possible types for the {@link MviResult}
+     */
     private static BiFunction<StatisticsViewState, StatisticsResult, StatisticsViewState> reducer =
             (previousState, result) -> {
                 StatisticsViewState.Builder stateBuilder = previousState.buildWith();
@@ -105,6 +142,7 @@ public class StatisticsViewModel extends ViewModel
                 } else {
                     throw new IllegalArgumentException("Don't know this result " + result);
                 }
+                // Fail for unhandled results
                 throw new IllegalStateException("Mishandled result? Should not happen (as always)");
             };
 }
