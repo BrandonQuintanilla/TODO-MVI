@@ -71,7 +71,8 @@ The _State_ contains all the information the _View_ needs to render itself.
 
 ### Observable
 
-[RxJava2](https://github.com/ReactiveX/RxJava) is used in this sample. The data model layer exposes RxJava `Observable` streams as a way of retrieving tasks. In addition, when needed, `void` returning setter methods expose RxJava `Completable` streams to allow composition inside the _ViewModel_.
+[RxJava2](https://github.com/ReactiveX/RxJava) is used in this sample. The data model layer exposes RxJava `Observable` streams as a way of retrieving tasks. In addition, when needed, `void` returning setter methods expose RxJava `Completable` streams to allow composition inside the _ViewModel_.  
+`Observable` is used over `Flowable` streams for backpressure is not (and doesn't need to be in this project) handled. Using `Observable` clearly convey that backpressure is not a concern.
 
  The `TasksDataSource` interface contains methods like:
 
