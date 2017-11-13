@@ -11,7 +11,15 @@ import io.reactivex.Observable;
  * @param <S> Top class of the {@link MviViewState} the {@link MviView} will be subscribing to.
  */
 public interface MviView<I extends MviIntent, S extends MviViewState> {
+    /**
+     * Unique {@link Observable<I>} used by the {@link MviViewModel}
+     * to listen to the {@link MviView}.
+     * All the {@link MviView}'s {@link MviIntent}s must go through this {@link Observable<I>}.
+     */
     Observable<I> intents();
 
+    /**
+     * Entry point for the {@link MviView} to render itself based on a {@link MviViewState}.
+     */
     void render(S state);
 }

@@ -2,6 +2,9 @@ package com.example.android.architecture.blueprints.todoapp.util;
 
 import com.google.auto.value.AutoValue;
 
+/**
+ * Helper class to wrap two objects into a immutable one.
+ */
 @AutoValue
 public abstract class Pair<F, S> {
     abstract public F first();

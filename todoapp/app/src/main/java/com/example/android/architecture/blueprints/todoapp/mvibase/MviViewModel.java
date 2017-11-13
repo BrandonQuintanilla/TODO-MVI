@@ -3,7 +3,8 @@ package com.example.android.architecture.blueprints.todoapp.mvibase;
 import io.reactivex.Observable;
 
 /**
- * Object that will subscribes to a view's intents, process it and emit a state back.
+ * Object that will subscribes to a {@link MviView}'s {@link MviIntent}s,
+ * process it and emit a {@link MviViewState} back.
  *
  * @param <I> Top class of the {@link MviIntent} that the {@link MviViewModel} will be subscribing
  *            to.

@@ -42,7 +42,10 @@ import android.widget.TextView;
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity;
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
 import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout;
@@ -79,6 +82,7 @@ public class TasksFragment extends Fragment
             PublishSubject.create();
     private PublishSubject<TasksIntent.ChangeFilterIntent> mChangeFilterIntentPublisher =
             PublishSubject.create();
+    // Used to manage the data flow lifecycle and avoid memory leak.
     private CompositeDisposable mDisposables = new CompositeDisposable();
 
     public static TasksFragment newInstance() {
@@ -100,8 +104,16 @@ public class TasksFragment extends Fragment
         bind();
     }
 
+    /**
+     * Connect the {@link MviView} with the {@link MviViewModel}
+     * We subscribe to the {@link MviViewModel} before passing it the {@link MviView}'s {@link MviIntent}s.
+     * If we were to pass {@link MviIntent}s to the {@link MviViewModel} before listening to it,
+     * emitted {@link MviViewState}s could be lost
+     */
     private void bind() {
+        // Subscribe to the ViewModel and call render for every emitted state
         mDisposables.add(mViewModel.states().subscribe(this::render));
+        // Pass the UI's intents to the ViewModel
         mViewModel.processIntents(intents());
 
         mDisposables.add(
@@ -277,6 +289,12 @@ public class TasksFragment extends Fragment
         Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
     }
 
+    /**
+     * The initial Intent the {@link MviView} emit to convey to the {@link MviViewModel}
+     * that it is ready to receive data.
+     * This initial Intent is also used to pass any parameters the {@link MviViewModel} might need
+     * to render the initial {@link MviViewState} (e.g. the task id to load).
+     */
     private Observable<TasksIntent.InitialIntent> initialIntent() {
         return Observable.just(TasksIntent.InitialIntent.create());
     }

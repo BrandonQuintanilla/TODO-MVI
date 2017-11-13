@@ -28,7 +28,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.android.architecture.blueprints.todoapp.R;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
 
 import io.reactivex.Observable;
@@ -43,6 +46,7 @@ public class StatisticsFragment extends Fragment
 
     private TextView mStatisticsTV;
     private StatisticsViewModel mViewModel;
+    // Used to manage the data flow lifecycle and avoid memory leak.
     private CompositeDisposable mDisposables;
 
     public static StatisticsFragment newInstance() {
@@ -67,8 +71,16 @@ public class StatisticsFragment extends Fragment
         bind();
     }
 
+    /**
+     * Connect the {@link MviView} with the {@link MviViewModel}
+     * We subscribe to the {@link MviViewModel} before passing it the {@link MviView}'s {@link MviIntent}s.
+     * If we were to pass {@link MviIntent}s to the {@link MviViewModel} before listening to it,
+     * emitted {@link MviViewState}s could be lost
+     */
     private void bind() {
+        // Subscribe to the ViewModel and call render for every emitted state
         mDisposables.add(mViewModel.states().subscribe(this::render));
+        // Pass the UI's intents to the ViewModel
         mViewModel.processIntents(intents());
     }
 
@@ -83,6 +95,13 @@ public class StatisticsFragment extends Fragment
         return initialIntent();
     }
 
+
+    /**
+     * The initial Intent the {@link MviView} emit to convey to the {@link MviViewModel}
+     * that it is ready to receive data.
+     * This initial Intent is also used to pass any parameters the {@link MviViewModel} might need
+     * to render the initial {@link MviViewState} (e.g. the task id to load).
+     */
     private Observable<StatisticsIntent> initialIntent() {
         return Observable.just(StatisticsIntent.InitialIntent.create());
     }

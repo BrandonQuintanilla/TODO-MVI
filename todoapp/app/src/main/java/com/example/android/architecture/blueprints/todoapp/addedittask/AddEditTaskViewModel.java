@@ -20,8 +20,12 @@ import android.arch.lifecycle.ViewModel;
 import android.support.annotation.NonNull;
 
 import com.example.android.architecture.blueprints.todoapp.data.Task;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviIntent;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviView;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
+import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
@@ -37,10 +41,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class AddEditTaskViewModel extends ViewModel
         implements MviViewModel<AddEditTaskIntent, AddEditTaskViewState> {
 
+    /**
+     * Proxy subject used to keep the stream alive even after the UI gets recycled.
+     * This is basically used to keep ongoing events and the last cached State alive
+     * while the UI disconnects and reconnects on config changes.
+     */
     @NonNull
     private PublishSubject<AddEditTaskIntent> mIntentsSubject;
     @NonNull
     private Observable<AddEditTaskViewState> mStatesObservable;
+    /**
+     * Contains and executes the business logic of all emitted actions.
+     */
     @NonNull
     private AddEditTaskActionProcessorHolder mActionProcessorHolder;
 
@@ -48,7 +60,7 @@ public class AddEditTaskViewModel extends ViewModel
         mActionProcessorHolder = checkNotNull(actionProcessorHolder);
 
         mIntentsSubject = PublishSubject.create();
-        mStatesObservable = compose().replay(1).autoConnect(0);
+        mStatesObservable = compose();
     }
 
     @Override
@@ -61,13 +73,27 @@ public class AddEditTaskViewModel extends ViewModel
         return mStatesObservable;
     }
 
+    /**
+     * Compose all components to create the stream logic
+     */
     private Observable<AddEditTaskViewState> compose() {
         return mIntentsSubject
                 .compose(intentFilter)
                 .map(this::actionFromIntent)
+                // Special case where we do not want to pass this event down the stream
                 .filter(action -> !(action instanceof AddEditTaskAction.SkipMe))
                 .compose(mActionProcessorHolder.actionProcessor)
-                .scan(AddEditTaskViewState.idle(), reducer);
+                // Cache each state and pass it to the reducer to create a new state from
+                // the previous cached one and the latest Result emitted from the action processor.
+                // The Scan operator is used here for the caching.
+                .scan(AddEditTaskViewState.idle(), reducer)
+                // Emit the last one event of the stream on subscription
+                // Useful when a View rebinds to the ViewModel after rotation.
+                .replay(1)
+                // Create the stream on creation without waiting for anyone to subscribe
+                // This allows the stream to stay alive even when the UI disconnects and
+                // match the stream's lifecycle to the ViewModel's one.
+                .autoConnect(0);
     }
 
     /**
@@ -82,6 +108,10 @@ public class AddEditTaskViewModel extends ViewModel
                     )
             );
 
+    /**
+     * Translate an {@link MviIntent} to an {@link MviAction}.
+     * Used to decouple the UI and the business logic to allow easy testings and reusability.
+     */
     private AddEditTaskAction actionFromIntent(MviIntent intent) {
         if (intent instanceof AddEditTaskIntent.InitialIntent) {
             String taskId = ((AddEditTaskIntent.InitialIntent) intent).taskId();
@@ -103,9 +133,17 @@ public class AddEditTaskViewModel extends ViewModel
                         taskId, saveTaskIntent.title(), saveTaskIntent.description());
             }
         }
+        // Fail for unhandled intents
         throw new IllegalArgumentException("do not know how to treat this intent " + intent);
     }
 
+    /**
+     * The Reducer is where {@link MviViewState}, that the {@link MviView} will use to
+     * render itself, are created.
+     * It takes the last cached {@link MviViewState}, the latest {@link MviResult} and
+     * creates a new {@link MviViewState} by only updating the related fields.
+     * This is basically like a big switch statement of all possible types for the {@link MviResult}
+     */
     private static BiFunction<AddEditTaskViewState, AddEditTaskResult, AddEditTaskViewState> reducer =
             (previousState, result) -> {
                 AddEditTaskViewState.Builder stateBuilder = previousState.buildWith();
@@ -140,6 +178,7 @@ public class AddEditTaskViewModel extends ViewModel
                 if (result instanceof AddEditTaskResult.UpdateTask) {
                     return stateBuilder.isSaved(true).build();
                 }
+                // Fail for unhandled results
                 throw new IllegalStateException("Mishandled result? Should not happen―as always: " + result);
             };
 }
