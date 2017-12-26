@@ -49,8 +49,8 @@ class StatisticsScreenTest {
    * Rules are interceptors which are executed for each test method and are important building
    * blocks of Junit tests.
    */
-  @Rule
-  val mStatisticsActivityTestRule =
+  @get:Rule
+  val statisticsActivityTestRule =
       ActivityTestRule(StatisticsActivity::class.java, true, false)
 
   /**
@@ -71,7 +71,7 @@ class StatisticsScreenTest {
 
     // Lazily start the Activity from the ActivityTestRule
     val startIntent = Intent()
-    mStatisticsActivityTestRule.launchActivity(startIntent)
+    statisticsActivityTestRule.launchActivity(startIntent)
   }
 
   @Test
