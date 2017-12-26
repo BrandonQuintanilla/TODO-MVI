@@ -75,7 +75,7 @@ public class StatisticsViewModelTest {
         setTasksAvailable(TASKS);
 
         // When loading of Tasks is initiated by first initial intent
-        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.INSTANCE));
 
         // Then loading state is emitted
         mTestObserver.assertValueAt(1, StatisticsViewState::isLoading);
@@ -86,8 +86,8 @@ public class StatisticsViewModelTest {
         // Then not loading, data furnished state in emitted to the view
         mTestObserver.assertValueAt(2,
                 state -> !state.isLoading() &&
-                        state.activeCount() == 0 &&
-                        state.completedCount() == 0);
+                        state.getActiveCount() == 0 &&
+                        state.getCompletedCount() == 0);
     }
 
     @Test
@@ -96,14 +96,14 @@ public class StatisticsViewModelTest {
         setTasksAvailable(TASKS);
 
         // When loading of Tasks is initiated by first initial intent
-        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.INSTANCE));
 
         // Then progress indicator is shown
         mTestObserver.assertValueAt(1, StatisticsViewState::isLoading);
 
         // Then progress indicator is hidden and correct data is passed on to the view
         mTestObserver.assertValueAt(2,
-                state -> !state.isLoading() && state.activeCount() == 1 && state.completedCount() == 2);
+                state -> !state.isLoading() && state.getActiveCount() == 1 && state.getCompletedCount() == 2);
     }
 
     @Test
@@ -112,10 +112,10 @@ public class StatisticsViewModelTest {
         setTasksNotAvailable();
 
         // When loading of Tasks is initiated by first initial intent
-        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.create()));
+        mStatisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent.INSTANCE));
 
         // Then an error message is shown
-        mTestObserver.assertValueAt(2, state -> state.error() != null);
+        mTestObserver.assertValueAt(2, state -> state.getError() != null);
     }
 
     private void setTasksAvailable(List<Task> tasks) {
