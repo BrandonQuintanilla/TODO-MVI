@@ -1,14 +1,12 @@
 package com.example.android.architecture.blueprints.todoapp.addedittask;
 
 import android.support.annotation.NonNull;
-
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.Function;
@@ -58,7 +56,7 @@ public class AddEditTaskActionProcessorHolder {
     private ObservableTransformer<AddEditTaskAction.CreateTask, AddEditTaskResult.CreateTask>
             createTaskProcessor =
             actions -> actions.map(action -> {
-                Task task = new Task(action.title(), action.description());
+                Task task =  Task.Companion.invoke(action.title(), action.description());
                 if (task.getEmpty()) {
                     return AddEditTaskResult.CreateTask.empty();
                 }
@@ -70,7 +68,7 @@ public class AddEditTaskActionProcessorHolder {
             updateTaskProcessor =
             actions -> actions.flatMap(action ->
                     mTasksRepository.saveTask(
-                            new Task(action.title(), action.description(), action.taskId())
+                        Task.Companion.invoke(action.title(), action.description(), action.taskId())
                     )
                             .andThen(Observable.just(AddEditTaskResult.UpdateTask.create())));
 

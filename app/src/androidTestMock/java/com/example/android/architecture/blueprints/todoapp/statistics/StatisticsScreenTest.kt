@@ -65,10 +65,10 @@ class StatisticsScreenTest {
   @Before
   fun intentWithStubbedTaskId() {
     // Given some tasks
-    TasksRepository.destroyInstance()
+    TasksRepository.clearInstance()
     val repository = Injection.provideTasksRepository(InstrumentationRegistry.getTargetContext())
-    repository.saveTask(Task("Title1", "", false))
-    repository.saveTask(Task("Title2", "", true))
+    repository.saveTask(Task(title = "Title1", description = "", completed = false))
+    repository.saveTask(Task(title = "Title2", description = "", completed = true))
 
     // Lazily start the Activity from the ActivityTestRule
     val startIntent = Intent()

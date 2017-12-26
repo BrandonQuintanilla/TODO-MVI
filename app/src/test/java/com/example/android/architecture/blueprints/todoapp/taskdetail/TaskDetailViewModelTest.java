@@ -4,18 +4,15 @@ import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.ImmediateSchedulerProvider;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.NoSuchElementException;
-
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
+import java.util.NoSuchElementException;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -52,7 +49,7 @@ public class TaskDetailViewModelTest {
 
     @Test
     public void populateTask_callsRepoAndUpdatesViewOnSuccess() {
-        final Task testTask = new Task("TITLE", "DESCRIPTION");
+        final Task testTask = Task.Companion.invoke("TITLE", "DESCRIPTION");
         when(mTasksRepository.getTask(testTask.getId())).thenReturn(Single.just(testTask));
 
         // When populating a task is initiated by an initial intent
@@ -69,7 +66,7 @@ public class TaskDetailViewModelTest {
 
     @Test
     public void populateTask_callsRepoAndUpdatesViewOnError() {
-        final Task testTask = new Task("TITLE", "DESCRIPTION");
+        final Task testTask = Task.Companion.invoke("TITLE", "DESCRIPTION");
         when(mTasksRepository.getTask(testTask.getId()))
                 .thenReturn(Single.error(new NoSuchElementException("The MaybeSource is empty")));
 
@@ -117,7 +114,7 @@ public class TaskDetailViewModelTest {
 
     @Test
     public void completeTask_marksTaskAsComplete_showsSuccessMessageUi() {
-        Task task = new Task("Complete Requested", "For this task");
+        Task task = Task.Companion.invoke("Complete Requested", "For this task");
 
         when(mTasksRepository.completeTask(anyString())).thenReturn(Completable.complete());
         when(mTasksRepository.getTask(anyString())).thenReturn(Single.just(task));
@@ -150,7 +147,7 @@ public class TaskDetailViewModelTest {
 
     @Test
     public void activateTask_marksTaskAsActive_showsSuccessMessageUi() {
-        Task task = new Task("Activate Requested", "For this task");
+        Task task = Task.Companion.invoke("Activate Requested", "For this task");
 
         when(mTasksRepository.activateTask(anyString())).thenReturn(Completable.complete());
         when(mTasksRepository.getTask(anyString())).thenReturn(Single.just(task));

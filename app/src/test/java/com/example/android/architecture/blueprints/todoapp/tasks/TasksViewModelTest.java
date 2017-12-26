@@ -64,8 +64,8 @@ public class TasksViewModelTest {
                 new TasksActionProcessorHolder(mTasksRepository, mSchedulerProvider));
 
         // We subscribe the tasks to 3, with one active and two completed
-        TASKS = Lists.newArrayList(new Task("Title1", "Description1"),
-                new Task("Title2", "Description2", true), new Task("Title3", "Description3", true));
+        TASKS = Lists.newArrayList(Task.Companion.invoke("Title1", "Description1"),
+                Task.Companion.invoke("Title2", "Description2", true), Task.Companion.invoke("Title3", "Description3", true));
 
         mTestObserver = mTasksViewModel.states().test();
     }
@@ -114,7 +114,7 @@ public class TasksViewModelTest {
     @Test
     public void completeTask_ShowsTaskMarkedComplete() {
         // Given a stubbed task
-        Task task = new Task("Details Requested", "For this task");
+        Task task = Task.Companion.invoke("Details Requested", "For this task");
         // And no tasks available in the repository
         when(mTasksRepository.completeTask(task)).thenReturn(Completable.complete());
         when(mTasksRepository.getTasks()).thenReturn(Single.just(Collections.emptyList()));
@@ -131,7 +131,7 @@ public class TasksViewModelTest {
     @Test
     public void activateTask_ShowsTaskMarkedActive() {
         // Given a stubbed completed task
-        Task task = new Task("Details Requested", "For this task", true);
+        Task task = Task.Companion.invoke("Details Requested", "For this task", true);
         // And no tasks available in the repository
         when(mTasksRepository.activateTask(task)).thenReturn(Completable.complete());
         when(mTasksRepository.getTasks()).thenReturn(Single.just(Collections.emptyList()));

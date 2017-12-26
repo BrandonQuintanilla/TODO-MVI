@@ -39,7 +39,7 @@ class StatisticsViewModelTest {
   private lateinit var schedulerProvider: BaseSchedulerProvider
   private lateinit var statisticsViewModel: StatisticsViewModel
   private lateinit var testObserver: TestObserver<StatisticsViewState>
-  private lateinit var Tasks: List<Task>
+  private lateinit var tasks: List<Task>
 
   @Before
   fun setupStatisticsViewModel() {
@@ -55,10 +55,10 @@ class StatisticsViewModelTest {
         StatisticsViewModel(StatisticsActionProcessorHolder(tasksRepository, schedulerProvider))
 
     // We subscribe the tasks to 3, with one active and two completed
-    Tasks = listOf(
-        Task("Title1", "Description1"),
-        Task("Title2", "Description2", true),
-        Task("Title3", "Description3", true))
+    tasks = listOf(
+        Task(title = "Title1", description = "Description1"),
+        Task(title = "Title2", description = "Description2", completed = true),
+        Task(title = "Title3", description = "Description3", completed = true))
 
     testObserver = statisticsViewModel.states().test()
   }
@@ -66,17 +66,17 @@ class StatisticsViewModelTest {
   @Test
   fun loadEmptyTasksFromRepository_CallViewToDisplay() {
     // Given an initialized StatisticsViewModel with no tasks
-    Tasks = emptyList()
-    setTasksAvailable(Tasks)
+    tasks = emptyList()
+    setTasksAvailable(tasks)
 
-    // When loading of Tasks is initiated by first initial intent
+    // When loading of tasks is initiated by first initial intent
     statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent))
 
     // Then loading state is emitted
     testObserver.assertValueAt(1, StatisticsViewState::isLoading)
 
     // Callback is captured and invoked with stubbed tasks
-    verify<TasksRepository>(tasksRepository).tasks
+    verify<TasksRepository>(tasksRepository).getTasks()
 
     // Then not loading, data furnished state in emitted to the view
     testObserver.assertValueAt(2) { (isLoading, activeCount, completedCount) ->
@@ -87,9 +87,9 @@ class StatisticsViewModelTest {
   @Test
   fun loadNonEmptyTasksFromRepository_CallViewToDisplay() {
     // Given an initialized StatisticsViewModel with 1 active and 2 completed tasks
-    setTasksAvailable(Tasks)
+    setTasksAvailable(tasks)
 
-    // When loading of Tasks is initiated by first initial intent
+    // When loading of tasks is initiated by first initial intent
     statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent))
 
     // Then progress indicator is shown
@@ -106,7 +106,7 @@ class StatisticsViewModelTest {
     // Given that tasks data isn't available
     setTasksNotAvailable()
 
-    // When loading of Tasks is initiated by first initial intent
+    // When loading of tasks is initiated by first initial intent
     statisticsViewModel.processIntents(Observable.just(StatisticsIntent.InitialIntent))
 
     // Then an error message is shown
@@ -114,11 +114,11 @@ class StatisticsViewModelTest {
   }
 
   private fun setTasksAvailable(tasks: List<Task>?) {
-    `when`(tasksRepository.tasks).thenReturn(Single.just(tasks))
+    `when`(tasksRepository.getTasks()).thenReturn(Single.just(tasks))
   }
 
   private fun setTasksNotAvailable() {
     // TODO(benoit) RxJava would print the stacktrace. I'd like to hide that
-    `when`(tasksRepository.tasks).thenReturn(Single.error(Throwable("not available")))
+    `when`(tasksRepository.getTasks()).thenReturn(Single.error(Throwable("not available")))
   }
 }

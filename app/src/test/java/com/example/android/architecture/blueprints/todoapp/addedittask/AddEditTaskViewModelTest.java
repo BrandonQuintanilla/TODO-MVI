@@ -20,18 +20,15 @@ import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.ImmediateSchedulerProvider;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.NoSuchElementException;
-
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
+import java.util.NoSuchElementException;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -103,7 +100,7 @@ public class AddEditTaskViewModelTest {
 
     @Test
     public void populateTask_callsRepoAndUpdatesViewOnSuccess() {
-        final Task testTask = new Task("TITLE", "DESCRIPTION");
+        final Task testTask = Task.Companion.invoke("TITLE", "DESCRIPTION");
         when(mTasksRepository.getTask(testTask.getId())).thenReturn(Single.just(testTask));
 
         // When populating a task is initiated by an initial intent
@@ -120,7 +117,7 @@ public class AddEditTaskViewModelTest {
 
     @Test
     public void populateTask_callsRepoAndUpdatesViewOnError() {
-        Task testTask = new Task("TITLE", "DESCRIPTION");
+        Task testTask = Task.Companion.invoke("TITLE", "DESCRIPTION");
         when(mTasksRepository.getTask(testTask.getId())).thenReturn(
                 Single.error(new NoSuchElementException("The MaybeSource is empty")));
 
