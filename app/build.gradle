@@ -1,4 +1,7 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'kotlin-kapt'
 
 android {
   compileSdkVersion rootProject.ext.compileSdkVersion
@@ -55,6 +58,10 @@ android {
       variant.setIgnore(true);
     }
   }
+  
+  lintOptions {
+    warning 'InvalidPackage' // prevent error from references of non-Android package
+  }
 
   // Always show the result of every unit test, even if it passes.
   testOptions.unitTests.all {
@@ -62,7 +69,6 @@ android {
       events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
     }
   }
-    buildToolsVersion '26.0.2'
 }
 
 /*
@@ -70,50 +76,52 @@ android {
  all versions in a single place. This improves readability and helps managing project complexity.
  */
 dependencies {
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
   // App's dependencies, including test
-  compile "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
-  compile "com.android.support:cardview-v7:$rootProject.supportLibraryVersion"
-  compile "com.android.support:design:$rootProject.supportLibraryVersion"
-  compile "com.android.support:recyclerview-v7:$rootProject.supportLibraryVersion"
-  compile "com.android.support:support-v4:$rootProject.supportLibraryVersion"
-  compile "com.android.support.test.espresso:espresso-idling-resource:$rootProject.espressoVersion"
-  compile "com.google.guava:guava:$rootProject.guavaVersion"
-  compile "io.reactivex.rxjava2:rxjava:$rootProject.rxjavaVersion"
-  compile "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"
-  compile "com.squareup.sqlbrite2:sqlbrite:$rootProject.sqlbriteVersion"
-  compile "com.jakewharton.rxbinding2:rxbinding-support-v4:$rootProject.rxBindingVersion"
-  compile "android.arch.lifecycle:runtime:$rootProject.archComponentsVersion"
-  compile "android.arch.lifecycle:extensions:$rootProject.archComponentsVersion"
-  annotationProcessor "android.arch.lifecycle:compiler:$rootProject.archComponentsVersion"
+  implementation "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:cardview-v7:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:design:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:recyclerview-v7:$rootProject.supportLibraryVersion"
+  implementation "com.android.support:support-v4:$rootProject.supportLibraryVersion"
+  implementation "com.android.support.test.espresso:espresso-idling-resource:$rootProject.espressoVersion"
+  implementation "com.google.guava:guava:$rootProject.guavaVersion"
+  implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxjavaVersion"
+  implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"
+  implementation "com.squareup.sqlbrite2:sqlbrite:$rootProject.sqlbriteVersion"
+  implementation "com.jakewharton.rxbinding2:rxbinding-support-v4:$rootProject.rxBindingVersion"
+  implementation "android.arch.lifecycle:runtime:$rootProject.archComponentsVersion"
+  implementation "android.arch.lifecycle:extensions:$rootProject.archComponentsVersion"
+  implementation "io.reactivex.rxjava2:rxkotlin:$rootProject.rxKotlinVersion"
+  kapt "android.arch.lifecycle:compiler:$rootProject.archComponentsVersion"
   annotationProcessor "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
-  provided "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
+  api "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
 
   // Dependencies for local unit tests
-  testCompile "junit:junit:$rootProject.junitVersion"
-  testCompile "org.mockito:mockito-all:$rootProject.mockitoVersion"
-  testCompile "org.hamcrest:hamcrest-all:$rootProject.hamcrestVersion"
+  testImplementation "junit:junit:$rootProject.junitVersion"
+  testImplementation "org.mockito:mockito-all:$rootProject.mockitoVersion"
+  testImplementation "org.hamcrest:hamcrest-all:$rootProject.hamcrestVersion"
 
   // Android Testing Support Library's runner and rules
-  androidTestCompile "com.android.support.test:runner:$rootProject.runnerVersion"
-  androidTestCompile "com.android.support.test:rules:$rootProject.runnerVersion"
+  androidTestImplementation "com.android.support.test:runner:$rootProject.runnerVersion"
+  androidTestImplementation "com.android.support.test:rules:$rootProject.runnerVersion"
 
   // Dependencies for Android unit tests
-  androidTestCompile "junit:junit:$rootProject.junitVersion"
-  androidTestCompile "org.mockito:mockito-core:$rootProject.mockitoVersion"
-  androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-  androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+  androidTestImplementation "junit:junit:$rootProject.junitVersion"
+  androidTestImplementation "org.mockito:mockito-core:$rootProject.mockitoVersion"
+  androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
+  androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
 
   // Espresso UI Testing
-  androidTestCompile "com.android.support.test.espresso:espresso-core:$rootProject.espressoVersion"
-  androidTestCompile "com.android.support.test.espresso:espresso-contrib:$rootProject.espressoVersion"
-  androidTestCompile "com.android.support.test.espresso:espresso-intents:$rootProject.espressoVersion"
+  androidTestImplementation "com.android.support.test.espresso:espresso-core:$rootProject.espressoVersion"
+  androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$rootProject.espressoVersion"
+  androidTestImplementation "com.android.support.test.espresso:espresso-intents:$rootProject.espressoVersion"
 
   // Resolve conflicts between main and test APK:
-  androidTestCompile "com.android.support:support-annotations:$rootProject.supportLibraryVersion"
-  androidTestCompile "com.android.support:support-v4:$rootProject.supportLibraryVersion"
-  androidTestCompile "com.android.support:recyclerview-v7:$rootProject.supportLibraryVersion"
-  androidTestCompile "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
-  androidTestCompile "com.android.support:design:$rootProject.supportLibraryVersion"
+  androidTestImplementation "com.android.support:support-annotations:$rootProject.supportLibraryVersion"
+  androidTestImplementation "com.android.support:support-v4:$rootProject.supportLibraryVersion"
+  androidTestImplementation "com.android.support:recyclerview-v7:$rootProject.supportLibraryVersion"
+  androidTestImplementation "com.android.support:appcompat-v7:$rootProject.supportLibraryVersion"
+  androidTestImplementation "com.android.support:design:$rootProject.supportLibraryVersion"
 }
 
 /*
