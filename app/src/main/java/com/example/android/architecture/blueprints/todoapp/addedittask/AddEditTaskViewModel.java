@@ -153,7 +153,7 @@ public class AddEditTaskViewModel extends ViewModel
                     switch (populateTaskResult.status()) {
                         case SUCCESS:
                             Task task = checkNotNull(populateTaskResult.task());
-                            if (task.isActive()) {
+                            if (task.getActive()) {
                                 stateBuilder.title(task.getTitle());
                                 stateBuilder.description(task.getDescription());
                             }

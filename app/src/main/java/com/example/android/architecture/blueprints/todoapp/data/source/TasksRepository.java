@@ -19,17 +19,14 @@ package com.example.android.architecture.blueprints.todoapp.data.source;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-
 import com.example.android.architecture.blueprints.todoapp.data.Task;
-
+import io.reactivex.Completable;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import io.reactivex.Completable;
-import io.reactivex.Observable;
-import io.reactivex.Single;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -184,7 +181,7 @@ public class TasksRepository implements TasksDataSource {
         mTasksRemoteDataSource.activateTask(task);
         mTasksLocalDataSource.activateTask(task);
 
-        Task activeTask = new Task(task.getTitle(), task.getDescription(), task.getId());
+        Task activeTask = new Task(task.getTitle(), task.getDescription(), task.getId(), false);
 
         // Do in memory cache update to keep the app UI up to date
         if (mCachedTasks == null) {
@@ -227,7 +224,7 @@ public class TasksRepository implements TasksDataSource {
         Iterator<Map.Entry<String, Task>> it = mCachedTasks.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Task> entry = it.next();
-            if (entry.getValue().isCompleted()) {
+            if (entry.getValue().getCompleted()) {
                 it.remove();
             }
         }

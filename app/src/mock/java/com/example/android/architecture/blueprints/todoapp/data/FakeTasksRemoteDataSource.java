@@ -104,7 +104,7 @@ public class FakeTasksRemoteDataSource implements TasksDataSource {
         Iterator<Map.Entry<String, Task>> it = TASKS_SERVICE_DATA.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Task> entry = it.next();
-            if (entry.getValue().isCompleted()) {
+            if (entry.getValue().getCompleted()) {
                 it.remove();
             }
         }

@@ -315,7 +315,7 @@ public class TasksFragment extends Fragment
 
     private Observable<TasksIntent> adapterIntents() {
         return mListAdapter.getTaskToggleObservable().map(task -> {
-            if (!task.isCompleted()) {
+            if (!task.getCompleted()) {
                 return TasksIntent.CompleteTaskIntent.create(task);
             } else {
                 return TasksIntent.ActivateTaskIntent.create(task);

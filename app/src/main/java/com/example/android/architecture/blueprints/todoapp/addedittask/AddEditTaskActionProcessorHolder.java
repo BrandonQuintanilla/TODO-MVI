@@ -59,7 +59,7 @@ public class AddEditTaskActionProcessorHolder {
             createTaskProcessor =
             actions -> actions.map(action -> {
                 Task task = new Task(action.title(), action.description());
-                if (task.isEmpty()) {
+                if (task.getEmpty()) {
                     return AddEditTaskResult.CreateTask.empty();
                 }
                 mTasksRepository.saveTask(task);

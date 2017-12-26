@@ -49,6 +49,7 @@ class StatisticsScreenTest {
    * Rules are interceptors which are executed for each test method and are important building
    * blocks of Junit tests.
    */
+  @Suppress("MemberVisibilityCanPrivate")
   @get:Rule
   val statisticsActivityTestRule =
       ActivityTestRule(StatisticsActivity::class.java, true, false)

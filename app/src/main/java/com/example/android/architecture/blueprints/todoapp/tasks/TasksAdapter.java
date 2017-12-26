@@ -75,8 +75,8 @@ public class TasksAdapter extends BaseAdapter {
         CheckBox completeCB = (CheckBox) rowView.findViewById(R.id.complete);
 
         // Active/completed task UI
-        completeCB.setChecked(task.isCompleted());
-        if (task.isCompleted()) {
+        completeCB.setChecked(task.getCompleted());
+        if (task.getCompleted()) {
             rowView.setBackgroundDrawable(viewGroup.getContext()
                     .getResources()
                     .getDrawable(R.drawable.list_completed_touch_feedback));

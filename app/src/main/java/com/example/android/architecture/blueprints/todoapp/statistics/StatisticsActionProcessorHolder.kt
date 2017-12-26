@@ -36,8 +36,8 @@ class StatisticsActionProcessorHolder(
               // Count all active and completed tasks and wrap the result into a Pair.
               .publish<LoadStatisticsResult.Success> { shared ->
                 Single.zip<Int, Int, LoadStatisticsResult.Success>(
-                    shared.filter(Task::isActive).count().map(Long::toInt),
-                    shared.filter(Task::isCompleted).count().map(Long::toInt),
+                    shared.filter(Task::active).count().map(Long::toInt),
+                    shared.filter(Task::completed).count().map(Long::toInt),
                     BiFunction { activeCount, completedCount ->
                       LoadStatisticsResult.Success(activeCount, completedCount)
                     }
