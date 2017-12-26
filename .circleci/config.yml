@@ -61,7 +61,7 @@ jobs:
           name: Set GCloud
           command: |
             gcloud config set project android-architecture-mvi
-            gcloud auth activate-service-account android-architecture-mvi@appspot.gserviceaccount.com \
+            gcloud auth activate-service-account ci-service-account@android-architecture-mvi.iam.gserviceaccount.com \
               --key-file ./signing/firebase_service-account.json
       - run:
           name: Tests on Firebase Test Lab
