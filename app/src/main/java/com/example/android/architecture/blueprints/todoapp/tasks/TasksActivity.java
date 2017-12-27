@@ -25,10 +25,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsActivity;
-import com.example.android.architecture.blueprints.todoapp.util.ActivityUtils;
+
+import static com.example.android.architecture.blueprints.todoapp.util.ActivityUtilsKt.addFragmentToActivity;
 
 public class TasksActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
@@ -59,8 +59,7 @@ public class TasksActivity extends AppCompatActivity {
         if (tasksFragment == null) {
             // Create the fragment
             tasksFragment = TasksFragment.newInstance();
-            ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), tasksFragment,
-                    R.id.contentFrame);
+            addFragmentToActivity(getSupportFragmentManager(), tasksFragment, R.id.contentFrame);
         }
     }
 

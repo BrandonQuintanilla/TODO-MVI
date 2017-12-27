@@ -18,7 +18,6 @@ package com.example.android.architecture.blueprints.todoapp;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-
 import com.example.android.architecture.blueprints.todoapp.data.FakeTasksRemoteDataSource;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
@@ -37,11 +36,11 @@ public class Injection {
 
     public static TasksRepository provideTasksRepository(@NonNull Context context) {
         checkNotNull(context);
-        return TasksRepository.getInstance(FakeTasksRemoteDataSource.getInstance(),
-                TasksLocalDataSource.getInstance(context, provideSchedulerProvider()));
+        return TasksRepository.Companion.getInstance(FakeTasksRemoteDataSource.INSTANCE,
+                TasksLocalDataSource.Companion.getInstance(context, provideSchedulerProvider()));
     }
 
     public static BaseSchedulerProvider provideSchedulerProvider() {
-        return SchedulerProvider.getInstance();
+        return SchedulerProvider.INSTANCE;
     }
 }

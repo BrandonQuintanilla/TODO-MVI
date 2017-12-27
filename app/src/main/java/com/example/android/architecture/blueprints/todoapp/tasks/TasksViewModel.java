@@ -232,12 +232,12 @@ public class TasksViewModel extends ViewModel implements MviViewModel<TasksInten
                 break;
             case ACTIVE_TASKS:
                 for (Task task : tasks) {
-                    if (task.isActive()) filteredTasks.add(task);
+                    if (task.getActive()) filteredTasks.add(task);
                 }
                 break;
             case COMPLETED_TASKS:
                 for (Task task : tasks) {
-                    if (task.isCompleted()) filteredTasks.add(task);
+                    if (task.getCompleted()) filteredTasks.add(task);
                 }
                 break;
         }

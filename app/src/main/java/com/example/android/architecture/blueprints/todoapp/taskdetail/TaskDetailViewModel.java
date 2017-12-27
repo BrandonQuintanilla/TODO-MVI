@@ -155,7 +155,7 @@ public class TaskDetailViewModel extends ViewModel
                             Task task = checkNotNull(populateTaskResult.task());
                             stateBuilder.title(task.getTitle());
                             stateBuilder.description(task.getDescription());
-                            stateBuilder.active(task.isActive());
+                            stateBuilder.active(task.getActive());
                             stateBuilder.loading(false);
                             return stateBuilder.build();
                         case FAILURE:

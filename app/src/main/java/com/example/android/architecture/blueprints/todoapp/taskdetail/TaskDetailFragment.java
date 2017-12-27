@@ -33,7 +33,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskFragment;
@@ -43,12 +42,10 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
 import com.jakewharton.rxbinding2.view.RxView;
-
-import java.util.concurrent.TimeUnit;
-
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.PublishSubject;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main UI for the task detail screen.
@@ -100,7 +97,8 @@ public class TaskDetailFragment extends Fragment implements MviView<TaskDetailIn
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mViewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+        mViewModel = ViewModelProviders
+                .of(this, ToDoViewModelFactory.Companion.getInstance(getContext()))
                 .get(TaskDetailViewModel.class);
         mDisposables = new CompositeDisposable();
         bind();

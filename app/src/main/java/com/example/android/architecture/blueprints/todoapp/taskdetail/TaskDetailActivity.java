@@ -20,9 +20,9 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
 import com.example.android.architecture.blueprints.todoapp.R;
-import com.example.android.architecture.blueprints.todoapp.util.ActivityUtils;
+
+import static com.example.android.architecture.blueprints.todoapp.util.ActivityUtilsKt.addFragmentToActivity;
 
 /**
  * Displays task details screen.
@@ -53,8 +53,7 @@ public class TaskDetailActivity extends AppCompatActivity {
         if (taskDetailFragment == null) {
             taskDetailFragment = TaskDetailFragment.newInstance(taskId);
 
-            ActivityUtils.addFragmentToActivity(getSupportFragmentManager(),
-                    taskDetailFragment, R.id.contentFrame);
+            addFragmentToActivity(getSupportFragmentManager(), taskDetailFragment, R.id.contentFrame);
         }
 
     }

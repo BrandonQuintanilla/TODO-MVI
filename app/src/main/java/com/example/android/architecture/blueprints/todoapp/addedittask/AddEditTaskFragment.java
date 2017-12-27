@@ -79,7 +79,8 @@ public class AddEditTaskFragment extends Fragment implements MviView<AddEditTask
         fab = (FloatingActionButton) getActivity().findViewById(R.id.fab_edit_task_done);
         fab.setImageResource(R.drawable.ic_done);
 
-        mViewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+        mViewModel = ViewModelProviders
+                .of(this, ToDoViewModelFactory.Companion.getInstance(getContext()))
                 .get(AddEditTaskViewModel.class);
         mDisposables = new CompositeDisposable();
         bind();

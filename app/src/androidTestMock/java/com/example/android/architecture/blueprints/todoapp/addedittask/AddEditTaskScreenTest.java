@@ -27,13 +27,11 @@ import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.TestUtils;
 import com.example.android.architecture.blueprints.todoapp.data.FakeTasksRemoteDataSource;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
-
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Rule;
@@ -102,8 +100,8 @@ public class AddEditTaskScreenTest {
     @Test
     public void toolbarTitle_editTask_persistsRotation() {
         // Put a task in the repository and start the activity to edit it
-        TasksRepository.destroyInstance();
-        FakeTasksRemoteDataSource.getInstance().addTasks(new Task("Title1", "", TASK_ID, false));
+        TasksRepository.Companion.clearInstance();
+        FakeTasksRemoteDataSource.INSTANCE.addTasks(new Task(TASK_ID,"Title1", "", false));
         launchNewTaskActivity(TASK_ID);
 
         // Check that the toolbar shows the correct title

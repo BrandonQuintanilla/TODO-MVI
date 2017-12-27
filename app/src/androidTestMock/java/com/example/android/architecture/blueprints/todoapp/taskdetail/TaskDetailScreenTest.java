@@ -56,12 +56,12 @@ public class TaskDetailScreenTest {
     /**
      * {@link Task} stub that is added to the fake service API layer.
      */
-    private static Task ACTIVE_TASK = new Task(TASK_TITLE, TASK_DESCRIPTION, false);
+    private static Task ACTIVE_TASK = Task.Companion.invoke(TASK_TITLE, TASK_DESCRIPTION, false);
 
     /**
      * {@link Task} stub that is added to the fake service API layer.
      */
-    private static Task COMPLETED_TASK = new Task(TASK_TITLE, TASK_DESCRIPTION, true);
+    private static Task COMPLETED_TASK = Task.Companion.invoke(TASK_TITLE, TASK_DESCRIPTION, true);
 
     /**
      * {@link ActivityTestRule} is a JUnit {@link Rule @Rule} to launch your activity under test.
@@ -98,8 +98,8 @@ public class TaskDetailScreenTest {
      */
     private void startActivityWithWithStubbedTask(Task task) {
         // Add a task stub to the fake service api layer.
-        TasksRepository.destroyInstance();
-        TasksLocalDataSource.destroyInstance();
+        TasksRepository.Companion.clearInstance();
+        TasksLocalDataSource.Companion.clearInstance();
         Injection.provideTasksRepository(InstrumentationRegistry.getTargetContext()).saveTask(task);
 
         // Lazily start the Activity from the ActivityTestRule this time to inject the start Intent

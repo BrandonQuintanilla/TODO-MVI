@@ -30,14 +30,14 @@ class StatisticsActionProcessorHolder(
   private val loadStatisticsProcessor =
       ObservableTransformer<LoadStatisticsAction, LoadStatisticsResult> { actions ->
         actions.flatMap {
-          tasksRepository.tasks
+          tasksRepository.getTasks()
               // Transform one event of a List<Task> to an observable<Task>.
               .flatMapIterable()
               // Count all active and completed tasks and wrap the result into a Pair.
               .publish<LoadStatisticsResult.Success> { shared ->
                 Single.zip<Int, Int, LoadStatisticsResult.Success>(
-                    shared.filter(Task::isActive).count().map(Long::toInt),
-                    shared.filter(Task::isCompleted).count().map(Long::toInt),
+                    shared.filter(Task::active).count().map(Long::toInt),
+                    shared.filter(Task::completed).count().map(Long::toInt),
                     BiFunction { activeCount, completedCount ->
                       LoadStatisticsResult.Success(activeCount, completedCount)
                     }
@@ -69,7 +69,7 @@ class StatisticsActionProcessorHolder(
    * An security layer is also added for unhandled [MviAction] to allow early crash
    * at runtime to easy the maintenance.
    */
-  internal var actionProcessor =
+  var actionProcessor =
       ObservableTransformer<StatisticsAction, StatisticsResult> { actions ->
         actions.publish { shared ->
           // Match LoadStatisticsResult to loadStatisticsProcessor

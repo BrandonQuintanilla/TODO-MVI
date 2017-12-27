@@ -36,11 +36,11 @@ public class Injection {
 
     public static TasksRepository provideTasksRepository(@NonNull Context context) {
         checkNotNull(context);
-        return TasksRepository.getInstance(TasksRemoteDataSource.getInstance(),
-                TasksLocalDataSource.getInstance(context, provideSchedulerProvider()));
+        return TasksRepository.Companion.getInstance(TasksRemoteDataSource.INSTANCE,
+                TasksLocalDataSource.Companion.getInstance(context, provideSchedulerProvider()));
     }
 
     public static BaseSchedulerProvider provideSchedulerProvider() {
-        return SchedulerProvider.getInstance();
+        return SchedulerProvider.INSTANCE;
     }
 }

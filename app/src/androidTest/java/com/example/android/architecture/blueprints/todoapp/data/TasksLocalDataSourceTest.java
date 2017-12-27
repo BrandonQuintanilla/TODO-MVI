@@ -19,21 +19,17 @@ package com.example.android.architecture.blueprints.todoapp.data;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.suitebuilder.annotation.LargeTest;
-
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource;
 import com.example.android.architecture.blueprints.todoapp.data.source.local.TasksDbHelper;
 import com.example.android.architecture.blueprints.todoapp.data.source.local.TasksLocalDataSource;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.ImmediateSchedulerProvider;
-
+import io.reactivex.observers.TestObserver;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.List;
-
-import io.reactivex.observers.TestObserver;
 
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -60,10 +56,10 @@ public class TasksLocalDataSourceTest {
 
     @Before
     public void setup() {
-        TasksLocalDataSource.destroyInstance();
+        TasksLocalDataSource.Companion.clearInstance();
         mSchedulerProvider = new ImmediateSchedulerProvider();
 
-        mLocalDataSource = TasksLocalDataSource.getInstance(InstrumentationRegistry.getTargetContext(),
+        mLocalDataSource = TasksLocalDataSource.Companion.getInstance(InstrumentationRegistry.getTargetContext(),
                 mSchedulerProvider);
     }
 
@@ -80,7 +76,7 @@ public class TasksLocalDataSourceTest {
     @Test
     public void saveTask_retrievesTask() {
         // Given a new task
-        final Task newTask = new Task(TITLE, "");
+        final Task newTask = Task.Companion.invoke(TITLE, "");
 
         // When saved into the persistent repository
         mLocalDataSource.saveTask(newTask);
@@ -94,7 +90,7 @@ public class TasksLocalDataSourceTest {
     @Test
     public void completeTask_retrievedTaskIsComplete() {
         // Given a new task in the persistent repository
-        final Task newTask = new Task(TITLE, "");
+        final Task newTask = Task.Companion.invoke(TITLE, "");
         mLocalDataSource.saveTask(newTask);
 
         // When completed in the persistent repository
@@ -105,13 +101,13 @@ public class TasksLocalDataSourceTest {
         mLocalDataSource.getTask(newTask.getId()).subscribe(testObserver);
         testObserver.assertValueCount(1);
         Task result = testObserver.values().get(0);
-        assertThat(result.isCompleted(), is(true));
+        assertThat(result.getCompleted(), is(true));
     }
 
     @Test
     public void activateTask_retrievedTaskIsActive() {
         // Given a new completed task in the persistent repository
-        final Task newTask = new Task(TITLE, "");
+        final Task newTask = Task.Companion.invoke(TITLE, "");
         mLocalDataSource.saveTask(newTask);
         mLocalDataSource.completeTask(newTask);
 
@@ -123,20 +119,20 @@ public class TasksLocalDataSourceTest {
         mLocalDataSource.getTask(newTask.getId()).subscribe(testObserver);
         testObserver.assertValueCount(1);
         Task result = testObserver.values().get(0);
-        assertThat(result.isActive(), is(true));
-        assertThat(result.isCompleted(), is(false));
+        assertThat(result.getActive(), is(true));
+        assertThat(result.getCompleted(), is(false));
     }
 
     @Test
     public void clearCompletedTask_taskNotRetrievable() {
         // Given 2 new completed tasks and 1 active task in the persistent repository
-        final Task newTask1 = new Task(TITLE, "");
+        final Task newTask1 = Task.Companion.invoke(TITLE, "");
         mLocalDataSource.saveTask(newTask1);
         mLocalDataSource.completeTask(newTask1);
-        final Task newTask2 = new Task(TITLE2, "");
+        final Task newTask2 = Task.Companion.invoke(TITLE2, "");
         mLocalDataSource.saveTask(newTask2);
         mLocalDataSource.completeTask(newTask2);
-        final Task newTask3 = new Task(TITLE3, "");
+        final Task newTask3 = Task.Companion.invoke(TITLE3, "");
         mLocalDataSource.saveTask(newTask3);
 
         // When completed tasks are cleared in the repository
@@ -152,7 +148,7 @@ public class TasksLocalDataSourceTest {
     @Test
     public void deleteAllTasks_emptyListOfRetrievedTask() {
         // Given a new task in the persistent repository and a mocked callback
-        Task newTask = new Task(TITLE, "");
+        Task newTask = Task.Companion.invoke(TITLE, "");
         mLocalDataSource.saveTask(newTask);
 
         // When all tasks are deleted
@@ -168,9 +164,9 @@ public class TasksLocalDataSourceTest {
     @Test
     public void getTasks_retrieveSavedTasks() {
         // Given 2 new tasks in the persistent repository
-        final Task newTask1 = new Task(TITLE, "");
+        final Task newTask1 = Task.Companion.invoke(TITLE, "a");
         mLocalDataSource.saveTask(newTask1);
-        final Task newTask2 = new Task(TITLE, "");
+        final Task newTask2 = Task.Companion.invoke(TITLE, "b");
         mLocalDataSource.saveTask(newTask2);
 
         // Then the tasks can be retrieved from the persistent repository

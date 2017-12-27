@@ -51,7 +51,7 @@ _Intents_ represents, as their name goes, _intents_ from the user, this goes fro
 
 #### Action from Intent
 
-_Intents_ are in this step translated into their respecting logic _Action_. For instance, inside the Tasks module, the "opening the view" intent translates into "refresh the cache and load the data". The _intent_ and the translated _action_ are often similar but this is important to avoid the data flow to be too coupled with the UI. It also allows reuse of the same _action_ for multiple different _intents_.
+_Intents_ are in this step translated into their respecting logic _Action_. For instance, inside the tasks module, the "opening the view" intent translates into "refresh the cache and load the data". The _intent_ and the translated _action_ are often similar but this is important to avoid the data flow to be too coupled with the UI. It also allows reuse of the same _action_ for multiple different _intents_.
 
 #### Action
 
@@ -94,8 +94,8 @@ This is implemented in `TasksLocalDataSource` with the help of [SqlBrite](https:
 @Override
 public Single<List<Task>> getTasks() {
     ...
-    return mDatabaseHelper.createQuery(TaskEntry.TABLE_NAME, sql)
-            .mapToList(mTaskMapperFunction)
+    return databaseHelper.createQuery(TaskEntry.TABLE_NAME, sql)
+            .mapToList(taskMapperFunction)
             .firstOrError();
 }
 ```

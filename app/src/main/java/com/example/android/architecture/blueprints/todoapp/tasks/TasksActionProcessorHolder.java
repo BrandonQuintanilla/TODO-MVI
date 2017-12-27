@@ -1,18 +1,16 @@
 package com.example.android.architecture.blueprints.todoapp.tasks;
 
 import android.support.annotation.NonNull;
-
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
+import com.example.android.architecture.blueprints.todoapp.util.ObservableUtilsKt;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.Function;
 
-import static com.example.android.architecture.blueprints.todoapp.util.ObservableUtils.pairWithDelay;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -63,7 +61,7 @@ public class TasksActionProcessorHolder {
                     .flatMap(tasks ->
                             // Emit two events to allow the UI notification to be hidden after
                             // some delay
-                            pairWithDelay(
+                            ObservableUtilsKt.pairWithDelay(
                                     TasksResult.ActivateTaskResult.success(tasks),
                                     TasksResult.ActivateTaskResult.hideUiNotification())
                     )
@@ -89,7 +87,7 @@ public class TasksActionProcessorHolder {
                     .flatMap(tasks ->
                             // Emit two events to allow the UI notification to be hidden after
                             // some delay
-                            pairWithDelay(
+                            ObservableUtilsKt.pairWithDelay(
                                     TasksResult.CompleteTaskResult.success(tasks),
                                     TasksResult.CompleteTaskResult.hideUiNotification())
                     )
@@ -115,7 +113,7 @@ public class TasksActionProcessorHolder {
                     .flatMap(tasks ->
                             // Emit two events to allow the UI notification to be hidden after
                             // some delay
-                            pairWithDelay(
+                            ObservableUtilsKt.pairWithDelay(
                                     TasksResult.ClearCompletedTasksResult.success(tasks),
                                     TasksResult.ClearCompletedTasksResult.hideUiNotification())
                     )
