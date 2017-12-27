@@ -55,7 +55,11 @@ class TasksLocalDataSource private constructor(
     val title = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_TITLE))
     val description = c.getString(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_DESCRIPTION))
     val completed = c.getInt(c.getColumnIndexOrThrow(TaskEntry.COLUMN_NAME_COMPLETED)) == 1
-    return Task(title, description, itemId, completed)
+    return Task(
+        title = title,
+        description = description,
+        id = itemId,
+        completed = completed)
   }
 
   override fun getTasks(): Single<List<Task>> {

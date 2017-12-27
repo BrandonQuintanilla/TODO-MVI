@@ -164,9 +164,9 @@ public class TasksLocalDataSourceTest {
     @Test
     public void getTasks_retrieveSavedTasks() {
         // Given 2 new tasks in the persistent repository
-        final Task newTask1 = Task.Companion.invoke(TITLE, "");
+        final Task newTask1 = Task.Companion.invoke(TITLE, "a");
         mLocalDataSource.saveTask(newTask1);
-        final Task newTask2 = Task.Companion.invoke(TITLE, "");
+        final Task newTask2 = Task.Companion.invoke(TITLE, "b");
         mLocalDataSource.saveTask(newTask2);
 
         // Then the tasks can be retrieved from the persistent repository

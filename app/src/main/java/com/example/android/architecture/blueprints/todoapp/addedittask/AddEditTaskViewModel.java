@@ -64,7 +64,7 @@ public class AddEditTaskViewModel extends ViewModel
     }
 
     @Override
-    public void processIntents(Observable<AddEditTaskIntent> intents) {
+    public void processIntents(@NonNull Observable<AddEditTaskIntent> intents) {
         intents.subscribe(mIntentsSubject);
     }
 
