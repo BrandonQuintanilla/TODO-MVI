@@ -5,7 +5,7 @@ package com.example.android.architecture.blueprints.todoapp.util
  *
  * See https://medium.com/@BladeCoder/kotlin-singletons-with-argument-194ef06edd9e
  */
-open class SingletonHolder<out T, in A, in B>(creator: (A, B) -> T) {
+open class SingletonHolderDoubleArg<out T, in A, in B>(creator: (A, B) -> T) {
   private var creator: ((A, B) -> T)? = creator
   @Volatile private var instance: T? = null
 
@@ -28,7 +28,7 @@ open class SingletonHolder<out T, in A, in B>(creator: (A, B) -> T) {
   }
 
   /**
-   * Used to force [SingletonHolder.getInstance] to create a new instance next time it's called.
+   * Used to force [SingletonHolderDoubleArg.getInstance] to create a new instance next time it's called.
    * Used in tests.
    */
   fun clearInstance() {

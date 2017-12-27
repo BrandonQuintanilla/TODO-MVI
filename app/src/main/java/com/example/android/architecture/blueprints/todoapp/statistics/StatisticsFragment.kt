@@ -42,7 +42,7 @@ class StatisticsFragment : Fragment(), MviView<StatisticsIntent, StatisticsViewS
   private val disposables: CompositeDisposable = CompositeDisposable()
   private val viewModel: StatisticsViewModel by lazy(NONE) {
     ViewModelProviders
-        .of(this, ToDoViewModelFactory.getInstance(context))
+        .of(this, ToDoViewModelFactory.getInstance(context!!))
         .get(StatisticsViewModel::class.java)
   }
 

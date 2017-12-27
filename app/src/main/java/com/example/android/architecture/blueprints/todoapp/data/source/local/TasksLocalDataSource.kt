@@ -24,7 +24,7 @@ import android.text.TextUtils
 import com.example.android.architecture.blueprints.todoapp.data.Task
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksDataSource
 import com.example.android.architecture.blueprints.todoapp.data.source.local.TasksPersistenceContract.TaskEntry
-import com.example.android.architecture.blueprints.todoapp.util.SingletonHolder
+import com.example.android.architecture.blueprints.todoapp.util.SingletonHolderDoubleArg
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider
 import com.squareup.sqlbrite2.BriteDatabase
 import com.squareup.sqlbrite2.SqlBrite
@@ -151,7 +151,7 @@ class TasksLocalDataSource private constructor(
     return Completable.complete()
   }
 
-  companion object : SingletonHolder<TasksLocalDataSource, Context, BaseSchedulerProvider>(
+  companion object : SingletonHolderDoubleArg<TasksLocalDataSource, Context, BaseSchedulerProvider>(
       ::TasksLocalDataSource
   )
 }

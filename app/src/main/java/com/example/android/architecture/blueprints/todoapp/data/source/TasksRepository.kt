@@ -18,7 +18,7 @@ package com.example.android.architecture.blueprints.todoapp.data.source
 
 import android.support.annotation.VisibleForTesting
 import com.example.android.architecture.blueprints.todoapp.data.Task
-import com.example.android.architecture.blueprints.todoapp.util.SingletonHolder
+import com.example.android.architecture.blueprints.todoapp.util.SingletonHolderDoubleArg
 import com.google.common.base.Preconditions.checkNotNull
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -236,7 +236,7 @@ open class TasksRepository private constructor(
         .doOnSuccess { task -> cachedTasks!!.put(taskId, task) }
   }
 
-  companion object : SingletonHolder<TasksRepository, TasksDataSource, TasksDataSource>(
+  companion object : SingletonHolderDoubleArg<TasksRepository, TasksDataSource, TasksDataSource>(
       ::TasksRepository
   )
 }

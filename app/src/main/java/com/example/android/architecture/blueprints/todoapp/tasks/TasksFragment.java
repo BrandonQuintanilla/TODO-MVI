@@ -38,7 +38,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import com.example.android.architecture.blueprints.todoapp.R;
 import com.example.android.architecture.blueprints.todoapp.addedittask.AddEditTaskActivity;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
@@ -49,12 +48,10 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState;
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity;
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory;
 import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout;
-
-import java.util.ArrayList;
-
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.PublishSubject;
+import java.util.ArrayList;
 
 import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ACTIVE_TASKS;
 import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.ALL_TASKS;
@@ -99,7 +96,8 @@ public class TasksFragment extends Fragment
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mViewModel = ViewModelProviders.of(this, ToDoViewModelFactory.getInstance(getContext()))
+        mViewModel = ViewModelProviders
+                .of(this, ToDoViewModelFactory.Companion.getInstance(getContext()))
                 .get(TasksViewModel.class);
         bind();
     }
