@@ -95,6 +95,7 @@ dependencies {
   api "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
 
   // Dependencies for local unit tests
+  testImplementation "com.nhaarman:mockito-kotlin:$rootProject.mockitoKotlinVersion"
   testImplementation "junit:junit:$rootProject.junitVersion"
   testImplementation "org.mockito:mockito-all:$rootProject.mockitoVersion"
   testImplementation "org.hamcrest:hamcrest-all:$rootProject.hamcrestVersion"
