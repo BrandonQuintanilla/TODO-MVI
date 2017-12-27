@@ -21,10 +21,9 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-
 import com.example.android.architecture.blueprints.todoapp.R;
-import com.example.android.architecture.blueprints.todoapp.util.ActivityUtils;
 
+import static com.example.android.architecture.blueprints.todoapp.util.ActivityUtilsKt.addFragmentToActivity;
 
 /**
  * Displays an add or edit task screen.
@@ -64,8 +63,7 @@ public class AddEditTaskActivity extends AppCompatActivity {
                 addEditTaskFragment.setArguments(args);
             }
 
-            ActivityUtils.addFragmentToActivity(getSupportFragmentManager(),
-                    addEditTaskFragment, R.id.contentFrame);
+            addFragmentToActivity(getSupportFragmentManager(), addEditTaskFragment, R.id.contentFrame);
         }
     }
 

@@ -24,7 +24,7 @@ import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import com.example.android.architecture.blueprints.todoapp.R
-import com.example.android.architecture.blueprints.todoapp.util.ActivityUtils
+import com.example.android.architecture.blueprints.todoapp.util.addFragmentToActivity
 
 /**
  * Show statistics for tasks.
@@ -52,10 +52,7 @@ class StatisticsActivity : AppCompatActivity() {
     findViewById<NavigationView>(R.id.nav_view)?.let { setupDrawerContent(it) }
 
     if (supportFragmentManager.findFragmentById(R.id.contentFrame) == null) {
-      ActivityUtils.addFragmentToActivity(
-          supportFragmentManager,
-          StatisticsFragment(),
-          R.id.contentFrame)
+      addFragmentToActivity(supportFragmentManager, StatisticsFragment(), R.id.contentFrame)
     }
   }
 

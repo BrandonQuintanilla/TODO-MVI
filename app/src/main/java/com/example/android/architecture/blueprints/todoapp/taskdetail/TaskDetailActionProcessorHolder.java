@@ -1,18 +1,16 @@
 package com.example.android.architecture.blueprints.todoapp.taskdetail;
 
 import android.support.annotation.NonNull;
-
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviAction;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviResult;
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel;
+import com.example.android.architecture.blueprints.todoapp.util.ObservableUtilsKt;
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.functions.Function;
 
-import static com.example.android.architecture.blueprints.todoapp.util.ObservableUtils.pairWithDelay;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -66,7 +64,7 @@ public class TaskDetailActionProcessorHolder {
                     .flatMap(task ->
                             // Emit two events to allow the UI notification to be hidden after
                             // some delay
-                            pairWithDelay(
+                        ObservableUtilsKt.pairWithDelay(
                                     TaskDetailResult.CompleteTaskResult.success(task),
                                     TaskDetailResult.CompleteTaskResult.hideUiNotification()))
                     // Wrap any error into an immutable object and pass it down the stream
@@ -91,9 +89,9 @@ public class TaskDetailActionProcessorHolder {
                     .flatMap(task ->
                             // Emit two events to allow the UI notification to be hidden after
                             // some delay
-                            pairWithDelay(
-                                    TaskDetailResult.ActivateTaskResult.success(task),
-                                    TaskDetailResult.ActivateTaskResult.hideUiNotification()))
+                        ObservableUtilsKt.pairWithDelay(
+                            TaskDetailResult.ActivateTaskResult.success(task),
+                            TaskDetailResult.ActivateTaskResult.hideUiNotification()))
                     // Wrap any error into an immutable object and pass it down the stream
                     // without crashing.
                     // Because errors are data and hence, should just be part of the stream.
