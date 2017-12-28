@@ -62,6 +62,7 @@ class AddEditTaskViewModelTest {
 
   @Test
   fun saveNewTaskToRepository_showsSuccessMessageUi() {
+    `when`(tasksRepository.saveTask(any())).thenReturn(Completable.complete())
     // When task saving intent is emitted by the view
     addEditTaskViewModel.processIntents(Observable.just(
         AddEditTaskIntent.SaveTask(
@@ -71,7 +72,7 @@ class AddEditTaskViewModelTest {
     ))
 
     // Then a task is saved in the repository and the view updates
-    verify<TasksRepository>(tasksRepository).saveTask(any())
+    verify(tasksRepository).saveTask(any())
     // saved to the model
     testObserver.assertValueAt(1) { (isEmpty, isSaved) -> isSaved && !isEmpty }
   }
@@ -87,7 +88,7 @@ class AddEditTaskViewModelTest {
     )
 
     // Then an empty task state is emitted back to the view
-    verify<TasksRepository>(tasksRepository, never()).saveTask(any()) // saved to the model
+    verify(tasksRepository, never()).saveTask(any()) // saved to the model
     testObserver.assertValueAt(1, AddEditTaskViewState::isEmpty)
   }
 
