@@ -28,7 +28,6 @@ import android.support.test.runner.AndroidJUnit4;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import com.example.android.architecture.blueprints.todoapp.R;
-import com.example.android.architecture.blueprints.todoapp.TestUtils;
 import com.example.android.architecture.blueprints.todoapp.data.FakeTasksRemoteDataSource;
 import com.example.android.architecture.blueprints.todoapp.data.Task;
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
@@ -45,6 +44,7 @@ import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static com.example.android.architecture.blueprints.todoapp.R.id.toolbar;
+import static com.example.android.architecture.blueprints.todoapp.TestUtilsKt.rotateOrientation;
 
 /**
  * Tests for the add task screen.
@@ -91,7 +91,7 @@ public class AddEditTaskScreenTest {
         onView(withId(toolbar)).check(matches(withToolbarTitle(R.string.add_task)));
 
         // Rotate activity
-        TestUtils.rotateOrientation(mActivityTestRule.getActivity());
+        rotateOrientation(mActivityTestRule.getActivity());
 
         // Check that the toolbar title is persisted
         onView(withId(toolbar)).check(matches(withToolbarTitle(R.string.add_task)));
@@ -108,7 +108,7 @@ public class AddEditTaskScreenTest {
         onView(withId(toolbar)).check(matches(withToolbarTitle(R.string.edit_task)));
 
         // Rotate activity
-        TestUtils.rotateOrientation(mActivityTestRule.getActivity());
+        rotateOrientation(mActivityTestRule.getActivity());
 
         // check that the toolbar title is persisted
         onView(withId(toolbar)).check(matches(withToolbarTitle(R.string.edit_task)));
