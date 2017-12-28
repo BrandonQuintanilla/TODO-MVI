@@ -104,7 +104,7 @@ class TasksScreenTest {
    * @return Matcher that matches text in the given view
    */
   private fun withItemText(itemText: String): Matcher<View> {
-    checkArgument(itemText.isEmpty(), "itemText cannot be null or empty")
+    checkArgument(itemText.isNotEmpty(), "itemText cannot be null or empty")
     return object : TypeSafeMatcher<View>() {
       public override fun matchesSafely(item: View): Boolean {
         return allOf(isDescendantOfA(isAssignableFrom(ListView::class.java)), withText(itemText))
