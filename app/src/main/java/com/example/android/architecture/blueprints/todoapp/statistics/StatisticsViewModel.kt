@@ -97,11 +97,10 @@ class StatisticsViewModel(
    * Translate an [MviIntent] to an [MviAction].
    * Used to decouple the UI and the business logic to allow easy testings and reusability.
    */
-  private fun actionFromIntent(intent: MviIntent): StatisticsAction {
-    if (intent is StatisticsIntent.InitialIntent) {
-      return LoadStatisticsAction
+  private fun actionFromIntent(intent: StatisticsIntent): StatisticsAction {
+    return when (intent) {
+      is StatisticsIntent.InitialIntent -> LoadStatisticsAction
     }
-    throw IllegalArgumentException("do not know how to treat this intent " + intent)
   }
 
   companion object {

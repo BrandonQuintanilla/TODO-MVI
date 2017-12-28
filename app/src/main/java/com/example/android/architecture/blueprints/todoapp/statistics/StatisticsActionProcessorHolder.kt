@@ -47,7 +47,7 @@ class StatisticsActionProcessorHolder(
               // Wrap any error into an immutable object and pass it down the stream
               // without crashing.
               // Because errors are data and hence, should just be part of the stream.
-              .onErrorReturn { LoadStatisticsResult.Failure(it) }
+              .onErrorReturn(LoadStatisticsResult::Failure)
               .subscribeOn(schedulerProvider.io())
               .observeOn(schedulerProvider.ui())
               // Emit an InFlight event to notify the subscribers (e.g. the UI) we are
