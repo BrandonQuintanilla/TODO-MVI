@@ -36,6 +36,7 @@ class AddEditTaskActivity : AppCompatActivity() {
     // Set up the toolbar.
     setSupportActionBar(findViewById(R.id.toolbar))
     supportActionBar?.run {
+      actionBar = this
       setDisplayHomeAsUpEnabled(true)
       setDisplayShowHomeEnabled(true)
     }

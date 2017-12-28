@@ -100,7 +100,7 @@ public class TaskDetailScreenTest {
         // Add a task stub to the fake service api layer.
         TasksRepository.Companion.clearInstance();
         TasksLocalDataSource.Companion.clearInstance();
-        Injection.provideTasksRepository(InstrumentationRegistry.getTargetContext()).saveTask(task);
+        Injection.INSTANCE.provideTasksRepository(InstrumentationRegistry.getTargetContext()).saveTask(task);
 
         // Lazily start the Activity from the ActivityTestRule this time to inject the start Intent
         Intent startIntent = new Intent();
