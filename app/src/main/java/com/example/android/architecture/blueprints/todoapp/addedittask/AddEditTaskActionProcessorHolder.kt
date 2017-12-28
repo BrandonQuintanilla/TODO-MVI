@@ -56,13 +56,13 @@ class AddEditTaskActionProcessorHolder(
       ObservableTransformer<CreateTaskAction, CreateTaskResult> { actions ->
         actions
             .map { action -> Task(title = action.title, description = action.description) }
-            .map { task ->
-              if (task.empty) {
-                CreateTaskResult.Empty
-              } else {
-                tasksRepository.saveTask(task)
-                CreateTaskResult.Success
-              }
+            .publish { task ->
+              Observable.merge(
+                  task.filter(Task::empty).map { CreateTaskResult.Empty },
+                  task.filter { !it.empty }.flatMap {
+                    tasksRepository.saveTask(it).andThen(Observable.just(CreateTaskResult.Success))
+                  }
+              )
             }
       }
 
