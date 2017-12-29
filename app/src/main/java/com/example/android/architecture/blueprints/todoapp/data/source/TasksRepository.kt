@@ -19,7 +19,6 @@ package com.example.android.architecture.blueprints.todoapp.data.source
 import android.support.annotation.VisibleForTesting
 import com.example.android.architecture.blueprints.todoapp.data.Task
 import com.example.android.architecture.blueprints.todoapp.util.SingletonHolderDoubleArg
-import com.google.common.base.Preconditions.checkNotNull
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single

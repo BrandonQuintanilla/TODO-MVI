@@ -69,8 +69,9 @@ class AddEditTaskActionProcessorHolder(
   private val updateTaskProcessor =
       ObservableTransformer<UpdateTaskAction, UpdateTaskResult> { actions ->
         actions.flatMap { action ->
-          tasksRepository.saveTask(Task.invoke(action.title, action.description, action.taskId))
-              .andThen(Observable.just(UpdateTaskResult))
+          tasksRepository.saveTask(
+              Task(title = action.title, description = action.description, id = action.taskId)
+          ).andThen(Observable.just(UpdateTaskResult))
         }
       }
 

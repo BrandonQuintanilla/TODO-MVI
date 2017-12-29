@@ -1,21 +1,25 @@
-# TODO-MVI-RxJava
+# TODO-MVI-RxJava-Kotlin
+
+### Java Version
+
+You can fin the Java version of this app [here](https://github.com/oldergod/android-architecture/tree/todo-mvi-rxjava).
 
 ### Contributors
 
-[Benoît Quenaudon](https://github.com/oldergod) and [David González](https://github.com/malmstein).
+[Benoît Quenaudon](https://github.com/oldergod)
 
 ### Summary
 
-This version of the app is called TODO-MVI-RxJava. It is based on an Android ported version of the Model-View-Intent architecture and uses RxJava to implement the reactive caracteristic of the architecture. It is initially a fork of the [TODO-MVP-RXJAVA](https://github.com/googlesamples/android-architecture/tree/todo-mvp-rxjava).
+This version of the app is called TODO-MVI-RxJava-Kotlin. It is based on an Android ported version of the Model-View-Intent architecture and uses RxJava to implement the reactive caracteristic of the architecture. It is initially a fork of the [TODO-MVP-RXJAVA](https://github.com/googlesamples/android-architecture/tree/todo-mvp-rxjava).
 
 The MVI architecture embraces reactive and functional programming. The two main components of this architecture, the _View_ and the _ViewModel_ can be seen as functions, taking an input and emiting outputs to each other. The _View_ takes input from the _ViewModel_ and emit back _intents_. The _ViewModel_ takes input from the _View_ and emit back _view states_. This means the _View_ has only one entry point to forward data to the _ViewModel_ and vice-versa, the _ViewModel_ only has one way to pass information to the _View_.  
 This is reflected in their API. For instance, The _View_ has only two exposed methods:
 
-```java
-public interface MviView {
-  Observable<MviIntent> intents();
+```kotlin
+interface MviView {
+  fun intents(): Observable<MviIntent>
 
-  void render(MviViewState state);
+  fun render(state: MviViewState)
 }
 ```
 
@@ -23,23 +27,23 @@ A _View_ will a) emit its intents to a _ViewModel_, and b) subscribes to this _V
 
 A _ViewModel_ exposes only two methods as well:
 
-```java
-public interface MviViewModel {
-  void processIntents(Observable<MviIntent> intents);
+```kotlin
+interface MviViewModel {
+  fun processIntents(intents: Observable<MviIntent>)
 
-  Observable<MviViewState> states();
+  fun states(): Observable<MviViewState>
 }
 ```
 
 A _ViewModel_ will a) process the _intents_ of the _View_, and b) emit a _view state_ back so the _View_ can reflect the change, if any.
 
-<img src="https://raw.githubusercontent.com/oldergod/android-architecture/todo-mvi-rxjava/art/MVI_global.png" alt="View and ViewModel are simple functions."/>
+<img src="https://raw.githubusercontent.com/oldergod/android-architecture/todo-mvi-rxjava-kotlin/art/MVI_global.png" alt="View and ViewModel are simple functions."/>
 
 ### The User is a function
 
 The MVI architecture sees the user as part of the data flow, a functionnal component taking input from the previous one and emitting event to the next. The user receives an input―the screen from the application―and ouputs back events (touch, click, scroll...). On Android, the input/output of the UI is at the same place; either physically as everything goes through the screen or in the program: I/O inside the activity or the fragment. Including the User to seperate the input of the view from its output helps keeping the code healty.
 
-<img src="https://raw.githubusercontent.com/oldergod/android-architecture/todo-mvi-rxjava/art/MVI_detail.png" alt="Model-View-Intent architecture in details"/>
+<img src="https://raw.githubusercontent.com/oldergod/android-architecture/todo-mvi-rxjava-kotlin/art/MVI_detail.png" alt="Model-View-Intent architecture in details"/>
 
 ### MVI in details
 
@@ -80,19 +84,18 @@ The _State_ contains all the information the _View_ needs to render itself.
 
  The `TasksDataSource` interface contains methods like:
 
-```java
-Single<List<Task>> getTasks();
+```kotlin
+fun getTasks(): Single<List<Task>>
 
-Single<Task> getTask(@NonNull String taskId);
+fun getTask(taskId: String): Single<Task>
 
-Completable completeTask(@NonNull Task task);
+fun completeTask(task: Task): Completable
 ```
 
 This is implemented in `TasksLocalDataSource` with the help of [SqlBrite](https://github.com/square/sqlbrite). The result of queries to the database being easily exposed as streams of data.
 
-```java
-@Override
-public Single<List<Task>> getTasks() {
+```kotlin
+override fun getTasks(): Single<List<Task>> {
     ...
     return databaseHelper.createQuery(TaskEntry.TABLE_NAME, sql)
             .mapToList(taskMapperFunction)
@@ -106,7 +109,7 @@ Handling of the working threads is done with the help of RxJava's `Scheduler`s. 
 
 ### Immutability
 
-Data immutability is embraced to help keeping the logic simple. Immutability means that we do not need to manage data being mutated in other methods, in other threads, etc; because we are sure the data cannot change. Data immutability is implemented with the help of [AutoValue](https://github.com/google/auto/tree/master/value). Our all value objects are interfaces of which AutoValue will generate the implementation.
+Data immutability is embraced to help keeping the logic simple. Immutability means that we do not need to manage data being mutated in other methods, in other threads, etc; because we are sure the data cannot change. Data immutability is implemented with Kotlin's `data class`.
 
 ### Functional Programming
 
@@ -122,7 +125,6 @@ We use the [Architecture Components library](https://developer.android.com/topic
 * [RxJava2](https://github.com/ReactiveX/RxJava)
 * [RxAndroid](https://github.com/ReactiveX/RxAndroid)
 * [SqlBrite](https://github.com/square/sqlbrite)
-* [AutoValue](https://github.com/google/auto/tree/master/value)
 * [Architecture Components](https://developer.android.com/topic/libraries/architecture/index.html)
 * [RxBinding](https://github.com/JakeWharton/RxBinding)
 
@@ -156,10 +158,10 @@ Compared to TODO-MVP, new classes were added for 1) setting the interfaces to he
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Java                            73           1275           1689           4798 (3639 in MVP-RXJAVA)
+Kotlin                          75            886           1645           3977 (3639 in MVP-RXJAVA,  (4798 in MVI-RXJAVA-KOTLIN))
 XML                             34             97            338            610
 -------------------------------------------------------------------------------
-SUM:                           107           1372           2027           5408
+SUM:                           109            983           1983           4587
 -------------------------------------------------------------------------------
 ```
 ### Maintainability

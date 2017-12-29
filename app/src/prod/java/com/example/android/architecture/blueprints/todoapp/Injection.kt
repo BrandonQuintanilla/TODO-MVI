@@ -25,8 +25,6 @@ import com.example.android.architecture.blueprints.todoapp.data.source.remote.Ta
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.SchedulerProvider
 
-import com.google.common.base.Preconditions.checkNotNull
-
 /**
  * Enables injection of production implementations for
  * [TasksDataSource] at compile time.
