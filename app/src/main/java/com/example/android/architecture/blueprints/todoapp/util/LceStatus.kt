@@ -1,6 +1,7 @@
 package com.example.android.architecture.blueprints.todoapp.util
 
 /**
+ * // TODO(benoit) delete
  * Loading, Content, Error status to define the state asynchronous operation.
  */
 enum class LceStatus {
