@@ -46,7 +46,6 @@ import com.example.android.architecture.blueprints.todoapp.data.source.TasksData
 import com.example.android.architecture.blueprints.todoapp.getCurrentActivity
 import com.example.android.architecture.blueprints.todoapp.getToolbarNavigationContentDescription
 import com.example.android.architecture.blueprints.todoapp.rotateOrientation
-import com.google.common.base.Preconditions.checkArgument
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.allOf
@@ -104,7 +103,7 @@ class TasksScreenTest {
    * @return Matcher that matches text in the given view
    */
   private fun withItemText(itemText: String): Matcher<View> {
-    checkArgument(itemText.isNotEmpty(), "itemText cannot be null or empty")
+    check(itemText.isNotEmpty()) { "itemText cannot be null or empty" }
     return object : TypeSafeMatcher<View>() {
       public override fun matchesSafely(item: View): Boolean {
         return allOf(isDescendantOfA(isAssignableFrom(ListView::class.java)), withText(itemText))
