@@ -91,8 +91,6 @@ dependencies {
   implementation "android.arch.lifecycle:extensions:$rootProject.archComponentsVersion"
   implementation "io.reactivex.rxjava2:rxkotlin:$rootProject.rxKotlinVersion"
   kapt "android.arch.lifecycle:compiler:$rootProject.archComponentsVersion"
-  annotationProcessor "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
-  api "com.google.auto.value:auto-value:$rootProject.autoValueVersion"
 
   // Dependencies for local unit tests
   testImplementation "com.nhaarman:mockito-kotlin:$rootProject.mockitoKotlinVersion"
