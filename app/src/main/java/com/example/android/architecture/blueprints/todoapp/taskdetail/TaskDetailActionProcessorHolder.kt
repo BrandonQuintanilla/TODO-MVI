@@ -134,11 +134,11 @@ class TaskDetailActionProcessorHolder(
       }
 
   /**
-   * Splits the [<] to match each type of [MviAction] to
+   * Splits the [Observable] to match each type of [MviAction] to
    * its corresponding business logic processor. Each processor takes a defined [MviAction],
    * returns a defined [MviResult]
-   * The global actionProcessor then merges all [<] back to
-   * one unique [<].
+   * The global actionProcessor then merges all [Observable] back to
+   * one unique [Observable].
    *
    *
    * The splitting is done using [Observable.publish] which allows almost anything

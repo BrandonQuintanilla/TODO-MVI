@@ -70,7 +70,7 @@ class TasksViewModelTest {
     // Given an initialized TasksViewModel with initialized tasks
     `when`(tasksRepository.getTasks(any())).thenReturn(Single.just(tasks))
     // When loading of Tasks is initiated
-    tasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()))
+    tasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent))
 
     // Then progress indicator state is emitted
     testObserver.assertValueAt(1, TasksViewState::isLoading)
@@ -84,7 +84,7 @@ class TasksViewModelTest {
     `when`(tasksRepository.getTasks(any())).thenReturn(Single.just(tasks))
     // When loading of Tasks is initiated
     tasksViewModel.processIntents(
-        Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.ACTIVE_TASKS)))
+        Observable.just(TasksIntent.ChangeFilterIntent(TasksFilterType.ACTIVE_TASKS)))
 
     // Then progress indicator state is emitted
     testObserver.assertValueAt(1, TasksViewState::isLoading)
@@ -98,7 +98,7 @@ class TasksViewModelTest {
     `when`(tasksRepository.getTasks(any())).thenReturn(Single.just(tasks))
     // When loading of Tasks is requested
     tasksViewModel.processIntents(
-        Observable.just(TasksIntent.ChangeFilterIntent.create(TasksFilterType.COMPLETED_TASKS)))
+        Observable.just(TasksIntent.ChangeFilterIntent(TasksFilterType.COMPLETED_TASKS)))
 
     // Then progress indicator state is emitted
     testObserver.assertValueAt(1, TasksViewState::isLoading)
@@ -115,7 +115,7 @@ class TasksViewModelTest {
     `when`(tasksRepository.getTasks()).thenReturn(Single.just(emptyList()))
 
     // When task is marked as complete
-    tasksViewModel.processIntents(Observable.just(TasksIntent.CompleteTaskIntent.create(task)))
+    tasksViewModel.processIntents(Observable.just(TasksIntent.CompleteTaskIntent(task)))
 
     // Then repository is called and task marked complete state is emitted
     verify(tasksRepository).completeTask(task)
@@ -132,7 +132,7 @@ class TasksViewModelTest {
     `when`(tasksRepository.getTasks()).thenReturn(Single.just(emptyList()))
 
     // When task is marked as activated
-    tasksViewModel.processIntents(Observable.just(TasksIntent.ActivateTaskIntent.create(task)))
+    tasksViewModel.processIntents(Observable.just(TasksIntent.ActivateTaskIntent(task)))
 
     // Then repository is called and task marked active state is emitted
     verify(tasksRepository).activateTask(task)
@@ -146,9 +146,9 @@ class TasksViewModelTest {
     `when`(tasksRepository.getTasks(any())).thenReturn(Single.error(Exception()))
 
     // When tasks are loaded
-    tasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent.create()))
+    tasksViewModel.processIntents(Observable.just(TasksIntent.InitialIntent))
 
     // Then an error containing state is emitted
-    testObserver.assertValueAt(2) { state -> state.error() != null }
+    testObserver.assertValueAt(2) { state -> state.error != null }
   }
 }

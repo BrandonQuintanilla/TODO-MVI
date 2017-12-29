@@ -22,6 +22,7 @@ import android.arch.lifecycle.LifecycleRegistryOwner;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -60,8 +61,7 @@ import static com.example.android.architecture.blueprints.todoapp.tasks.TasksFil
 /**
  * Display a grid of {@link Task}s. User can choose to view all, active or completed tasks.
  */
-public class TasksFragment extends Fragment
-        implements LifecycleRegistryOwner, MviView<TasksIntent, TasksViewState> {
+public class TasksFragment extends Fragment        implements MviView<TasksIntent, TasksViewState> {
     private LifecycleRegistry mLifecycleRegistry = new LifecycleRegistry(this);
 
     private TasksViewModel mViewModel;
@@ -93,7 +93,7 @@ public class TasksFragment extends Fragment
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         mViewModel = ViewModelProviders
@@ -123,7 +123,7 @@ public class TasksFragment extends Fragment
         super.onResume();
         // conflicting with the initial intent but needed when coming back from the
         // AddEditTask activity to refresh the list.
-        mRefreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(false));
+        mRefreshIntentPublisher.onNext(new TasksIntent.RefreshIntent(false));
     }
 
     @Override
@@ -143,31 +143,31 @@ public class TasksFragment extends Fragment
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.tasks_frag, container, false);
 
         // Set up tasks view
-        ListView listView = (ListView) root.findViewById(R.id.tasks_list);
+        ListView listView = root.findViewById(R.id.tasks_list);
         listView.setAdapter(mListAdapter);
-        mFilteringLabelView = (TextView) root.findViewById(R.id.filteringLabel);
-        mTasksView = (LinearLayout) root.findViewById(R.id.tasksLL);
+        mFilteringLabelView = root.findViewById(R.id.filteringLabel);
+        mTasksView = root.findViewById(R.id.tasksLL);
 
         // Set up  no tasks view
         mNoTasksView = root.findViewById(R.id.noTasks);
-        mNoTaskIcon = (ImageView) root.findViewById(R.id.noTasksIcon);
-        mNoTaskMainView = (TextView) root.findViewById(R.id.noTasksMain);
-        mNoTaskAddView = (TextView) root.findViewById(R.id.noTasksAdd);
+        mNoTaskIcon = root.findViewById(R.id.noTasksIcon);
+        mNoTaskMainView = root.findViewById(R.id.noTasksMain);
+        mNoTaskAddView = root.findViewById(R.id.noTasksAdd);
         mNoTaskAddView.setOnClickListener(ignored -> showAddTask());
 
         // Set up floating action button
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab_add_task);
+        FloatingActionButton fab = getActivity().findViewById(R.id.fab_add_task);
 
         fab.setImageResource(R.drawable.ic_add);
         fab.setOnClickListener(ignored -> showAddTask());
 
         // Set up progress indicator
-        mSwipeRefreshLayout = (ScrollChildSwipeRefreshLayout) root.findViewById(R.id.refresh_layout);
+        mSwipeRefreshLayout = root.findViewById(R.id.refresh_layout);
         mSwipeRefreshLayout.setColorSchemeColors(
                 ContextCompat.getColor(getActivity(), R.color.colorPrimary),
                 ContextCompat.getColor(getActivity(), R.color.colorAccent),
@@ -184,13 +184,13 @@ public class TasksFragment extends Fragment
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_clear:
-                mClearCompletedTaskIntentPublisher.onNext(TasksIntent.ClearCompletedTasksIntent.create());
+                mClearCompletedTaskIntentPublisher.onNext(TasksIntent.ClearCompletedTasksIntent.INSTANCE);
                 break;
             case R.id.menu_filter:
                 showFilteringPopUpMenu();
                 break;
             case R.id.menu_refresh:
-                mRefreshIntentPublisher.onNext(TasksIntent.RefreshIntent.create(true));
+                mRefreshIntentPublisher.onNext(new TasksIntent.RefreshIntent(true));
                 break;
         }
         return true;
@@ -202,28 +202,28 @@ public class TasksFragment extends Fragment
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    @Override
+    @NonNull @Override
     public Observable<TasksIntent> intents() {
         return Observable.merge(initialIntent(), refreshIntent(), adapterIntents(),
                 clearCompletedTaskIntent()).mergeWith(changeFilterIntent());
     }
 
     @Override
-    public void render(TasksViewState state) {
+    public void render(@NonNull TasksViewState state) {
         mSwipeRefreshLayout.setRefreshing(state.isLoading());
-        if (state.error() != null) {
+        if (state.getError() != null) {
             showLoadingTasksError();
             return;
         }
 
-        if (state.taskActivated()) showMessage(getString(R.string.task_marked_active));
+        if (state.getTaskActivated()) showMessage(getString(R.string.task_marked_active));
 
-        if (state.taskComplete()) showMessage(getString(R.string.task_marked_complete));
+        if (state.getTaskComplete()) showMessage(getString(R.string.task_marked_complete));
 
-        if (state.completedTasksCleared()) showMessage(getString(R.string.completed_tasks_cleared));
+        if (state.getCompletedTasksCleared()) showMessage(getString(R.string.completed_tasks_cleared));
 
-        if (state.tasks().isEmpty()) {
-            switch (state.tasksFilterType()) {
+        if (state.getTasks().isEmpty()) {
+            switch (state.getTasksFilterType()) {
                 case ACTIVE_TASKS:
                     showNoActiveTasks();
                     break;
@@ -235,12 +235,12 @@ public class TasksFragment extends Fragment
                     break;
             }
         } else {
-            mListAdapter.replaceData(state.tasks());
+            mListAdapter.replaceData(state.getTasks());
 
             mTasksView.setVisibility(View.VISIBLE);
             mNoTasksView.setVisibility(View.GONE);
 
-            switch (state.tasksFilterType()) {
+            switch (state.getTasksFilterType()) {
                 case ACTIVE_TASKS:
                     showActiveFilterLabel();
                     break;
@@ -265,14 +265,14 @@ public class TasksFragment extends Fragment
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case R.id.active:
-                    mChangeFilterIntentPublisher.onNext(TasksIntent.ChangeFilterIntent.create(ACTIVE_TASKS));
+                    mChangeFilterIntentPublisher.onNext(new TasksIntent.ChangeFilterIntent(ACTIVE_TASKS));
                     break;
                 case R.id.completed:
                     mChangeFilterIntentPublisher.onNext(
-                            TasksIntent.ChangeFilterIntent.create(COMPLETED_TASKS));
+                            new TasksIntent.ChangeFilterIntent(COMPLETED_TASKS));
                     break;
                 default:
-                    mChangeFilterIntentPublisher.onNext(TasksIntent.ChangeFilterIntent.create(ALL_TASKS));
+                    mChangeFilterIntentPublisher.onNext(new TasksIntent.ChangeFilterIntent(ALL_TASKS));
                     break;
             }
             return true;
@@ -294,12 +294,12 @@ public class TasksFragment extends Fragment
      * to render the initial {@link MviViewState} (e.g. the task id to load).
      */
     private Observable<TasksIntent.InitialIntent> initialIntent() {
-        return Observable.just(TasksIntent.InitialIntent.create());
+        return Observable.just(TasksIntent.InitialIntent.INSTANCE);
     }
 
     private Observable<TasksIntent.RefreshIntent> refreshIntent() {
         return RxSwipeRefreshLayout.refreshes(mSwipeRefreshLayout)
-                .map(ignored -> TasksIntent.RefreshIntent.create(false))
+                .map(ignored -> new TasksIntent.RefreshIntent(false))
                 .mergeWith(mRefreshIntentPublisher);
     }
 
@@ -314,9 +314,9 @@ public class TasksFragment extends Fragment
     private Observable<TasksIntent> adapterIntents() {
         return mListAdapter.getTaskToggleObservable().map(task -> {
             if (!task.getCompleted()) {
-                return TasksIntent.CompleteTaskIntent.create(task);
+                return new TasksIntent.CompleteTaskIntent(task);
             } else {
-                return TasksIntent.ActivateTaskIntent.create(task);
+                return new TasksIntent.ActivateTaskIntent(task);
             }
         });
     }
