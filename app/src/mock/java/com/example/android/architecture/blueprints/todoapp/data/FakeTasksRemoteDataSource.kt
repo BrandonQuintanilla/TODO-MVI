@@ -56,14 +56,14 @@ object FakeTasksRemoteDataSource : TasksDataSource {
   }
 
   override fun activateTask(task: Task): Completable {
-    val activeTask = Task.invoke(task.title!!, task.description!!, task.id)
+    val activeTask = Task(title = task.title!!, description = task.description!!, id = task.id)
     TasksServiceData.put(task.id, activeTask)
     return Completable.complete()
   }
 
   override fun activateTask(taskId: String): Completable {
     val task = TasksServiceData[taskId]!!
-    val activeTask = Task.invoke(task.title!!, task.description!!, task.id)
+    val activeTask = Task(title = task.title!!, description = task.description!!, id = task.id)
     TasksServiceData.put(taskId, activeTask)
     return Completable.complete()
   }

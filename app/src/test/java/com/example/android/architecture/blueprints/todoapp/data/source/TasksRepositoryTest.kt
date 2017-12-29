@@ -125,7 +125,7 @@ class TasksRepositoryTest {
   @Test
   fun saveTask_savesTaskToServiceAPI() {
     // Given a stub task with title and description
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description")
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description")
 
     // When a task is saved to the tasks repository
     tasksRepository.saveTask(newTask)
@@ -139,7 +139,7 @@ class TasksRepositoryTest {
   @Test
   fun completeTask_completesTaskToServiceAPIUpdatesCache() {
     // Given a stub active task with title and description added in the repository
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description")
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description")
     tasksRepository.saveTask(newTask)
 
     // When a task is completed to the tasks repository
@@ -158,7 +158,7 @@ class TasksRepositoryTest {
   @Test
   fun completeTaskId_completesTaskToServiceAPIUpdatesCache() {
     // Given a stub active task with title and description added in the repository
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description")
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description")
     tasksRepository.saveTask(newTask)
 
     // When a task is completed using its id to the tasks repository
@@ -176,7 +176,7 @@ class TasksRepositoryTest {
   @Test
   fun activateTask_activatesTaskToServiceAPIUpdatesCache() {
     // Given a stub completed task with title and description in the repository
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description", true)
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description", completed = true)
     tasksRepository.saveTask(newTask)
 
     // When a completed task is activated to the tasks repository
@@ -194,7 +194,7 @@ class TasksRepositoryTest {
   @Test
   fun activateTaskId_activatesTaskToServiceAPIUpdatesCache() {
     // Given a stub completed task with title and description in the repository
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description", true)
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description", completed = true)
     tasksRepository.saveTask(newTask)
 
     // When a completed task is activated with its id to the tasks repository
@@ -212,7 +212,7 @@ class TasksRepositoryTest {
   @Test
   fun getTask_requestsSingleTaskFromLocalDataSource() {
     // Given a stub completed task with title and description in the local repository
-    val task = Task.invoke(TASK_TITLE, "Some Task Description", true)
+    val task = Task(title = TASK_TITLE, description = "Some Task Description", completed = true)
     setTaskAvailable(tasksLocalDataSource, task)
     // And the task not available in the remote repository
     setTaskNotAvailable(tasksRemoteDataSource, task.id)
@@ -229,7 +229,7 @@ class TasksRepositoryTest {
   @Test
   fun getTask_whenDataNotLocal_fails() {
     // Given a stub completed task with title and description in the remote repository
-    val task = Task.invoke(TASK_TITLE, "Some Task Description", true)
+    val task = Task(title = TASK_TITLE, description = "Some Task Description", completed = true)
     setTaskAvailable(tasksRemoteDataSource, task)
     // And the task not available in the local repository
     setTaskNotAvailable(tasksLocalDataSource, task.id)
@@ -245,11 +245,12 @@ class TasksRepositoryTest {
   @Test
   fun deleteCompletedTasks_deleteCompletedTasksToServiceAPIUpdatesCache() {
     // Given 2 stub completed tasks and 1 stub active tasks in the repository
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description", true)
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description", completed = true)
     tasksRepository.saveTask(newTask)
-    val newTask2 = Task.invoke(TASK_TITLE2, "Some Task Description")
+    val newTask2 = Task(title = TASK_TITLE2, description = "Some Task Description")
     tasksRepository.saveTask(newTask2)
-    val newTask3 = Task.invoke(TASK_TITLE3, "Some Task Description", true)
+    val newTask3 = Task(title = TASK_TITLE3, description = "Some Task Description",
+        completed = true)
     tasksRepository.saveTask(newTask3)
 
     // When a completed tasks are cleared to the tasks repository
@@ -269,11 +270,12 @@ class TasksRepositoryTest {
   @Test
   fun deleteAllTasks_deleteTasksToServiceAPIUpdatesCache() {
     // Given 2 stub completed tasks and 1 stub active tasks in the repository
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description", true)
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description", completed = true)
     tasksRepository.saveTask(newTask)
-    val newTask2 = Task.invoke(TASK_TITLE2, "Some Task Description")
+    val newTask2 = Task(title = TASK_TITLE2, description = "Some Task Description")
     tasksRepository.saveTask(newTask2)
-    val newTask3 = Task.invoke(TASK_TITLE3, "Some Task Description", true)
+    val newTask3 = Task(title = TASK_TITLE3, description = "Some Task Description",
+        completed = true)
     tasksRepository.saveTask(newTask3)
 
     // When all tasks are deleted to the tasks repository
@@ -289,7 +291,7 @@ class TasksRepositoryTest {
   @Test
   fun deleteTask_deleteTaskToServiceAPIRemovedFromCache() {
     // Given a task in the repository
-    val newTask = Task.invoke(TASK_TITLE, "Some Task Description", true)
+    val newTask = Task(title = TASK_TITLE, description = "Some Task Description", completed = true)
     tasksRepository.saveTask(newTask)
     assertThat(tasksRepository.cachedTasks!!.containsKey(newTask.id), `is`(true))
 
@@ -407,7 +409,7 @@ class TasksRepositoryTest {
     private const val TASK_TITLE2 = "title2"
     private const val TASK_TITLE3 = "title3"
     private val TASKS = listOf(
-        Task.invoke("Title1", "Description1"),
-        Task.invoke("Title2", "Description2"))
+        Task(title = "Title1", description = "Description1"),
+        Task(title = "Title2", description = "Description2"))
   }
 }

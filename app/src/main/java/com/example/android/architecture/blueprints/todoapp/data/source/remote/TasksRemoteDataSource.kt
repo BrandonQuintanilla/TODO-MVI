@@ -39,7 +39,7 @@ object TasksRemoteDataSource : TasksDataSource {
   }
 
   private fun addTask(title: String, description: String) {
-    val newTask = Task.invoke(title, description)
+    val newTask = Task(title = title, description = description)
     tasksServiceData.put(newTask.id, newTask)
   }
 
@@ -72,7 +72,7 @@ object TasksRemoteDataSource : TasksDataSource {
   }
 
   override fun activateTask(task: Task): Completable {
-    val activeTask = Task.invoke(task.title!!, task.description!!, task.id)
+    val activeTask = Task(title = task.title!!, description = task.description!!, id = task.id)
     tasksServiceData.put(task.id, activeTask)
     return Completable.complete()
   }
