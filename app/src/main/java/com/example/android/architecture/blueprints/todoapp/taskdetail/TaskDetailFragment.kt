@@ -52,20 +52,20 @@ import kotlin.LazyThreadSafetyMode.NONE
  * Main UI for the task detail screen.
  */
 class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewState> {
-  private lateinit var mDetailTitle: TextView
-  private lateinit var mDetailDescription: TextView
-  private lateinit var mDetailCompleteStatus: CheckBox
+  private lateinit var detailTitle: TextView
+  private lateinit var detailDescription: TextView
+  private lateinit var detailCompleteStatus: CheckBox
   private lateinit var fab: FloatingActionButton
 
-  private val mViewModel: TaskDetailViewModel by lazy(NONE) {
+  private val viewModel: TaskDetailViewModel by lazy(NONE) {
     ViewModelProviders
         .of(this, ToDoViewModelFactory.getInstance(context!!))
         .get(TaskDetailViewModel::class.java)
   }
 
   // Used to manage the data flow lifecycle and avoid memory leak.
-  private var mDisposables = CompositeDisposable()
-  private val mDeleteTaskIntentPublisher = PublishSubject.create<TaskDetailIntent.DeleteTask>()
+  private var disposables = CompositeDisposable()
+  private val deleteTaskIntentPublisher = PublishSubject.create<TaskDetailIntent.DeleteTask>()
 
   private val argumentTaskId: String
     get() = arguments!!.getString(ARGUMENT_TASK_ID)
@@ -74,9 +74,9 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
       savedInstanceState: Bundle?): View? {
     val root = inflater.inflate(R.layout.taskdetail_frag, container, false)
     setHasOptionsMenu(true)
-    mDetailTitle = root.findViewById<View>(R.id.task_detail_title) as TextView
-    mDetailDescription = root.findViewById<View>(R.id.task_detail_description) as TextView
-    mDetailCompleteStatus = root.findViewById<View>(R.id.task_detail_complete) as CheckBox
+    detailTitle = root.findViewById<View>(R.id.task_detail_title) as TextView
+    detailDescription = root.findViewById<View>(R.id.task_detail_description) as TextView
+    detailCompleteStatus = root.findViewById<View>(R.id.task_detail_complete) as CheckBox
 
     // Set up floating action button
     fab = activity!!.findViewById<View>(R.id.fab_edit_task) as FloatingActionButton
@@ -98,9 +98,9 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
    */
   private fun bind() {
     // Subscribe to the ViewModel and call render for every emitted state
-    mDisposables.add(mViewModel.states().subscribe(this::render))
+    disposables.add(viewModel.states().subscribe(this::render))
     // Pass the UI's intents to the ViewModel
-    mViewModel.processIntents(intents())
+    viewModel.processIntents(intents())
 
     // Debounce the FAB clicks to avoid consecutive clicks and navigate to EditTask
     RxView.clicks(fab).debounce(200, TimeUnit.MILLISECONDS)
@@ -109,7 +109,7 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
 
   override fun onDestroy() {
     super.onDestroy()
-    mDisposables.dispose()
+    disposables.dispose()
   }
 
   override fun intents(): Observable<TaskDetailIntent> {
@@ -127,8 +127,8 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
   }
 
   private fun checkBoxIntents(): Observable<TaskDetailIntent> {
-    return RxView.clicks(mDetailCompleteStatus).map {
-      if (mDetailCompleteStatus.isChecked) {
+    return RxView.clicks(detailCompleteStatus).map {
+      if (detailCompleteStatus.isChecked) {
         CompleteTaskIntent(argumentTaskId)
       } else {
         ActivateTaskIntent(argumentTaskId)
@@ -138,7 +138,7 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
   }
 
   private fun deleteIntent(): Observable<TaskDetailIntent.DeleteTask> {
-    return mDeleteTaskIntentPublisher
+    return deleteTaskIntentPublisher
   }
 
   override fun render(state: TaskDetailViewState) {
@@ -175,7 +175,7 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
     when (item!!.itemId) {
       R.id.menu_delete -> {
-        mDeleteTaskIntentPublisher.onNext(TaskDetailIntent.DeleteTask(argumentTaskId))
+        deleteTaskIntentPublisher.onNext(TaskDetailIntent.DeleteTask(argumentTaskId))
         return true
       }
     }
@@ -200,26 +200,26 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
 
   fun setLoadingIndicator(active: Boolean) {
     if (active) {
-      mDetailTitle.text = ""
-      mDetailDescription.text = getString(R.string.loading)
+      detailTitle.text = ""
+      detailDescription.text = getString(R.string.loading)
     }
   }
 
   fun hideDescription() {
-    mDetailDescription.visibility = View.GONE
+    detailDescription.visibility = View.GONE
   }
 
   fun hideTitle() {
-    mDetailTitle.visibility = View.GONE
+    detailTitle.visibility = View.GONE
   }
 
   fun showActive(isActive: Boolean) {
-    mDetailCompleteStatus.isChecked = !isActive
+    detailCompleteStatus.isChecked = !isActive
   }
 
   fun showDescription(description: String) {
-    mDetailDescription.visibility = View.VISIBLE
-    mDetailDescription.text = description
+    detailDescription.visibility = View.VISIBLE
+    detailDescription.text = description
   }
 
   private fun showEditTask(taskId: String) {
@@ -239,8 +239,8 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
   }
 
   fun showTitle(title: String) {
-    mDetailTitle.visibility = View.VISIBLE
-    mDetailTitle.text = title
+    detailTitle.visibility = View.VISIBLE
+    detailTitle.text = title
   }
 
   companion object {

@@ -15,14 +15,14 @@ import io.reactivex.subjects.PublishSubject
 
 class TasksAdapter(tasks: List<Task>) : BaseAdapter() {
   private val taskClickSubject = PublishSubject.create<Task>()
-  private val mTaskToggleObservable = PublishSubject.create<Task>()
+  private val taskToggleSubject = PublishSubject.create<Task>()
   private lateinit var tasks: List<Task>
 
   val taskClickObservable: Observable<Task>
     get() = taskClickSubject
 
   val taskToggleObservable: Observable<Task>
-    get() = mTaskToggleObservable
+    get() = taskToggleSubject
 
   init {
     setList(tasks)
@@ -44,8 +44,8 @@ class TasksAdapter(tasks: List<Task>) : BaseAdapter() {
   override fun getItemId(position: Int): Long = position.toLong()
 
   override fun getView(position: Int, view: View?, viewGroup: ViewGroup): View {
-    val rowView: View = view ?:
-        LayoutInflater.from(viewGroup.context).inflate(R.layout.task_item, viewGroup, false)
+    val rowView: View = view ?: LayoutInflater.from(viewGroup.context).inflate(R.layout.task_item,
+        viewGroup, false)
 
     val task = getItem(position)
 
@@ -65,7 +65,7 @@ class TasksAdapter(tasks: List<Task>) : BaseAdapter() {
           ContextCompat.getDrawable(viewGroup.context, R.drawable.touch_feedback))
     }
 
-    completeCB.setOnClickListener { mTaskToggleObservable.onNext(task) }
+    completeCB.setOnClickListener { taskToggleSubject.onNext(task) }
 
     rowView.setOnClickListener { taskClickSubject.onNext(task) }
 
