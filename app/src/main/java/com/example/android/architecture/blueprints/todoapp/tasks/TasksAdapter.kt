@@ -44,8 +44,8 @@ class TasksAdapter(tasks: List<Task>) : BaseAdapter() {
   override fun getItemId(position: Int): Long = position.toLong()
 
   override fun getView(position: Int, view: View?, viewGroup: ViewGroup): View {
-    val rowView: View = view ?: LayoutInflater.from(viewGroup.context).inflate(R.layout.task_item,
-        viewGroup, false)
+    val rowView: View = view
+        ?: LayoutInflater.from(viewGroup.context).inflate(R.layout.task_item, viewGroup, false)
 
     val task = getItem(position)
 
