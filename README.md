@@ -2,7 +2,7 @@
 
 ### Kotlin version
 
-You can fin the Kotlin version of this app [here](https://github.com/oldergod/android-architecture/tree/todo-mvi-rxjava-kotlin).
+You can find the Kotlin version of this app [here](https://github.com/oldergod/android-architecture/tree/todo-mvi-rxjava-kotlin).
 
 ### Contributors
 
