@@ -248,9 +248,9 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
     private const val REQUEST_EDIT_TASK = 1
 
     operator fun invoke(taskId: String): TaskDetailFragment {
-      return TaskDetailFragment().also { fragment ->
-        fragment.arguments = Bundle().also { arguments ->
-          arguments.putString(ARGUMENT_TASK_ID, taskId)
+      return TaskDetailFragment().apply {
+        arguments = Bundle().apply {
+          putString(ARGUMENT_TASK_ID, taskId)
         }
       }
     }
