@@ -92,6 +92,10 @@ class TasksViewModel(
         // the previous cached one and the latest Result emitted from the action processor.
         // The Scan operator is used here for the caching.
         .scan(TasksViewState.idle(), reducer)
+        // When a reducer just emits previousState, there's no reason to call render. In fact,
+        // redrawing the UI in cases like this can cause jank (e.g. messing up snackbar animations
+        // by showing the same snackbar twice in rapid succession).
+        .distinctUntilChanged()
         // Emit the last one event of the stream on subscription
         // Useful when a View rebinds to the ViewModel after rotation.
         .replay(1)
