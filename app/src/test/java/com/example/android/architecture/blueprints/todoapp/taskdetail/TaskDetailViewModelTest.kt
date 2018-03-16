@@ -90,7 +90,7 @@ class TaskDetailViewModelTest {
     // Then a task is saved in the repository and the view updates
     verify(tasksRepository).deleteTask(any<String>())
     // saved to the model
-    testObserver.assertValueAt(2, TaskDetailViewState::taskDeleted)
+    testObserver.assertValueAt(1, TaskDetailViewState::taskDeleted)
   }
 
   @Test
@@ -104,7 +104,7 @@ class TaskDetailViewModelTest {
     // Then a task is saved in the repository and the view updates
     verify(tasksRepository).deleteTask(any())
     // saved to the model
-    testObserver.assertValueAt(2) { (_, _, _, _, error) -> error != null }
+    testObserver.assertValueAt(1) { (_, _, _, _, error) -> error != null }
   }
 
   @Test
@@ -122,7 +122,7 @@ class TaskDetailViewModelTest {
     // Then a task is saved in the repository and the view updates
     verify(tasksRepository).completeTask(any<String>())
     verify(tasksRepository).getTask(any())
-    testObserver.assertValueAt(2, TaskDetailViewState::taskComplete)
+    testObserver.assertValueAt(1, TaskDetailViewState::taskComplete)
   }
 
   @Test
@@ -134,7 +134,7 @@ class TaskDetailViewModelTest {
     // When an existing task saving intent is emitted by the view
     taskDetailViewModel.processIntents(Observable.just(CompleteTaskIntent("1")))
 
-    testObserver.assertValueAt(2) { (_, _, _, _, error) -> error != null }
+    testObserver.assertValueAt(1) { (_, _, _, _, error) -> error != null }
   }
 
   @Test
@@ -152,7 +152,7 @@ class TaskDetailViewModelTest {
     // Then a task is saved in the repository and the view updates
     verify(tasksRepository).activateTask(any<String>())
     verify(tasksRepository).getTask(any())
-    testObserver.assertValueAt(2, TaskDetailViewState::taskActivated)
+    testObserver.assertValueAt(1, TaskDetailViewState::taskActivated)
   }
 
   @Test
@@ -164,6 +164,6 @@ class TaskDetailViewModelTest {
     // When an existing task saving intent is emitted by the view
     taskDetailViewModel.processIntents(Observable.just(ActivateTaskIntent("1")))
 
-    testObserver.assertValueAt(2) { (_, _, _, _, error) -> error != null }
+    testObserver.assertValueAt(1) { (_, _, _, _, error) -> error != null }
   }
 }

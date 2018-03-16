@@ -121,7 +121,7 @@ class AddEditTaskViewModelTest {
 
     // Then the task repository is queried and a stated is emitted back
     verify(tasksRepository).getTask(eq(testTask.id))
-    testObserver.assertValueAt(2) { (_, _, title, description) ->
+    testObserver.assertValueAt(1) { (_, _, title, description) ->
       title == testTask.title && description == testTask.description
     }
   }
@@ -139,7 +139,7 @@ class AddEditTaskViewModelTest {
 
     // Then the task repository is queried and a stated is emitted back
     verify(tasksRepository).getTask(eq(id))
-    testObserver.assertValueAt(2) { (_, _, title, description, error) ->
+    testObserver.assertValueAt(1) { (_, _, title, description, error) ->
       error != null && title.isEmpty() && description.isEmpty()
     }
   }
