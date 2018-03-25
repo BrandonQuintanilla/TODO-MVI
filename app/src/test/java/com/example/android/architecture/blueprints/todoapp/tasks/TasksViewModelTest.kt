@@ -119,7 +119,7 @@ class TasksViewModelTest {
     // Then repository is called and task marked complete state is emitted
     verify(tasksRepository).completeTask(task)
     verify(tasksRepository).getTasks()
-    testObserver.assertValueAt(2, TasksViewState::taskComplete)
+    testObserver.assertValueAt(1, TasksViewState::taskComplete)
   }
 
   @Test
@@ -136,7 +136,7 @@ class TasksViewModelTest {
     // Then repository is called and task marked active state is emitted
     verify(tasksRepository).activateTask(task)
     verify(tasksRepository).getTasks()
-    testObserver.assertValueAt(2, TasksViewState::taskActivated)
+    testObserver.assertValueAt(1, TasksViewState::taskActivated)
   }
 
   @Test
