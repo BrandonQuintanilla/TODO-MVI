@@ -48,6 +48,9 @@ import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksFilterType.COMPLETED_TASKS
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksIntent.ActivateTaskIntent
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksIntent.CompleteTaskIntent
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.COMPLETE_TASKS_CLEARED
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.TASK_ACTIVATED
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.TASK_COMPLETE
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory
 import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout
 import io.reactivex.Observable
@@ -69,7 +72,8 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
   private lateinit var filteringLabelView: TextView
   private lateinit var swipeRefreshLayout: ScrollChildSwipeRefreshLayout
   private val refreshIntentPublisher = PublishSubject.create<TasksIntent.RefreshIntent>()
-  private val clearCompletedTaskIntentPublisher = PublishSubject.create<TasksIntent.ClearCompletedTasksIntent>()
+  private val clearCompletedTaskIntentPublisher =
+    PublishSubject.create<TasksIntent.ClearCompletedTasksIntent>()
   private val changeFilterIntentPublisher = PublishSubject.create<TasksIntent.ChangeFilterIntent>()
   // Used to manage the data flow lifecycle and avoid memory leak.
   private val disposables = CompositeDisposable()
@@ -84,7 +88,10 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
     listAdapter = TasksAdapter(ArrayList(0))
   }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+  override fun onViewCreated(
+    view: View,
+    savedInstanceState: Bundle?
+  ) {
     super.onViewCreated(view, savedInstanceState)
 
     bind()
@@ -119,7 +126,11 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
     disposables.dispose()
   }
 
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+  override fun onActivityResult(
+    requestCode: Int,
+    resultCode: Int,
+    data: Intent?
+  ) {
     // If a task was successfully added, show snackbar
     if (AddEditTaskActivity.REQUEST_ADD_TASK == requestCode && Activity.RESULT_OK == resultCode) {
       showSuccessfullySavedMessage()
@@ -127,9 +138,9 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
   }
 
   override fun onCreateView(
-      inflater: LayoutInflater,
-      container: ViewGroup?,
-      savedInstanceState: Bundle?
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?
   ): View? {
     val root = inflater.inflate(R.layout.tasks_frag, container, false)
 
@@ -157,7 +168,8 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
     swipeRefreshLayout.setColorSchemeColors(
         ContextCompat.getColor(activity!!, R.color.colorPrimary),
         ContextCompat.getColor(activity!!, R.color.colorAccent),
-        ContextCompat.getColor(activity!!, R.color.colorPrimaryDark))
+        ContextCompat.getColor(activity!!, R.color.colorPrimaryDark)
+    )
     // Set the scrolling view in the custom SwipeRefreshLayout.
     swipeRefreshLayout.setScrollUpChild(listView)
 
@@ -176,7 +188,10 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
     return true
   }
 
-  override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+  override fun onCreateOptionsMenu(
+    menu: Menu?,
+    inflater: MenuInflater?
+  ) {
     inflater!!.inflate(R.menu.tasks_fragment_menu, menu)
     super.onCreateOptionsMenu(menu, inflater)
   }
@@ -186,8 +201,11 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
         initialIntent(),
         refreshIntent(),
         adapterIntents(),
-        clearCompletedTaskIntent()).mergeWith(
-        changeFilterIntent())
+        clearCompletedTaskIntent()
+    )
+        .mergeWith(
+            changeFilterIntent()
+        )
   }
 
   override fun render(state: TasksViewState) {
@@ -197,11 +215,13 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
       return
     }
 
-    if (state.taskActivated) showMessage(getString(R.string.task_marked_active))
-
-    if (state.taskComplete) showMessage(getString(R.string.task_marked_complete))
-
-    if (state.completedTasksCleared) showMessage(getString(R.string.completed_tasks_cleared))
+    when (state.uiNotification) {
+      TASK_COMPLETE -> showMessage(getString(R.string.task_marked_complete))
+      TASK_ACTIVATED -> showMessage(getString(R.string.task_marked_active))
+      COMPLETE_TASKS_CLEARED -> showMessage(getString(R.string.completed_tasks_cleared))
+      null -> {
+      }
+    }
 
     if (state.tasks.isEmpty()) {
       when (state.tasksFilterType) {
@@ -229,9 +249,11 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
     popup.setOnMenuItemClickListener { item ->
       when (item.itemId) {
         R.id.active -> changeFilterIntentPublisher.onNext(
-            TasksIntent.ChangeFilterIntent(ACTIVE_TASKS))
+            TasksIntent.ChangeFilterIntent(ACTIVE_TASKS)
+        )
         R.id.completed -> changeFilterIntentPublisher.onNext(
-            TasksIntent.ChangeFilterIntent(COMPLETED_TASKS))
+            TasksIntent.ChangeFilterIntent(COMPLETED_TASKS)
+        )
         else -> changeFilterIntentPublisher.onNext(TasksIntent.ChangeFilterIntent(ALL_TASKS))
       }
       true
@@ -242,7 +264,8 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
 
   private fun showMessage(message: String) {
     val view = view ?: return
-    Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+    Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+        .show()
   }
 
   /**
@@ -280,25 +303,35 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
   }
 
   private fun showNoActiveTasks() {
-    showNoTasksViews(resources.getString(R.string.no_tasks_active),
-        R.drawable.ic_check_circle_24dp, false)
+    showNoTasksViews(
+        resources.getString(R.string.no_tasks_active),
+        R.drawable.ic_check_circle_24dp, false
+    )
   }
 
   private fun showNoTasks() {
-    showNoTasksViews(resources.getString(R.string.no_tasks_all),
-        R.drawable.ic_assignment_turned_in_24dp, true)
+    showNoTasksViews(
+        resources.getString(R.string.no_tasks_all),
+        R.drawable.ic_assignment_turned_in_24dp, true
+    )
   }
 
   private fun showNoCompletedTasks() {
-    showNoTasksViews(resources.getString(R.string.no_tasks_completed),
-        R.drawable.ic_verified_user_24dp, false)
+    showNoTasksViews(
+        resources.getString(R.string.no_tasks_completed),
+        R.drawable.ic_verified_user_24dp, false
+    )
   }
 
   private fun showSuccessfullySavedMessage() {
     showMessage(getString(R.string.successfully_saved_task_message))
   }
 
-  private fun showNoTasksViews(mainText: String, iconRes: Int, showAddView: Boolean) {
+  private fun showNoTasksViews(
+    mainText: String,
+    iconRes: Int,
+    showAddView: Boolean
+  ) {
     tasksView.visibility = View.GONE
     noTasksView.visibility = View.VISIBLE
 

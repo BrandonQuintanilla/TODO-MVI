@@ -35,6 +35,9 @@ import com.example.android.architecture.blueprints.todoapp.tasks.TasksResult.Act
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksResult.ClearCompletedTasksResult
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksResult.CompleteTaskResult
 import com.example.android.architecture.blueprints.todoapp.tasks.TasksResult.LoadTasksResult
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.COMPLETE_TASKS_CLEARED
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.TASK_ACTIVATED
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.TASK_COMPLETE
 import com.example.android.architecture.blueprints.todoapp.util.notOfType
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -49,7 +52,7 @@ import io.reactivex.subjects.PublishSubject
  * actions.
  */
 class TasksViewModel(
-    private val actionProcessorHolder: TasksActionProcessorHolder
+  private val actionProcessorHolder: TasksActionProcessorHolder
 ) : ViewModel(), MviViewModel<TasksIntent, TasksViewState> {
 
   /**
@@ -146,38 +149,55 @@ class TasksViewModel(
         is CompleteTaskResult -> when (result) {
           is CompleteTaskResult.Success ->
             previousState.copy(
-                taskComplete = true,
+                uiNotification = TASK_COMPLETE,
                 tasks = filteredTasks(result.tasks, previousState.tasksFilterType)
             )
           is CompleteTaskResult.Failure -> previousState.copy(error = result.error)
           is CompleteTaskResult.InFlight -> previousState
-          is CompleteTaskResult.HideUiNotification -> previousState.copy(taskComplete = false)
+          is CompleteTaskResult.HideUiNotification ->
+            if (previousState.uiNotification == TASK_COMPLETE) {
+              previousState.copy(uiNotification = null)
+            } else {
+              previousState
+            }
         }
         is ActivateTaskResult -> when (result) {
           is ActivateTaskResult.Success ->
             previousState.copy(
-                taskActivated = true,
+                uiNotification = TASK_ACTIVATED,
                 tasks = filteredTasks(result.tasks, previousState.tasksFilterType)
             )
           is ActivateTaskResult.Failure -> previousState.copy(error = result.error)
           is ActivateTaskResult.InFlight -> previousState
-          is ActivateTaskResult.HideUiNotification -> previousState.copy(taskActivated = false)
+          is ActivateTaskResult.HideUiNotification ->
+            if (previousState.uiNotification == TASK_ACTIVATED) {
+              previousState.copy(uiNotification = null)
+            } else {
+              previousState
+            }
         }
         is ClearCompletedTasksResult -> when (result) {
           is ClearCompletedTasksResult.Success ->
             previousState.copy(
-                completedTasksCleared = true,
+                uiNotification = COMPLETE_TASKS_CLEARED,
                 tasks = filteredTasks(result.tasks, previousState.tasksFilterType)
             )
           is ClearCompletedTasksResult.Failure -> previousState.copy(error = result.error)
           is ClearCompletedTasksResult.InFlight -> previousState
           is ClearCompletedTasksResult.HideUiNotification ->
-            previousState.copy(completedTasksCleared = false)
+            if (previousState.uiNotification == COMPLETE_TASKS_CLEARED) {
+              previousState.copy(uiNotification = null)
+            } else {
+              previousState
+            }
         }
       }
     }
 
-    private fun filteredTasks(tasks: List<Task>, filterType: TasksFilterType): List<Task> {
+    private fun filteredTasks(
+      tasks: List<Task>,
+      filterType: TasksFilterType
+    ): List<Task> {
       return when (filterType) {
         ALL_TASKS -> tasks
         ACTIVE_TASKS -> tasks.filter(Task::active)

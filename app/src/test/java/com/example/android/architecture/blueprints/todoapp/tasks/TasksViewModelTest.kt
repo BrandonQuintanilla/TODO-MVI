@@ -18,6 +18,8 @@ package com.example.android.architecture.blueprints.todoapp.tasks
 
 import com.example.android.architecture.blueprints.todoapp.data.Task
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.TASK_ACTIVATED
+import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewState.UiNotification.TASK_COMPLETE
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.ImmediateSchedulerProvider
 import com.nhaarman.mockito_kotlin.any
@@ -59,9 +61,11 @@ class TasksViewModelTest {
     tasks = listOf(
         Task(title = "Title1", description = "Description1", completed = false),
         Task(title = "Title2", description = "Description2", completed = true),
-        Task(title = "Title3", description = "Description3", completed = true))
+        Task(title = "Title3", description = "Description3", completed = true)
+    )
 
-    testObserver = tasksViewModel.states().test()
+    testObserver = tasksViewModel.states()
+        .test()
   }
 
   @Test
@@ -83,7 +87,8 @@ class TasksViewModelTest {
     `when`(tasksRepository.getTasks(any())).thenReturn(Single.just(tasks))
     // When loading of Tasks is initiated
     tasksViewModel.processIntents(
-        Observable.just(TasksIntent.ChangeFilterIntent(TasksFilterType.ACTIVE_TASKS)))
+        Observable.just(TasksIntent.ChangeFilterIntent(TasksFilterType.ACTIVE_TASKS))
+    )
 
     // Then progress indicator state is emitted
     testObserver.assertValueAt(1, TasksViewState::isLoading)
@@ -97,7 +102,8 @@ class TasksViewModelTest {
     `when`(tasksRepository.getTasks(any())).thenReturn(Single.just(tasks))
     // When loading of Tasks is requested
     tasksViewModel.processIntents(
-        Observable.just(TasksIntent.ChangeFilterIntent(TasksFilterType.COMPLETED_TASKS)))
+        Observable.just(TasksIntent.ChangeFilterIntent(TasksFilterType.COMPLETED_TASKS))
+    )
 
     // Then progress indicator state is emitted
     testObserver.assertValueAt(1, TasksViewState::isLoading)
@@ -119,7 +125,7 @@ class TasksViewModelTest {
     // Then repository is called and task marked complete state is emitted
     verify(tasksRepository).completeTask(task)
     verify(tasksRepository).getTasks()
-    testObserver.assertValueAt(1, TasksViewState::taskComplete)
+    testObserver.assertValueAt(1) { it.uiNotification == TASK_COMPLETE }
   }
 
   @Test
@@ -136,7 +142,7 @@ class TasksViewModelTest {
     // Then repository is called and task marked active state is emitted
     verify(tasksRepository).activateTask(task)
     verify(tasksRepository).getTasks()
-    testObserver.assertValueAt(1, TasksViewState::taskActivated)
+    testObserver.assertValueAt(1) { it.uiNotification == TASK_ACTIVATED }
   }
 
   @Test

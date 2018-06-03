@@ -40,6 +40,9 @@ import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewModel
 import com.example.android.architecture.blueprints.todoapp.mvibase.MviViewState
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailIntent.ActivateTaskIntent
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailIntent.CompleteTaskIntent
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_ACTIVATED
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_COMPLETE
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_DELETED
 import com.example.android.architecture.blueprints.todoapp.util.ToDoViewModelFactory
 import com.jakewharton.rxbinding2.view.RxView
 import io.reactivex.Observable
@@ -158,18 +161,13 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
 
     showActive(state.active)
 
-    if (state.taskComplete) {
-      showTaskMarkedComplete()
+    when (state.uiNotification) {
+      TASK_COMPLETE -> showTaskMarkedComplete()
+      TASK_ACTIVATED -> showTaskMarkedActive()
+      TASK_DELETED -> activity!!.finish()
+      null -> {
+      }
     }
-
-    if (state.taskActivated) {
-      showTaskMarkedActive()
-    }
-
-    if (state.taskDeleted) {
-      activity!!.finish()
-    }
-
   }
 
   override fun onOptionsItemSelected(item: MenuItem?): Boolean {
