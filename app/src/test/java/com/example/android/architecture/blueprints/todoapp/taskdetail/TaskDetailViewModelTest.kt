@@ -6,6 +6,9 @@ import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetail
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailIntent.CompleteTaskIntent
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailIntent.DeleteTask
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailIntent.InitialIntent
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_ACTIVATED
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_COMPLETE
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_DELETED
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.BaseSchedulerProvider
 import com.example.android.architecture.blueprints.todoapp.util.schedulers.ImmediateSchedulerProvider
 import com.nhaarman.mockito_kotlin.any
@@ -44,9 +47,11 @@ class TaskDetailViewModelTest {
 
     // Get a reference to the class under test
     taskDetailViewModel = TaskDetailViewModel(
-        TaskDetailActionProcessorHolder(tasksRepository, schedulerProvider))
+        TaskDetailActionProcessorHolder(tasksRepository, schedulerProvider)
+    )
 
-    testObserver = taskDetailViewModel.states().test()
+    testObserver = taskDetailViewModel.states()
+        .test()
   }
 
   @Test
@@ -90,7 +95,7 @@ class TaskDetailViewModelTest {
     // Then a task is saved in the repository and the view updates
     verify(tasksRepository).deleteTask(any<String>())
     // saved to the model
-    testObserver.assertValueAt(1, TaskDetailViewState::taskDeleted)
+    testObserver.assertValueAt(1) { it.uiNotification == TASK_DELETED }
   }
 
   @Test
@@ -111,7 +116,8 @@ class TaskDetailViewModelTest {
   fun completeTask_marksTaskAsComplete_showsSuccessMessageUi() {
     val task = Task(
         title = "Complete Requested",
-        description = "For this task")
+        description = "For this task"
+    )
 
     `when`(tasksRepository.completeTask(any<String>())).thenReturn(Completable.complete())
     `when`(tasksRepository.getTask(any())).thenReturn(Single.just(task))
@@ -122,7 +128,7 @@ class TaskDetailViewModelTest {
     // Then a task is saved in the repository and the view updates
     verify(tasksRepository).completeTask(any<String>())
     verify(tasksRepository).getTask(any())
-    testObserver.assertValueAt(1, TaskDetailViewState::taskComplete)
+    testObserver.assertValueAt(1) { it.uiNotification == TASK_COMPLETE }
   }
 
   @Test
@@ -141,7 +147,8 @@ class TaskDetailViewModelTest {
   fun activateTask_marksTaskAsActive_showsSuccessMessageUi() {
     val task = Task(
         title = "Activate Requested",
-        description = "For this task")
+        description = "For this task"
+    )
 
     `when`(tasksRepository.activateTask(any<String>())).thenReturn(Completable.complete())
     `when`(tasksRepository.getTask(any())).thenReturn(Single.just(task))
@@ -152,7 +159,7 @@ class TaskDetailViewModelTest {
     // Then a task is saved in the repository and the view updates
     verify(tasksRepository).activateTask(any<String>())
     verify(tasksRepository).getTask(any())
-    testObserver.assertValueAt(1, TaskDetailViewState::taskActivated)
+    testObserver.assertValueAt(1) { it.uiNotification == TASK_ACTIVATED }
   }
 
   @Test

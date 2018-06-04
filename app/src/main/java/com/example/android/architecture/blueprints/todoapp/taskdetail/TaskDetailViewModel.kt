@@ -31,6 +31,9 @@ import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetail
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailResult.CompleteTaskResult
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailResult.DeleteTaskResult
 import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailResult.PopulateTaskResult
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_ACTIVATED
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_COMPLETE
+import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewState.UiNotification.TASK_DELETED
 import com.example.android.architecture.blueprints.todoapp.util.notOfType
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -44,7 +47,7 @@ import io.reactivex.subjects.PublishSubject
  * @property actionProcessorHolder Contains and executes the business logic of all emitted actions.
  */
 class TaskDetailViewModel(
-    private val actionProcessorHolder: TaskDetailActionProcessorHolder
+  private val actionProcessorHolder: TaskDetailActionProcessorHolder
 ) : ViewModel(), MviViewModel<TaskDetailIntent, TaskDetailViewState> {
 
   /**
@@ -122,48 +125,59 @@ class TaskDetailViewModel(
      * creates a new [MviViewState] by only updating the related fields.
      * This is basically like a big switch statement of all possible types for the [MviResult]
      */
-    private val reducer = BiFunction { previousState: TaskDetailViewState, result: TaskDetailResult ->
-      when (result) {
-        is PopulateTaskResult -> when (result) {
-          is PopulateTaskResult.Success -> previousState.copy(
-              loading = false,
-              title = result.task.title!!,
-              description = result.task.description!!,
-              active = result.task.active
-          )
-          is PopulateTaskResult.Failure -> previousState.copy(loading = false, error = result.error)
-          is PopulateTaskResult.InFlight -> previousState.copy(loading = true)
-        }
-        is ActivateTaskResult -> when (result) {
-          is ActivateTaskResult.Success -> previousState.copy(
-              taskActivated = true,
-              active = true
-          )
-          is ActivateTaskResult.Failure -> previousState.copy(error = result.error)
-          is ActivateTaskResult.InFlight -> previousState
-          is ActivateTaskResult.HideUiNotification -> previousState.copy(
-              taskActivated = false,
-              active = true
-          )
-        }
-        is CompleteTaskResult -> when (result) {
-          is CompleteTaskResult.Success -> previousState.copy(
-              taskComplete = true,
-              active = false
-          )
-          is CompleteTaskResult.Failure -> previousState.copy(error = result.error)
-          is CompleteTaskResult.InFlight -> previousState
-          is CompleteTaskResult.HideUiNotification -> previousState.copy(
-              taskComplete = false,
-              active = false
-          )
-        }
-        is DeleteTaskResult -> when (result) {
-          is DeleteTaskResult.Success -> previousState.copy(taskDeleted = true)
-          is DeleteTaskResult.Failure -> previousState.copy(error = result.error)
-          is DeleteTaskResult.InFlight -> previousState
+    private val reducer =
+      BiFunction { previousState: TaskDetailViewState, result: TaskDetailResult ->
+        when (result) {
+          is PopulateTaskResult -> when (result) {
+            is PopulateTaskResult.Success -> previousState.copy(
+                loading = false,
+                title = result.task.title!!,
+                description = result.task.description!!,
+                active = result.task.active
+            )
+            is PopulateTaskResult.Failure -> previousState.copy(
+                loading = false, error = result.error
+            )
+            is PopulateTaskResult.InFlight -> previousState.copy(loading = true)
+          }
+          is ActivateTaskResult -> when (result) {
+            is ActivateTaskResult.Success -> previousState.copy(
+                uiNotification = TASK_ACTIVATED,
+                active = true
+            )
+            is ActivateTaskResult.Failure -> previousState.copy(error = result.error)
+            is ActivateTaskResult.InFlight -> previousState
+            is ActivateTaskResult.HideUiNotification ->
+              if (previousState.uiNotification == TASK_ACTIVATED) {
+                previousState.copy(
+                    uiNotification = null
+                )
+              } else {
+                previousState
+              }
+          }
+          is CompleteTaskResult -> when (result) {
+            is CompleteTaskResult.Success -> previousState.copy(
+                uiNotification = TASK_COMPLETE,
+                active = false
+            )
+            is CompleteTaskResult.Failure -> previousState.copy(error = result.error)
+            is CompleteTaskResult.InFlight -> previousState
+            is CompleteTaskResult.HideUiNotification ->
+              if (previousState.uiNotification == TASK_COMPLETE) {
+                previousState.copy(
+                    uiNotification = null
+                )
+              } else {
+                previousState
+              }
+          }
+          is DeleteTaskResult -> when (result) {
+            is DeleteTaskResult.Success -> previousState.copy(uiNotification = TASK_DELETED)
+            is DeleteTaskResult.Failure -> previousState.copy(error = result.error)
+            is DeleteTaskResult.InFlight -> previousState
+          }
         }
       }
-    }
   }
 }
