@@ -87,8 +87,8 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
     return root
   }
 
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
+  override fun onStart() {
+    super.onStart()
 
     bind()
   }
@@ -110,9 +110,9 @@ class TaskDetailFragment : Fragment(), MviView<TaskDetailIntent, TaskDetailViewS
         .subscribe { showEditTask(argumentTaskId) }
   }
 
-  override fun onDestroy() {
-    super.onDestroy()
-    disposables.dispose()
+  override fun onStop() {
+    super.onStop()
+    disposables.clear()
   }
 
   override fun intents(): Observable<TaskDetailIntent> {
