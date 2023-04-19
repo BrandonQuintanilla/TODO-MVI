@@ -161,7 +161,8 @@ class TasksActionProcessorHolder(
         actions.publish { shared ->
           Observable.merge(
               // Match LoadTasksAction to loadTasksProcessor
-              shared.ofType(TasksAction.LoadTasksAction::class.java).compose(loadTasksProcessor),
+              shared.ofType(TasksAction.LoadTasksAction::class.java)
+                  .compose(loadTasksProcessor),
               // Match ActivateTaskAction to populateTaskProcessor
               shared.ofType(TasksAction.ActivateTaskAction::class.java)
                   .compose(activateTaskProcessor),

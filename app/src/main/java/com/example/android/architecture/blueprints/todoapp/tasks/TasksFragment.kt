@@ -202,8 +202,7 @@ class TasksFragment : Fragment(), MviView<TasksIntent, TasksViewState> {
         refreshIntent(),
         adapterIntents(),
         clearCompletedTaskIntent()
-    )
-        .mergeWith(
+    ).mergeWith(
             changeFilterIntent()
         )
   }
